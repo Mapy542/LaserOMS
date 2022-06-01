@@ -25,6 +25,3 @@ os.system("cp blanktext.txt ../Pricing_List_Link.txt")
 
 #install tkinter the base for gui zero
 os.system("sudo apt install python3-tk")
-
-#make the item downloader executable
-os.system("sudo chmod +x ./Downloads.sh")

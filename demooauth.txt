@@ -1,0 +1,1 @@
+ oauth tolken,oauth secret,shopid,clientkey,client secret, KEEP COMMA SEPARATED

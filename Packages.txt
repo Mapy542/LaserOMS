@@ -1,0 +1,1 @@
+Pillow,guizero,usps-api,etsy2,pyperclip,tk

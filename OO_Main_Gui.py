@@ -58,7 +58,13 @@ def loadTasks():
     print(coupled_orders)
 
     coupled_orders.sort(key=lambda x: x[1])
-    tasks = Order_Manipulator.LoadTasks()
+    
+    indivdualtasks = Order_Manipulator.LoadTasks()
+    if indivdualtasks == None:
+        tasks = []
+    else:
+        tasks = indivdualtasks
+        
     #inject priority labels
     tasks.append(Task("Low Priority", 25))
     tasks.append(Task("Medium Priority", 50))

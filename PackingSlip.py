@@ -35,7 +35,7 @@ def GeneratePackingSlip(order):
 
     #Order Number (100 between)
     modd.text((20,1100), 'Order Number:', font=normal, fill=(text_color))
-    modd.text((20,1150), order.getOrderNumber(), font=normal, fill=(text_color))
+    modd.text((20,1150), str(order.getOrderNumber()), font=normal, fill=(text_color))
 
     #Order Date (100 between)
     modd.text((20,1250), 'Order Date:', font=normal, fill=(text_color))

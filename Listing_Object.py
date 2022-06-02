@@ -1,11 +1,11 @@
 from Bill_Of_Material_Object import BOM
-import math
+import math, Pricing_Styles_Handler
 
 #costs are in cents for python int handling
-
+#weight is in lbs. go merica
 
 class Listing:
-    def __init__(self, name, product_cost, shipping_cost, base_price, revenue, materials_discription, materials_cost, worktime, machine_depreciation, packagin_cost, weight, hourly_wage, BOM ):
+    def __init__(self, name="", product_cost = 0, shipping_cost = 0, base_price = 0, revenue = 0, materials_discription = "", materials_cost = "", worktime = 0, machine_depreciation = 0, packagin_cost = 0, weight = 0, hourly_wage = 0, BOM = BOM(), otherpricestyles = []):
         self.name = name
         self.product_cost = product_cost
         self.shipping_cost = shipping_cost
@@ -19,88 +19,84 @@ class Listing:
         self.weight = weight
         self.hourly_wage = hourly_wage
         self.BOM = BOM
+        self.otherpricestyles = otherpricestyles
 
 
     def __str__(self):
         return f"{self.name} - {self.base_price}"
 
-    def get_name(self):
+    def getName(self):
         return self.name
 
-    def get_product_cost(self):
+    def getProductCost(self):
         return self.product_cost
 
-    def get_shipping_cost(self):
+    def getShippingCost(self):
         return self.shipping_cost
 
-    def get_base_price(self):
+    def getBasePrice(self):
         return self.base_price
 
-    def get_revenue(self):
+    def getRevenue(self):
         return self.revenue
 
-    def get_materials_discription(self):
+    def getMaterialsDiscription(self):
         return self.materials_discription
 
-    def get_materials_cost(self):
+    def getMaterialsCost(self):
         return self.materials_cost
 
-    def get_worktime(self):
+    def getWorktime(self):
         return self.worktime
 
-    def get_machine_depreciation(self):
+    def getMachineDepreciation(self):
         return self.machine_depreciation
 
-    def get_packagin_cost(self):
+    def getPackagingCost(self):
         return self.packagin_cost
 
-    def get_weight(self):
+    def getWeight(self):
         return self.weight
 
-    def get_hourly_wage(self):
+    def getHourlyWage(self):
         return self.hourly_wage
 
-    def get_BOM(self):
+    def getBOM(self):
         return self.BOM
 
-    def set_name(self, name):
+    def setName(self, name):
         self.name = name
 
-    def set_product_cost(self, product_cost):
-        self.product_cost = product_cost
-
-    def set_shipping_cost(self, shipping_cost):
-        self.shipping_cost = shipping_cost
-
-    def set_base_price(self, base_price):
-        self.base_price = base_price
-
-    def set_revenue(self, revenue):
-        self.revenue = revenue
-
-    def set_materials_discription(self, materials_discription):
+    def setMaterialsDiscription(self, materials_discription):
         self.materials_discription = materials_discription
 
-    def set_materials_cost(self, materials_cost):
+    def setMaterialsCost(self, materials_cost):
         self.materials_cost = materials_cost
 
-    def set_worktime(self, worktime):
+    def setWorktime(self, worktime):
         self.worktime = worktime
 
-    def set_machine_depreciation(self, machine_depreciation):
+    def setMachineDepreciation(self, machine_depreciation):
         self.machine_depreciation = machine_depreciation
 
-    def set_packagin_cost(self, packagin_cost):
+    def setPackagingCost(self, packagin_cost):
         self.packagin_cost = packagin_cost
 
-    def set_weight(self, weight):
+    def setWeight(self, weight):
         self.weight = weight
 
-    def set_hourly_wage(self, hourly_wage):
+    def setHourlyWage(self, hourly_wage):
         self.hourly_wage = hourly_wage
 
-    def set_BOM(self, BOM):
+    def setBOM(self, BOM):
         self.BOM = BOM
+
+    def getOtherPriceStyles(self):
+        return self.otherpricestyles
+
+    def recalculateOtherPriceStyles(self):
+        self.otherpricestyles = Pricing_Styles_Handler.Recalculate(self.base_price)
+        return self.otherpricestyles
 
     def recalculateProductCost(self):
         self.product_cost = self.machine_depreciation + self.materials_cost + self.worktime * self.hourly_wage
@@ -117,3 +113,11 @@ class Listing:
     def recalculateRevenue(self):
         self.revenue = self.base_price - self.product_cost - self.shipping_cost
         return self.revenue
+
+    def recalculateAllCosts(self):
+        self.recalculateProductCost()
+        self.recalculateShippingCost()
+        self.recalculateBasePrice()
+        self.recalculateRevenue()
+        self.recalculateOtherPriceStyles()
+        return self.product_cost, self.shipping_cost, self.base_price, self.revenue

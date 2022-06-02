@@ -285,5 +285,78 @@ def LoadBOM(bomname):
             return newbom
     except OSError:
         print("Failed To Load BOM")
-        
 
+def SaveListing(listing):
+    listing.recalculateAllCosts()
+    SaveBOM(listing.getBOM())
+    try:
+        with open("../Listings/" + str(listing.getName()) + ".lst", "w") as f:
+            f.write("Listing_Name:" + str(listing.getName()) + ",")
+            f.write("Listing_Material_Discription:" + str(listing.getMaterialDiscription()) + ",")
+            f.write("Listing_Material_Cost:" + str(listing.getMaterialCost()) + ",")
+            f.write("Listing_Worktime:" + str(listing.getWorkTime()) + ",")
+            f.write("Listing_Machine_Daprication:" + str(listing.getMachineDapreciation()) + ",")
+            f.write("Listing_Packaging_Cost:" + str(listing.getPackagingCost()) + ",")
+            f.write("Listing_Weight:" + str(listing.getWeight()) + ",")
+            f.write("Listing_BOM_Name:" + str(listing.getBOM().getName()) + ",")
+            f.write("Listing_Product_Cost:" + str(listing.getProductCost()) + ",")
+            f.write("Listing_Shipping_Cost:" + str(listing.getShippingCost()) + ",")
+            f.write("Listing_Base_Price:" + str(listing.getBasePrice()) + ",")
+            f.write("Listing_Revenue:" + str(listing.getRevenue()) + ",")
+            pricingstyles = listing.getPricingStyles()
+            for i in range(len(pricingstyles)):
+                f.write("Listing_Pricing_Style:" + str(pricingstyles[i][0]) + ":" + str(pricingstyles[i][1]) + ",")
+            f.close()
+            return True
+    except OSError:
+        print("Failed To Save Listing")
+        return False
+
+def LoadListing(listingname):
+    try:
+        with open("../Listings/" + str(listingname) + ".lst", "r") as f:
+            listing = f.read().strip().split(',')
+            f.close()
+            pricingstyles = []
+            for i in range(len(listing)):
+                listing[i] = listing[i].split(':')
+                if listing[i][0] == 'Listing_Name':
+                    listing_name = listing[i][1]
+                if listing[i][0] == 'Listing_Material_Discription':
+                    material_discription = listing[i][1]
+                if listing[i][0] == 'Listing_Material_Cost':
+                    material_cost = int(listing[i][1])
+                if listing[i][0] == 'Listing_Worktime':
+                    worktime = int(listing[i][1])
+                if listing[i][0] == 'Listing_Machine_Daprication':
+                    machine_dapreciation = float(listing[i][1])
+                if listing[i][0] == 'Listing_Packaging_Cost':
+                    packaging_cost = int(listing[i][1])
+                if listing[i][0] == 'Listing_Weight':
+                    weight = int(listing[i][1])
+                if listing[i][0] == 'Listing_BOM_Name':
+                    bom_name = listing[i][1]
+                if listing[i][0] == 'Listing_Product_Cost':
+                    product_cost = int(listing[i][1])
+                if listing[i][0] == 'Listing_Shipping_Cost':
+                    shipping_cost = int(listing[i][1])
+                if listing[i][0] == 'Listing_Base_Price':
+                    base_price = int(listing[i][1])
+                if listing[i][0] == 'Listing_Revenue':
+                    revenue = int(listing[i][1])
+                if listing[i][0] == 'Listing_Pricing_Style':
+                    pricingstyles.append(listing[i][1].split(":"))
+
+            if bom_name != "":
+                bom = LoadBOM(bom_name)
+            
+            newlisting = Listing(name = listing_name, material_discription = material_discription, material_cost = material_cost, worktime = worktime, machine_dapreciation = machine_dapreciation, packaging_cost = packaging_cost, weight = weight, bom = bom, product_cost = product_cost, shipping_cost = shipping_cost, base_price = base_price, revenue = revenue)
+            return newlisting
+    except OSError:
+        print("Failed To Load Listing")
+
+def BulkLoadListings(listingnames):
+    listings = []
+    for i in range(len(listingnames)):
+        listings.append(LoadListing(listingnames[i]))
+    return listings

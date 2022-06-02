@@ -10,9 +10,10 @@ packages = recs.split(',')
 for i in range(len(packages)):
     os.system("pip install --upgrade " + str(packages[i]))
 
-#where all orders are stored and yearly expences are stored.
+#where all orders, listing data, and yearly expences are stored.
 os.system("mkdir ../Orders")
 os.system("mkdir ../Expences")
+os.system("mkdir ../Listings")
 
 #steup data for etsy api in this file
 os.system("cp demooauth.txt ../oauth.txt")

@@ -1,11 +1,11 @@
 import os, tkinter
 from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox
-from datetime import datetime, date, timedelta
+from datetime import datetime
 from New_Order_Window import NewOrder
-from New_Expence_Window import Expence
 from Task_Object import Task
 from Update_Prices_Window import SyncSheetItems
-import Order_Manipulator, Cache_Handler, PackingSlip, ShippingHandler, Finance_Window, Details, New_Task_Window, New_Expence_Window
+import Order_Manipulator, Cache_Handler, PackingSlip, ShippingHandler, Finance_Window, Details, New_Task_Window 
+import New_Expence_Window, Listing_Database_Window
 from Order_Object import Order
 from Item_Object import Item
 
@@ -202,6 +202,9 @@ def new_task():
     New_Task_Window.NewTask(app)
     updatescreen()
 
+def view_listings():
+    Listing_Database_Window.ListingDisplay(app)
+
 
 app = App(title="Laser OMS", layout="grid", width=680,height=600)
 app.tk.call('wm', 'iconphoto', app.tk._w, tkinter.PhotoImage(file='./Icon.png'))
@@ -227,5 +230,7 @@ print_button = PushButton(app,text='Print Slips',command=print_slips,grid=[1,8,1
 
 pricing_button = PushButton(app,text='Update Pricing',command=SyncSheetItems,grid=[0,9,1,1])
 #stats_button = PushButton(app,text='Financial Statistics',command=stats_run,grid=[1,9,1,1])
+#listingdataview_button = PushButton(app,text='Listing Database',command=view_listings,grid=[2,9,1,1])
+
 
 app.display()

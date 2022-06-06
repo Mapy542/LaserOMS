@@ -2,8 +2,7 @@
 Lightweight python based local order/buisness management system with Etsy integration
 
 Basis:
-
-    This system is intended to be run on multiple linux computers and all files are accessable via NAS device in a samba share.
+This system is intended to be run on multiple linux computers and all files are accessable via NAS device in a samba share.
 
 Features:
 
@@ -26,7 +25,5 @@ Install and Run:
 
 Things to DO:
 
-    Make items more scaleable(ie not just seven static price styles)
     Employee wages tracking 
-    BOM generator
     Scaleable items for order

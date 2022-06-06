@@ -4,6 +4,11 @@ import math, Pricing_Styles_Handler
 #costs are in cents for python int handling
 #weight is in lbs. go merica
 
+#MACROS TODO
+# [M] = insert foot board price of maple
+# use operations in cost
+#example: [M]*.6+[BW]*.2 + 3  //  .6 board feet of maple plus .2 board feet of walnut plus 3 addditional cost
+
 class Listing:
     def __init__(self, name="", product_cost = 0, shipping_cost = 0, base_price = 0, revenue = 0, materials_discription = "", materials_cost = "", worktime = 0, machine_depreciation = 0, packagin_cost = 0, weight = 0, hourly_wage = 0, BOM = BOM(), otherpricestyles = []):
         self.name = name

@@ -3,7 +3,7 @@ from datetime import datetime
 import difflib as dl
 from Item_Object import Item
 from Order_Object import Order
-import Order_Manipulator, Cache_Handler, PackingSlip#, ShippingHandler
+import Order_Manipulator, Order_Cache_Handler, PackingSlip#, ShippingHandler
 
 def price_update():
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
@@ -83,9 +83,9 @@ def export():
     order.changeOrderStatus("Open")
 
     Order_Manipulator.SaveOrder(order)
-    Cache_Handler.AddOpenOrder(order)
-    Cache_Handler.AddYearOrder(order)
-    Cache_Handler.AddRevenueOrder(order)
+    Order_Cache_Handler.AddOpenOrder(order)
+    Order_Cache_Handler.AddYearOrder(order)
+    Order_Cache_Handler.AddRevenueOrder(order)
     
     if choose_export.value == 1:
         PackingSlip.GeneratePackingSlip(order)

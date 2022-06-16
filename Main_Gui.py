@@ -3,8 +3,8 @@ from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox
 from datetime import datetime
 from New_Order_Window import NewOrder
 from Task_Object import Task
-from Update_Prices_Window import SyncSheetItems
-import Order_Manipulator, Cache_Handler, PackingSlip, ShippingHandler, Finance_Window, Details, New_Task_Window 
+from Update_Item_Database import SyncSheetItems
+import Order_Manipulator, Order_Cache_Handler, PackingSlip, ShippingHandler, Finance_Window, Details, New_Task_Window 
 import New_Expence_Window, Listing_Database_Window
 from Order_Object import Order
 from Item_Object import Item
@@ -17,7 +17,7 @@ def new_order():
     updatescreen()
 
 def loadUnfufilledOrders():
-    openorders = Order_Manipulator.BulkLoadOrder(Cache_Handler.GetOpenOrders())
+    openorders = Order_Manipulator.BulkLoadOrder(Order_Cache_Handler.GetOpenOrders())
     return openorders
 
 def displayOrders(orders):
@@ -37,7 +37,7 @@ def showOpenOrders():
     welcome_message.value = "Welcome to Laser OMS, " + str(len(openorders)) + ' unfufilled orders.'
 
 def loadTasks():
-    openorders = Order_Manipulator.BulkLoadOrder(Cache_Handler.GetOpenOrders())
+    openorders = Order_Manipulator.BulkLoadOrder(Order_Cache_Handler.GetOpenOrders())
     print(openorders)
     orderpriority = []
     for i in range(len(openorders)):
@@ -124,11 +124,11 @@ def display_tasks():
     listbox.clear()
     for i in task_list:
         listbox.append(i)
-    open_orders = Cache_Handler.GetOpenOrders()
+    open_orders = Order_Cache_Handler.GetOpenOrders()
     welcome_message.value = "Welcome to Laser OMS, " + str(len(open_orders)) + ' unfufilled orders.'
 
 def display_all_orders():
-    orders = Order_Manipulator.BulkLoadOrder(Cache_Handler.GetAllOrders())
+    orders = Order_Manipulator.BulkLoadOrder(Order_Cache_Handler.GetAllOrders())
     visualdata = displayOrders(orders)
     listbox.clear()
     for i in visualdata:
@@ -166,7 +166,7 @@ def mark_fufilled():
     #deal with orders
     for single_order in selected_orders:
         trimmed = single_order.split(',')[0]
-        Cache_Handler.RemoveOpenOrder(trimmed)
+        Order_Cache_Handler.RemoveOpenOrder(trimmed)
         order = Order_Manipulator.LoadOrder(trimmed)
         order.changeOrderStatus('Fulfilled')
         Order_Manipulator.SaveOrder(order)

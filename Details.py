@@ -4,7 +4,7 @@ import difflib as dl
 from Item_Object import Item
 from Order_Object import Order
 from Task_Object import Task
-import Order_Manipulator, Cache_Handler, PackingSlip#, ShippingHandler
+import Order_Manipulator, Order_Cache_Handler, PackingSlip#, ShippingHandler
 
 def price_update():
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5

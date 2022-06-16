@@ -21,8 +21,10 @@ os.system("cp demooauth.txt ../oauth.txt")
 #create default first order number and will be 123
 os.system("cp default_order.txt ../Last_Order.txt")
 
-#create default exmple for extra pricing style
-os.system("cp example_style.txt ../Pricing_Styles.txt")
+#create item database file
+os.system("cp blanktext.txt ../Pricing_Master_List.txt")
 
 #install tkinter the base for gui zero
+#sudo may be required to install tkinter
+print("Installing Tkinter with APT")
 os.system("sudo apt install python3-tk")

@@ -1,7 +1,7 @@
 from Listing_Object import Listing
 from Bill_Of_Material_Object import BOM
 
-def PriceDelta(products, product_base_prices, product_revenue, product_profit, other_pricing_styles):
+def PriceDelta(products, product_base_prices, product_revenue, product_profit, other_pricing_styles): #handles pricing changes
     #get current list to compare to
     pricinglist = Load_Pricing_List()
 
@@ -17,11 +17,16 @@ def PriceDelta(products, product_base_prices, product_revenue, product_profit, o
     Save_Pricing_List(pricinglist2)
 
     for i in range(len(pricinglist)):
+        #detect item by item changes
         if pricinglist[i] not in pricinglist2:
+            #change price of listing data when detected
             print(pricinglist[i] + " delta found")
             oldlisting = LoadListing(pricinglist[i].split(',')[0])
             oldlisting.setOtherPriceStyles(pricinglist[i].split(',')[5].split(','))
-            oldlisting.set
+            oldlisting.setBasePrice(int(pricinglist[i].split(',')[1]))
+            oldlisting.setRevenue(int(pricinglist[i].split(',')[2]))
+            oldlisting.setProfit(int(pricinglist[i].split(',')[3]))
+            SaveListing(oldlisting)
 
 def RegeneratePricingList(): #will regenerate price list used by new order from listing data (/Listings/)
     pass

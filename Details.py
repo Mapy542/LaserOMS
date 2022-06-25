@@ -1,10 +1,10 @@
 from guizero import Text, TextBox, CheckBox, Combo, PushButton, ListBox, Window
 from datetime import datetime
 import difflib as dl
-from Item import Item
-from Order import Order
-from Task import Task
-import Order_Manipulator, Statistics_Cache_Manager, Packing_Slip_Manager#, ShippingHandler
+from Item_Object import Item
+from Order_Object import Order
+from Task_Object import Task
+import Order_Manipulator, Cache_Handler, PackingSlip#, ShippingHandler
 
 def price_update():
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
@@ -78,8 +78,8 @@ def export():
     
     
     if choose_export.value == 1:
-        Packing_Slip_Manager.GeneratePackingSlip(order)
-        Packing_Slip_Manager.PrintPackingSlip(order)
+        PackingSlip.GeneratePackingSlip(order)
+        PackingSlip.PrintPackingSlip(order)
         
     if choose_ship.value == 1:
         #ShipppingHandler.ShipOrder(order)

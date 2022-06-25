@@ -1,7 +1,7 @@
 import os, math, sys
 from PIL import Image, ImageDraw, ImageFont
-from Order import Order
-from Item import Item
+from Order_Object import Order
+from Item_Object import Item
 
 def GeneratePackingSlip(order):
     #Formating

@@ -9,25 +9,25 @@ import Order_Manipulator, Cache_Handler, PackingSlip, ShippingHandler, Finance_W
 from Order_Object import Order
 from Item_Object import Item
 
-def stats_run():
+def stats_run(): #Open the window to veiw financial statistics
     Finance_Window.FinancesDisplay(app)
 
-def new_order():
+def new_order(): #launche new order GUI
     NewOrder(app)
-    updatescreen()
+    updatescreen() #apply changes when a new order is there to the main listbox
 
-def loadUnfufilledOrders():
+def loadUnfufilledOrders(): #used in displaying orders
     openorders = Order_Manipulator.BulkLoadOrder(Cache_Handler.GetOpenOrders())
     return openorders
 
-def displayOrders(orders):
+def displayOrders(orders): #parse orders for view
     displayvals = []
     for i in range(len(orders)):
         displayvals.append(orders[i].getOrderNumber() + ', ' + orders[i].getOrderName())
         print(displayvals)
     return displayvals
 
-def showOpenOrders():
+def showOpenOrders(): #display only open orders
     openorders = loadUnfufilledOrders()
     visualdata = displayOrders(openorders)
     print(openorders)
@@ -36,18 +36,18 @@ def showOpenOrders():
         listbox.append(i)
     welcome_message.value = "Welcome to Laser OMS, " + str(len(openorders)) + ' unfufilled orders.'
 
-def loadTasks():
+def loadTasks(): #pull current tasks and combine with open orders
     openorders = Order_Manipulator.BulkLoadOrder(Cache_Handler.GetOpenOrders())
     print(openorders)
     orderpriority = []
-    for i in range(len(openorders)):
+    for i in range(len(openorders)): #create order priority based on length of time of open-ness
         dates = openorders[i].getOrderDate().split("-")
         dates = [int(days) for days in dates]
         print(dates)
         d1 = datetime(year=dates[2],month=dates[0],day=dates[1])
         d2 = datetime.now()
         delta = d2 - d1
-        priority = delta.days * 5 + 50
+        priority = delta.days * 5 + 50 #bare minimum of 50 priority plus 5 prioirty per day. #ideal scale is  0 -100
         openorders[i].priority = priority
         orderpriority.append(priority)
 
@@ -55,9 +55,9 @@ def loadTasks():
     for i in range(len(openorders)):
         coupled_orders.append([openorders[i], orderpriority[i]])
 
-    print(coupled_orders)
+    #print(coupled_orders)
 
-    coupled_orders.sort(key=lambda x: x[1])
+    coupled_orders.sort(key=lambda x: x[1]) #who is lambda???
     
     indivdualtasks = Order_Manipulator.LoadTasks()
     if indivdualtasks == None:
@@ -88,11 +88,11 @@ def loadTasks():
 
     return overall_tasks
 
-def display_tasks():
+def display_tasks(): #displays all tasks including open orders
     tasks = loadTasks()
     task_list = []
     for i in range(len(tasks)):
-        if(tasks[i].isOrder()):
+        if(tasks[i].isOrder()): #heres where it all went wrong
             task_list.append("" + tasks[i].getOrderNumber() + ", " + tasks[i].getOrderName())
         else:
             task_list.append("" + tasks[i].getName())
@@ -127,7 +127,7 @@ def display_tasks():
     open_orders = Cache_Handler.GetOpenOrders()
     welcome_message.value = "Welcome to Laser OMS, " + str(len(open_orders)) + ' unfufilled orders.'
 
-def display_all_orders():
+def display_all_orders(): #show all orders for posterity i guess  or to edit/view them
     orders = Order_Manipulator.BulkLoadOrder(Cache_Handler.GetAllOrders())
     visualdata = displayOrders(orders)
     listbox.clear()
@@ -135,7 +135,7 @@ def display_all_orders():
         listbox.append(i)
 
 
-def updatescreen():
+def updatescreen(): #change what to show in listbox
     if view_option.value == "Open Orders":
         showOpenOrders()
     elif view_option.value == "Tasks":
@@ -143,7 +143,7 @@ def updatescreen():
     elif view_option.value == "All Orders":
         display_all_orders()
 
-def print_slips():
+def print_slips(): #take selected order(s) and run generate packing slip and print slip for each
     trimmed_orders=[]
     for i in range(len(listbox.value)):
         temp = listbox.value[i].split(',')
@@ -152,7 +152,7 @@ def print_slips():
         PackingSlip.GeneratePackingSlip(trimmed_orders[i])
         PackingSlip.PrintPackingSlip(trimmed_orders[i])
 
-def mark_fufilled():
+def mark_fufilled(): #take order and change status to fufilled and remove from open order cache
     #sort between orders and tasks
     selected_data = listbox.value
     selected_orders = []
@@ -176,13 +176,13 @@ def mark_fufilled():
         Order_Manipulator.DeleteTask(single_task)
     updatescreen()
 
-def create_expence():
+def create_expence(): #run new expence GUI
     New_Expence_Window.NewExpense(app)
 
-def stats_run():
+def stats_run(): #open stats GUI #WIP
     Finance_Window.FinancesDisplay(app)
 
-def show_details():
+def show_details(): #run show details for given task or order
     selected_data = listbox.value
     selected_orders = []
     selected_tasks = []
@@ -202,9 +202,9 @@ def new_task():
     New_Task_Window.NewTask(app)
     updatescreen()
 
-
+#create GUIZero App
 app = App(title="Laser OMS", layout="grid", width=680,height=600)
-app.tk.call('wm', 'iconphoto', app.tk._w, tkinter.PhotoImage(file='./Icon.png'))
+app.tk.call('wm', 'iconphoto', app.tk._w, tkinter.PhotoImage(file='./Icon.png')) #:D icon more like i can't
 
 welcome_message = Text(app, text="Welcome to Laser OMS, - unfufilled orders.", size=15, font="Times New Roman",grid=[0,0,4,1])
 listbox = ListBox(app, items=[],multiselect=True,width=400,height=200,scrollbar=True,grid=[0,1,4,5])
@@ -213,7 +213,7 @@ listbox = ListBox(app, items=[],multiselect=True,width=400,height=200,scrollbar=
 view_option = Combo(app, options=["Tasks","Open Orders", "All Orders"], command=updatescreen, grid=[5,3,1,1], selected="Tasks")
 reload = PushButton(app,text='Reload Grid',command=updatescreen,grid=[5,2,1,1])
 
-updatescreen()
+updatescreen() #show inital stuff
 
 #options
 new_order_button = PushButton(app,text='New Order',command=new_order,grid=[0,7,1,1])

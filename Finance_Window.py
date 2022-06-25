@@ -4,6 +4,9 @@ from datetime import datetime
 from Update_Prices_Window import SyncSheetItems
 from New_Expence_Window import NewExpense
 
+#WIP 
+#not yet implimented
+
 def update_listbox():
     data = Cache_Handler().getFinanceCache()
     yeardata = []

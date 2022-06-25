@@ -2,6 +2,8 @@ from guizero import Text, TextBox, PushButton, Window
 from Expence_Object import Expence
 import Order_Manipulator, Cache_Handler
 
+#create an expence via GUI 
+
 def price_update():
     global item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
@@ -10,8 +12,8 @@ def price_update():
     global window2
 
 
-    realitems[0].changeName(item1.value)
-    realitems[0].changeCost(int(item_price1.value) * 100)
+    realitems[0].changeName(item1.value) #fill data fields in objects
+    realitems[0].changeCost(int(item_price1.value) * 100) #nothing to check. you're the boss of this world
     realitems[0].changeQuantity(item_quant1.value)
     
     realitems[1].changeName(item2.value)
@@ -37,7 +39,7 @@ def price_update():
     print(totalmonet)
 
 
-def export():
+def export(): #save data
     global item_price5, total, finish
     global realitems
     global window2
@@ -50,14 +52,14 @@ def export():
 
     Order_Manipulator.BulkSaveExpences(new_items)
     for item in new_items:
-        Cache_Handler.AddExpence(item)
+        Cache_Handler.AddExpence(item) # saves time later
 
     window2.destroy()
 
-def NewExpense(main_window):
+def NewExpense(main_window): #GUI to create new expence
     global item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
-    global item_price5, total, choose_export, choose_ship, finish
+    global item_price5, total, finish
     global realitems
     global window2
     realitems = []

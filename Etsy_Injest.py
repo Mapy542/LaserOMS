@@ -1,6 +1,9 @@
 from etsy2 import Etsy
 from etsy2.oauth import EtsyOAuthClient
 
+#WIP
+#doesnt do anything useful yet.
+
 #Validate from API keys and Oauth tokens
 try:
     with open("../oauth.txt", "r") as f:

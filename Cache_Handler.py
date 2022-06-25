@@ -2,21 +2,28 @@ from Item_Object import Item
 from Order_Object import Order
 import Order_Manipulator, os
 
+#Opening a large amount of files is laborus on samba and hard drives.
+#Cache some of the data the requires opening a large amount of files
+
 def AllRebuildCache():
     # This function will rebuild all cache files. TIME INTENSIVE FOR LARGE ORDER COUNT. RECOMENDED TO RUN ON SERVER
     RebuildExpenceCache()
     RebuildOrderCaches()
 
-def RebuildOrderCaches():
+def RebuildOrderCaches(): #Rebuild cache data from all orders
+    #pull all order numbers that can be opened
     order_nums = os.popen('ls ../Orders').read()
     order_nums = order_nums.split('\n')
     order_nums = [i for i in order_nums if i]
 
+    #open all orders from the numbers via order manipulator
     allorders = []
     for i in order_nums:
         if i.endswith(".ord"):
             allorders.append(Order_Manipulator.GetOrder(i.split(".")[0]))
 
+
+    #make sure the orders are logged in the sections for currently open orders and orders sorted by year
     openorders = []
     years = []
     for i in allorders:
@@ -26,7 +33,7 @@ def RebuildOrderCaches():
             years.append(i.getDate().split("-")[0])
         years[i.getDate().split("-")[0]].append(i.getOrderNumber())
     try:
-        with open("Open_Orders.txt", "w+") as f:
+        with open("../Open_Orders.txt", "w+") as f:
             f.write(",".join(openorders))
             f.close()
     except OSError:
@@ -42,34 +49,35 @@ def RebuildOrderCaches():
 
 def RebuildExpenceCache():
     # This function will rebuild the expence cache.
+    #vvvvvrrrrrooooommmm
     pass
 
 def AddOpenOrder(order):
     # This function will add an order to the open order cache.
     try:
         with open("../Open_Orders.txt", "w+") as f:
-            orders = f.read().strip().split(",")
-            orders = [i for i in orders if i]
+            orders = f.read().strip().split(",") #clean up stuff
+            orders = [i for i in orders if i] #remove emptys in the fancy way
             orders.append(str(order.getOrderNumber()))
             f.write(",".join(orders))
             f.close()
-            return True
+            return True # I don't really use this but I guess its bess practice to see if code is actualy working
     except OSError:
         print("Failed To Add Open Order")
         return False
 
-def RemoveOpenOrder(ordernumber):
+def RemoveOpenOrder(ordernumber): #could be improved I assume but not a problem yet for me.
     # This function will remove an order from the open order cache.
-    open_orders = Order_Manipulator.BulkLoadOrder(GetOpenOrders())
+    open_orders = Order_Manipulator.BulkLoadOrder(GetOpenOrders()) #load all open orders
     try:
-        with open("../Open_Orders.txt", "w") as f:
+        with open("../Open_Orders.txt", "w") as f: #clean file to blank state
             f.truncate(0)
             f.seek(0)
             f.close()
     except OSError:
         print("Failed To Remove Open Order")
     for order in open_orders:
-        if order.getOrderNumber() != ordernumber:
+        if order.getOrderNumber() != ordernumber: #refill with remaining orders
             AddOpenOrder(order)
 
 def GetOpenOrders():
@@ -86,7 +94,7 @@ def GetOpenOrders():
 
 def AddYearOrder(order):
     # This function will add an order to the year order cache.
-    year = order.getOrderDate().split("-")[0]
+    year = order.getOrderDate().split("-")[0] #find order's creation year
     try:
         with open("../" + str(year) + "_Orders.txt", "w+") as f:
             orders = f.read().split(',')
@@ -108,6 +116,8 @@ def RemoveYearOrder(ordernumber):
             orders = f.read().split(',')
             orders = [i for i in orders if i]
             orders.remove(str(ordernumber))
+            f.truncate(0)
+            f.seek(0)
             f.write(",".join(orders))
             f.close()
             return True
@@ -128,6 +138,7 @@ def GetYearOrders(year):
         return []
 
 def GetAllOrders():
+    #returns a list of all possible order numbers
     order_nums = os.popen('ls ../Orders').read()
     order_nums = order_nums.split('\n')
     order_nums = [i for i in order_nums if i]
@@ -185,6 +196,7 @@ def AddRevenueOrder(order):
 
 def getFinanceCache():
     # This function will return the finance cache.
+    #to be finsihed
     try:
         with open("../Finances.txt", "r") as f:
             data = f.read().split('\n')

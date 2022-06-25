@@ -1,9 +1,13 @@
+#data handling class for order items.
+
+#to be updated for dynamic pricing styles
+
 class Item():
     def __init__(self, product = "Empty", baseprice = 0, profit = 0, wordpress_price = 0, etsy_price = 0, editboromarket_price = 0, quantity = 0, updatepricing = False):
-        self.product = product
-        self.baseprice = baseprice
-        self.profit = profit
-        self.wordpress_price = wordpress_price
+        self.product = product #name
+        self.baseprice = baseprice #base cost minus transacion fees per sales channel
+        self.profit = profit #profit used for stats calculation
+        self.wordpress_price = wordpress_price #prices of other sales channels
         self.etsy_price = etsy_price
         self.quantity = quantity
         self.editboromarket_price = editboromarket_price
@@ -13,7 +17,7 @@ class Item():
     def __str__(self):
         return self.product + " $" + self.baseprice
 
-    def makePrices(self):
+    def makePrices(self): #update from pricing database list
         try:
             with open("../Items.txt", "r") as f:
                 for line in f:

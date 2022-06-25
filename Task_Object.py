@@ -1,12 +1,14 @@
 from datetime import datetime
 
-class Task():
+class Task(): #object to hold task data
     def __init__(self, name = "", priority = 0, assigned_date = datetime.today().strftime('%m-%d-%Y'), discription = ""):
         self.name = name
         self.priority = priority
         self.date = assigned_date
         self.discription = discription
 
+
+    #acessor data
     def getName(self):
         return self.name
 
@@ -34,5 +36,5 @@ class Task():
     def changePriority(self, priority):
         self.priority = priority
 
-    def isOrder(self):
+    def isOrder(self): #sorting
         return False

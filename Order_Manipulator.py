@@ -4,15 +4,12 @@ from Order_Object import Order
 from Expence_Object import Expence
 from Task_Object import Task
 
-
+#Save Order To Disk
 def SaveOrder(order):
-    '''
-    This function saves the order to the orders folder under the order number.ord
-    '''
     try:
-        with open("../Orders/" + str(order.getOrderNumber()) + ".ord", "w") as f:
-            f.write("Order_Number:" + str(order.getOrderNumber()) + ',')
-            f.write("Order_Date:" + str(order.getOrderDate()) + ',')
+        with open("../Orders/" + str(order.getOrderNumber()) + ".ord", "w") as f: #open files
+            f.write("Order_Number:" + str(order.getOrderNumber()) + ',') #save order data as comma separated
+            f.write("Order_Date:" + str(order.getOrderDate()) + ',')    #semicolon to distinguish type
             f.write("Order_Name:" + str(order.getOrderName()) + ',')
             line1, line2, city, state, zipcode = order.getOrderAddress()
             f.write("Order_Address_Line_1:" + str(line1) + ',')
@@ -26,9 +23,9 @@ def SaveOrder(order):
             f.write("Order_Pricing_Style:" + str(order.getPricingStyle()) + ',')
             f.write("Order_Status:" + str(order.getOrderStatus()) + ',')
             items = order.getOrderItems()
-            export = ""
-            for item in items:
-                export += str(item.export()) + ";"
+            export = "" #add all items into string
+            for item in items: #no limit to order items here
+                export += str(item.export()) + ";" #pull item data   #it has its own comma and semicolon separation but with different characters
             f.write("Order_Items:" + export)
             f.close()
             return True
@@ -36,15 +33,16 @@ def SaveOrder(order):
         print("Failed To Save Order")
         return False
 
+#Pull order data from disk
 def LoadOrder(ordernum):
     try:
-        with open("../Orders/" + str(ordernum) + ".ord", "r") as f:
+        with open("../Orders/" + str(ordernum) + ".ord", "r") as f: #open specific file from order number
             order = f.read().split(',')
             f.close()
-            for i in range(len(order)):
-                order[i] = order[i].split(':')
-                if order[i][0] == 'Order_Number':
-                    order_number = order[i][1]
+            for i in range(len(order)): # repeat for each comma section. This allows missing data to be skipped over
+                order[i] = order[i].split(':') #split to find data and data type/tag
+                if order[i][0] == 'Order_Number': #if specific tag then save said data in variable
+                    order_number = order[i][1]    #could overwrite with latest data if duplicates are found.
                 if order[i][0] == 'Order_Date':
                     order_date = order[i][1]
                 if order[i][0] == 'Order_Name':
@@ -70,16 +68,16 @@ def LoadOrder(ordernum):
                 if order[i][0] == 'Order_Status':
                     order_status = order[i][1]
                 if order[i][0] == 'Order_Items':
-                    order_items = order[i][1].split(';')
-                    order_items = [i for i in order_items if i]
+                    order_items = order[i][1].split(';') #item data is semicolon separated.
+                    order_items = [i for i in order_items if i] #make sure no empty item data from misplaced semicolon.
 
-            if "order_items" in locals():
+            if "order_items" in locals(): #make sure items exist
                 items = []
-                for item in order_items:
+                for item in order_items: #split items 
                     data = item.split("*")
                     for i in range(len(data)):
-                        data[i] = data[i].split("|")
-                        if data[i][0] == 'Item_Product':
+                        data[i] = data[i].split("|") #split by item data tags
+                        if data[i][0] == 'Item_Product': #repeat like above for data tags
                             item_product = data[i][1]
                         if data[i][0] == 'Item_Base_Price':
                             item_base_price = data[i][1]
@@ -95,13 +93,13 @@ def LoadOrder(ordernum):
                             item_quantity = data[i][1]
                     items.append(Item(item_product, int(item_base_price), int(item_profit), int(item_wordpress_price), int(item_etsy_price), int(item_editBoroMarket_price), int(item_quantity)))
                 neworder = Order(order_number, order_date, order_name, order_address_line_1, order_address_line_2, order_city, order_state, order_zip,
-                order_phone, order_email, items, order_total, order_pricing_style, order_status)
+                order_phone, order_email, items, order_total, order_pricing_style, order_status) #make into orders anditems and return
 
                 return neworder
     except OSError:
         print("Failed To Load Order")
 
-def DeleteOrder(ordernum):
+def DeleteOrder(ordernum): #delete order file using linux syntax only for now
     try:
         os.remove("../Orders/" + str(ordernum) + ".ord")
         return True
@@ -109,22 +107,22 @@ def DeleteOrder(ordernum):
         print("Failed To Delete Order")
         return False
 
-def BulkSaveOrder(orders):
+def BulkSaveOrder(orders): #repeat for multiple orders
     for order in orders:
         SaveOrder(order)
 
-def BulkLoadOrder(ordernums):
+def BulkLoadOrder(ordernums): #repeat for multiple orders
     orders = []
     print(ordernums)
     for orderdata in ordernums:
         orders.append(LoadOrder(orderdata))
     return orders
 
-def BulkDeleteOrder(ordernums):
+def BulkDeleteOrder(ordernums): #u get the point
     for order in ordernums:
         DeleteOrder(order)
 
-def SaveExpence(expence):
+def SaveExpence(expence): # save expence with comma separated data like orders
     try:
         with open("../Expences/" + str(expence.getDate().split("-")[2]) + ".exp", "a") as f:
             f.write("Expence_Date:" + str(expence.getDate()) + ',' + "Expence_Unit_Total:" + str(expence.getUnitCost()) + ','
@@ -137,7 +135,7 @@ def SaveExpence(expence):
         print("Failed To Save Expence")
         return False
 
-def LoadExpences(expenceyear):
+def LoadExpences(expenceyear): #pull expence usuing same style as orders #no suprise there
     try:
         with open("../Expences/" + str(expenceyear) + ".exp", "r") as f:
             expences = f.read().split('\n')
@@ -162,11 +160,11 @@ def LoadExpences(expenceyear):
     except OSError:
         print("Failed To Load Expence")
 
-def BulkSaveExpences(expences):
+def BulkSaveExpences(expences): #for multiple expences
     for expence in expences:
         SaveExpence(expence)
 
-def SaveTask(task):
+def SaveTask(task): #save a task #its the same fing thing
     try:
         with open("../Tasks.tsk", "a") as f:
             f.write("Task_Name:" + str(task.getName()) + "," + "Task_Date:" + str(task.getDate()) + ',' + "Task_Priority:" + str(task.getPriority()) + ',' + "Task_Discription:" + str(task.getDiscription()) + "\n")
@@ -176,7 +174,7 @@ def SaveTask(task):
         print("Failed To Save Task")
         return False
 
-def LoadTasks():
+def LoadTasks(): #check order save for details im not repeating
     try:
         with open("../Tasks.tsk", "r") as f:
             tasks = f.read().split('\n')
@@ -220,20 +218,20 @@ def DeleteTask(taskname):
     BulkSaveTask(tasks)
 
 
-def MigrateOrders():
-    order_nums = os.popen('ls ../Orders').read()
+def MigrateOrders(): #Used to take orders from previous edition and migrate to correct new style
+    #if changes happen migrate order will be a catch all to clean all order files into newest edition.
+    order_nums = os.popen('ls ../Orders').read() #find all files in orders folder
     order_nums = order_nums.split('\n')
-    order_nums = [i for i in order_nums if i]
+    order_nums = [i for i in order_nums if i] #clean emptys
 
-    allorders = []
     for i in order_nums:
-        if i.endswith(".txt"):
+        if i.endswith(".txt"): #check for old style
             print("Migrating Order: " + i)
             try:
                 with open("../Orders/" + str(i), "r") as f:
                     orders = f.read().split(',')
                     f.close()
-                    order_name = orders[0]
+                    order_name = orders[0] #pull all data based on csv
                     adress_line1 = orders[1]
                     city = orders[2]
                     state = orders[3]
@@ -241,10 +239,10 @@ def MigrateOrders():
                     order_number = orders[5]
                     order_date = orders[6]
                     order_items = []
-                    for j in range(int((len(orders)-8)/3)):
+                    for j in range(int((len(orders)-8)/3)): #split for item tuples
                         order_items.append(Item(product=orders[8+j*3],quantity=int(orders[9+j*3]),baseprice=int(orders[10+j*3])))
                     SaveOrder(Order(order_num = order_number, order_date = order_date, order_items= order_items,order_address=adress_line1, order_city=city, order_state=state, order_zip=zipcode, order_name=order_name, order_pricing_style="Base", order_status="Complete"))
-
+                    #save order and repeat
             except OSError:
                 print("Failed To Load Order")
 

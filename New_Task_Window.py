@@ -2,6 +2,7 @@ from guizero import Text, TextBox, PushButton, Window
 from Task_Object import Task
 import Order_Manipulator
 
+#save task to disk
 def export():
     global finish, name, discription, priority
     global window2
@@ -12,13 +13,16 @@ def export():
 
     window2.destroy()
 
+#Funtion to create a new task
 def NewTask(main_window):
     global finish, name, discription, priority
     global window2
 
+    #make GUIZero window
     window2 = Window(main_window, title="New Task", layout="grid", width=1100,height=700)
     welcome_message = Text(window2,text='Task Maker', size=18, font="Times New Roman", grid=[1,0])
 
+    #Data Fields
     name_text = Text(window2,text='Task Name', size=15, font="Times New Roman", grid=[0,1])
     name = TextBox(window2,grid=[1,1], width=30)
     #shipping info

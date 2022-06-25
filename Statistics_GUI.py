@@ -1,11 +1,11 @@
-import os, Cache_Handler
+import os, Statistics_Cache_Manager
 from guizero import Window, Text, TextBox, CheckBox, Combo, PushButton, ListBox
 from datetime import datetime
-from Update_Prices_Window import SyncSheetItems
-from New_Expence_Window import NewExpense
+from Listing_Database_Manager import SyncSheetItems
+from Expence_GUI import NewExpense
 
 def update_listbox():
-    data = Cache_Handler().getFinanceCache()
+    data = Statistics_Cache_Manager().getFinanceCache()
     yeardata = []
     for row in data:
         splice = row.split(',')

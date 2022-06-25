@@ -1,8 +1,8 @@
 import os
-from Item_Object import Item
-from Order_Object import Order
-from Expence_Object import Expence
-from Task_Object import Task
+from Item import Item
+from Order import Order
+from Expence import Expence
+from Task import Task
 
 
 def SaveOrder(order):

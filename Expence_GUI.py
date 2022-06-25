@@ -1,6 +1,6 @@
 from guizero import Text, TextBox, PushButton, Window
-from Expence_Object import Expence
-import Order_Manipulator, Cache_Handler
+from Expence import Expence
+import Order_Manipulator, Statistics_Cache_Manager
 
 def price_update():
     global item1, item2, item3, item4, item5
@@ -50,7 +50,7 @@ def export():
 
     Order_Manipulator.BulkSaveExpences(new_items)
     for item in new_items:
-        Cache_Handler.AddExpence(item)
+        Statistics_Cache_Manager.AddExpence(item)
 
     window2.destroy()
 

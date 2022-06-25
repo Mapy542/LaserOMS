@@ -1,23 +1,23 @@
 import os, tkinter
 from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox
 from datetime import datetime, date, timedelta
-from New_Order_Window import NewOrder
-from New_Expence_Window import Expence
-from Task_Object import Task
-from Update_Prices_Window import SyncSheetItems
-import Order_Manipulator, Cache_Handler, PackingSlip, ShippingHandler, Finance_Window, Details, New_Task_Window, New_Expence_Window
-from Order_Object import Order
-from Item_Object import Item
+from Order_GUI import NewOrder
+from Expence_GUI import Expence
+from Task import Task
+from Listing_Database_Manager import SyncSheetItems
+import Order_Manipulator, Statistics_Cache_Manager, Packing_Slip_Manager, Shipping_Manager, Statistics_GUI, Modify_Data, New_Task_Window, Expence_GUI
+from Order import Order
+from Item import Item
 
 def stats_run():
-    Finance_Window.FinancesDisplay(app)
+    Statistics_GUI.FinancesDisplay(app)
 
 def new_order():
     NewOrder(app)
     updatescreen()
 
 def loadUnfufilledOrders():
-    openorders = Order_Manipulator.BulkLoadOrder(Cache_Handler.GetOpenOrders())
+    openorders = Order_Manipulator.BulkLoadOrder(Statistics_Cache_Manager.GetOpenOrders())
     return openorders
 
 def displayOrders(orders):
@@ -37,7 +37,7 @@ def showOpenOrders():
     welcome_message.value = "Welcome to Laser OMS, " + str(len(openorders)) + ' unfufilled orders.'
 
 def loadTasks():
-    openorders = Order_Manipulator.BulkLoadOrder(Cache_Handler.GetOpenOrders())
+    openorders = Order_Manipulator.BulkLoadOrder(Statistics_Cache_Manager.GetOpenOrders())
     print(openorders)
     orderpriority = []
     for i in range(len(openorders)):
@@ -124,11 +124,11 @@ def display_tasks():
     listbox.clear()
     for i in task_list:
         listbox.append(i)
-    open_orders = Cache_Handler.GetOpenOrders()
+    open_orders = Statistics_Cache_Manager.GetOpenOrders()
     welcome_message.value = "Welcome to Laser OMS, " + str(len(open_orders)) + ' unfufilled orders.'
 
 def display_all_orders():
-    orders = Order_Manipulator.BulkLoadOrder(Cache_Handler.GetAllOrders())
+    orders = Order_Manipulator.BulkLoadOrder(Statistics_Cache_Manager.GetAllOrders())
     visualdata = displayOrders(orders)
     listbox.clear()
     for i in visualdata:
@@ -149,8 +149,8 @@ def print_slips():
         temp = listbox.value[i].split(',')
         trimmed_orders.append(Order_Manipulator.LoadOrder(temp[0]))
     for i in range(len(trimmed_orders)):
-        PackingSlip.GeneratePackingSlip(trimmed_orders[i])
-        PackingSlip.PrintPackingSlip(trimmed_orders[i])
+        Packing_Slip_Manager.GeneratePackingSlip(trimmed_orders[i])
+        Packing_Slip_Manager.PrintPackingSlip(trimmed_orders[i])
 
 def mark_fufilled():
     #sort between orders and tasks
@@ -166,7 +166,7 @@ def mark_fufilled():
     #deal with orders
     for single_order in selected_orders:
         trimmed = single_order.split(',')[0]
-        Cache_Handler.RemoveOpenOrder(trimmed)
+        Statistics_Cache_Manager.RemoveOpenOrder(trimmed)
         order = Order_Manipulator.LoadOrder(trimmed)
         order.changeOrderStatus('Fulfilled')
         Order_Manipulator.SaveOrder(order)
@@ -177,10 +177,10 @@ def mark_fufilled():
     updatescreen()
 
 def create_expence():
-    New_Expence_Window.NewExpense(app)
+    Expence_GUI.NewExpense(app)
 
 def stats_run():
-    Finance_Window.FinancesDisplay(app)
+    Statistics_GUI.FinancesDisplay(app)
 
 def show_details():
     selected_data = listbox.value
@@ -193,10 +193,10 @@ def show_details():
             selected_tasks.append(order)
 
     for ordernum in selected_orders:
-        Details.OrderDetails(app, ordernum)
+        Modify_Data.OrderDetails(app, ordernum)
 
     for tasknum in selected_tasks:
-        Details.TaskDetails(app, tasknum)
+        Modify_Data.TaskDetails(app, tasknum)
 
 def new_task():
     New_Task_Window.NewTask(app)

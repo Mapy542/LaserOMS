@@ -5,6 +5,8 @@ from Item_Object import Item
 from Order_Object import Order
 import Order_Manipulator, Cache_Handler, PackingSlip#, ShippingHandler
 
+
+#recalculate price fields based on user inputs
 def price_update():
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
@@ -13,14 +15,14 @@ def price_update():
     global realitems, pricing_style
     global window2
 
-    print(products)
-    print(item1.value)
-    autofill1 = dl.get_close_matches(item1.value, products)
-    item1.value = autofill1[0]
-    realitems[0].changeProduct(autofill1[0])
-    realitems[0].changeQuantity(int(item_quant1.value))
-    item_price1.value = "$" + str(realitems[0].getPrice(pricing_style)/100)
-    autofill2 = dl.get_close_matches(item2.value, products)
+    #print(products)
+    #print(item1.value)
+    autofill1 = dl.get_close_matches(item1.value, products) #find closest mastch to existing products to fix typoes
+    item1.value = autofill1[0] #apply match
+    realitems[0].changeProduct(autofill1[0]) #set to item object to pull pricing values
+    realitems[0].changeQuantity(int(item_quant1.value)) #apply quantity value
+    item_price1.value = "$" + str(realitems[0].getPrice(pricing_style)/100) #recalculate price for display
+    autofill2 = dl.get_close_matches(item2.value, products) #repeat  #to be dynamic in update
     item2.value = autofill2[0]
     realitems[1].changeProduct(autofill2[0])
     realitems[1].changeQuantity(int(item_quant2.value))
@@ -41,12 +43,12 @@ def price_update():
     realitems[4].changeQuantity(int(item_quant5.value))
     item_price5.value = "$" + str(realitems[4].getPrice(pricing_style)/100)
     totalnumber = 0
-    for item in realitems:
+    for item in realitems: #find total
         totalnumber += item.getPrice(pricing_style)
     total.value = "Total: $" + str(totalnumber/100)
 
 
-def export():
+def export(): #create final object and save it
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
     global item_price5, total, choose_export, choose_ship, finish
@@ -54,19 +56,19 @@ def export():
     global realitems
     global window2
     
-    last_order_number = 0
+    last_order_number = 0 #find the last order number so we dont repeat
     try:
         with open("../Last_Order.txt", "r+") as f:
             last_order_number = int(f.read().strip())
             f.truncate(0)
             f.seek(0)
-            f.write(str(last_order_number + 1))
+            f.write(str(last_order_number + 1)) #save the next number for next time
             f.close()
     except:
         print("Unable to read last order number")
 
     order = Order()
-    order.setOrderNumber(last_order_number+1)
+    order.setOrderNumber(last_order_number+1) #apply all data to order object
     order.setOrderDate(datetime.today().strftime('%m-%d-%Y'))
     order.setOrderName(purchase_name.value)
     order.setOrderAddress(adress.value, adress2.value, city.value, state.value, zip_code.value)
@@ -74,31 +76,31 @@ def export():
     #order.setOrderEmail(email.value)
     price_update()
     new_items = []
-    for item in realitems:
+    for item in realitems: #copy over all non-empty items into order
         if item.isNonEmpty():
             new_items.append(item)
     order.setOrderItems(new_items)
     order.changeOrderPricingStyle(pricing_style)
-    order.calculateTotal()
+    order.calculateTotal() #make sure every price is correct and recalculated
     order.changeOrderStatus("Open")
 
-    Order_Manipulator.SaveOrder(order)
-    Cache_Handler.AddOpenOrder(order)
+    Order_Manipulator.SaveOrder(order) #save order to disk
+    Cache_Handler.AddOpenOrder(order) #add to caches to keep track of stats
     Cache_Handler.AddYearOrder(order)
     Cache_Handler.AddRevenueOrder(order)
     
-    if choose_export.value == 1:
+    if choose_export.value == 1: #if export selected send order to packing slip gen and printer
         PackingSlip.GeneratePackingSlip(order)
         PackingSlip.PrintPackingSlip(order)
         
-    if choose_ship.value == 1:
+    if choose_ship.value == 1: #ship in comming updatge
         #ShipppingHandler.ShipOrder(order)
         pass
 
-    window2.destroy()
+    window2.destroy() #close
     return order
 
-def makePrices():
+def makePrices():#pull prices into memory to reduce disk access
     try:
         with open("../Items.txt", "r") as f:
             products = []
@@ -111,7 +113,7 @@ def makePrices():
             for line in data:
                 if(not line == ""):
                     prices = line.split(',')
-                    products.append(prices[0])
+                    products.append(prices[0]) #to be dynamic
                     baseprice.append(prices[1])
                     wordpress_price.append(prices[3])
                     etsy_price.append(prices[4])
@@ -122,7 +124,7 @@ def makePrices():
         print("Failed To Read Item File")
         return 0, 0, 0, 0, 0
         
-def update_pricing_options():
+def update_pricing_options(): #select pricing style for options
     global pricing_style
     if pricing_option_button.value == "Base":
         pricing_style = "Base"
@@ -134,7 +136,7 @@ def update_pricing_options():
         pricing_style = "EditBoroMarket"
     price_update()
 
-def NewOrder(main_window):
+def NewOrder(main_window): #Main GUI for new order
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
     global item_price5, total, choose_export, choose_ship, finish
@@ -143,12 +145,17 @@ def NewOrder(main_window):
     global window2
     pricing_style = "Base"
     realitems = []
+
     products, baseprice, wordpress_price, etsy_price, editboromarket_price = makePrices()
-    for i in range(0,5):
+
+    for i in range(0,5): #make the five blank items to show
         realitems.append(Item())
+
+    #make GUIZero window
     window2 = Window(main_window, title="New Order", layout="grid", width=1100,height=700)
     welcome_message = Text(window2,text='Generate New Order.', size=18, font="Times New Roman", grid=[1,0])
 
+    #Data Fields
     purchase_name_text = Text(window2,text='Buyer Name', size=15, font="Times New Roman", grid=[0,1])
     purchase_name = TextBox(window2,grid=[1,1], width=30)
     #shipping info

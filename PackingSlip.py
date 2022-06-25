@@ -3,20 +3,24 @@ from PIL import Image, ImageDraw, ImageFont
 from Order_Object import Order
 from Item_Object import Item
 
-def GeneratePackingSlip(order):
+def GeneratePackingSlip(order): #Create packing slip png for given order
     #Formating
     infile = "Order_Slip.png"
     text_color = (0,0,0)
 
     try:
-        with Image.open(infile) as im:
+        with Image.open(infile) as im: #load background image
             modd = ImageDraw.Draw(im)
     except OSError:
         print("Failed Import Background.")
 
     #Fonts
-    shmol = ImageFont.truetype('Bright.TTF', 15)
+    shmol = ImageFont.truetype('Bright.TTF', 18)
     normal = ImageFont.truetype('Bright.TTF', 30)
+
+    #to be dynamic resolution
+    #to by dynamic spacing
+    #add extra notes at bottom dynamic
 
     #Dividing Line
     modd.line((400, 600, 400, 1800), fill=(text_color))
@@ -68,7 +72,7 @@ def GeneratePackingSlip(order):
 
     #Item Fill
     resize = False
-    for i in range(len(order.getOrderItems())):
+    for i in range(len(order.getOrderItems())):# if item name is too long make font smaller
         if len(order.getOrderItems()[i].getProduct()) > 20:
             resize = True
 
@@ -89,9 +93,9 @@ def GeneratePackingSlip(order):
     #Total
     modd.text((520,1600), 'Total: $' + str(order.getOrderTotal()/100), font=normal, fill=(text_color))
 
-    im.save('../Orders/' + str(order.getOrderNumber()) + '.png', "PNG")
+    im.save('../Orders/' + str(order.getOrderNumber()) + '.png', "PNG") #save image as *ordernumber*.png
 
-def PrintPackingSlip(order):
+def PrintPackingSlip(order): # send packing slip  to be more general use soon. Set for my print lol
     try:
         os.system("lp -d Envy-5000 ../Orders/" + str(order.getOrderNumber()) + '.png ')
 

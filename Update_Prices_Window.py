@@ -2,6 +2,8 @@ import os
 
 def SyncSheetItems():
     #Get updated pricing from google
+
+    #to be dynamic soon
     try:
         with open("../Pricing_List_Link.txt", "r") as f:
             link = f.read().strip()
@@ -10,7 +12,7 @@ def SyncSheetItems():
         print("Failed To Read Pricing List Link")
         return False
 
-    os.system('wget -O ../Items.cvs ' + link)
+    os.system('wget -O ../Items.cvs ' + link) #download google sheet
 
     #parse file
     products = []

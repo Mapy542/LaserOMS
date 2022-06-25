@@ -1,24 +1,26 @@
 from Item_Object import Item
 from datetime import datetime
 
-class Order():
+class Order(): #an object to hold order data
     def __init__(self, order_num = 0, order_date = datetime.today().strftime('%m-%d-%Y'), order_name = "", order_address = "", order_address_line_2 = "",
      order_city = "", order_state = "", order_zip = "", order_phone = "", order_email = "", 
      order_items = [], order_total = 0, order_pricing_style = "Base", order_status = ""):
-        self.order_num = order_num
-        self.order_date = order_date
-        self.order_name = order_name
-        self.order_address = order_address
-        self.order_address_line_2 = order_address_line_2
+        self.order_num = order_num #order id number
+        self.order_date = order_date #createtion date
+        self.order_name = order_name #purchaser name
+        self.order_address = order_address #adress line 1
+        self.order_address_line_2 = order_address_line_2 #line2
         self.order_city = order_city
         self.order_state = order_state
         self.order_zip = order_zip
         self.order_phone = order_phone
         self.order_email = order_email
-        self.order_items = order_items
-        self.order_total = order_total
-        self.order_pricing_style = order_pricing_style
-        self.order_status = order_status
+        self.order_items = order_items #list of items sold (item objects)
+        self.order_total = order_total # total price
+        self.order_pricing_style = order_pricing_style #pricing style for reference
+        self.order_status = order_status #status [open, fufiled] or whatever
+
+    #Accessors
 
     def getOrderNumber(self):
         return self.order_num
@@ -72,6 +74,7 @@ class Order():
     def setOrderPhone(self, order_phone):
         self.order_phone = order_phone
 
+    #adress is handled by one function
     def setOrderAddress(self, order_address, order_address_line_2, order_city, order_state, order_zip):
         self.order_address = order_address
         self.order_address_line_2 = order_address_line_2
@@ -88,12 +91,12 @@ class Order():
     def setOrderNumber(self, order_num):
         self.order_num = order_num
 
-    def calculateTotal(self):
+    def calculateTotal(self): #calculate total from each item
         total = 0
         for item in self.order_items:
             total += item.getPrice(self.order_pricing_style)
         self.order_total = total
 
-    def isOrder(self):
+    def isOrder(self): #used for sorting
         return True
 

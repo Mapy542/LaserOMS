@@ -6,7 +6,11 @@ from Order_Object import Order
 from Task_Object import Task
 import Order_Manipulator, Cache_Handler, PackingSlip#, ShippingHandler
 
-def price_update():
+#edit exisitng orders and tasks
+#possible expences edit to come
+
+
+def price_update(): #data update for fields on order items
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
     global item_price5, total, choose_export, choose_ship, finish, pricing_style
@@ -17,12 +21,12 @@ def price_update():
     print(products)
     print(item1.value)
 
-    autofill1 = dl.get_close_matches(item1.value, products)
+    autofill1 = dl.get_close_matches(item1.value, products) #autofill from most possible correct option
     item1.value = autofill1[0]
-    realitems[0].changeProduct(autofill1[0])
+    realitems[0].changeProduct(autofill1[0]) #update product data
     realitems[0].changeQuantity(int(item_quant1.value))
-    item_price1.value = "$" + str(realitems[0].getPrice(pricing_style)/100)
-    autofill2 = dl.get_close_matches(item2.value, products)
+    item_price1.value = "$" + str(realitems[0].getPrice(pricing_style)/100) #other fields to display
+    autofill2 = dl.get_close_matches(item2.value, products) #rense and repeat for all items #hopefully make this more dynamic
     item2.value = autofill2[0]
     realitems[1].changeProduct(autofill2[0])
     realitems[1].changeQuantity(int(item_quant2.value))
@@ -43,52 +47,52 @@ def price_update():
     realitems[4].changeQuantity(int(item_quant5.value))
     item_price5.value = "$" + str(realitems[4].getPrice(pricing_style)/100)
     totalval = 0
-    for item in realitems:
+    for item in realitems: #sum total and update display
         totalval += item.getPrice(pricing_style)
     total.value = "Total: $" + str(totalval/100)
 
 
-def export():
+def export(): #export order options into order file on save
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
     global item_price5, total, choose_export, choose_ship, finish, pricing_style
     global products, baseprice, wordpress_price, etsy_price, editboromarket_price
     global realitems, preorder
-    global window2
+    global window2 # this is definetly the correct way to do it #deathtolocalvariables
 
-    order = Order()
-    order.setOrderNumber(preorder.getOrderNumber())
+    order = Order() #make blank order
+    order.setOrderNumber(preorder.getOrderNumber()) #fill data from old order
     order.setOrderDate(preorder.getOrderDate())
     order.setOrderName(purchase_name.value)
-    order.setOrderAddress(adress.value, adress2.value, city.value, state.value, zip_code.value)
-    #order.setOrderPhone()
+    order.setOrderAddress(adress.value, adress2.value, city.value, state.value, zip_code.value) #fill data from new inputs
+    #order.setOrderPhone() #N/A but co-pilot liked it so i felt bad
     #order.setOrderEmail(email.value)
-    price_update()
+    price_update() #make sure all items are parsed and correct. No bad prices
     new_items = []
     for item in realitems:
         if item.isNonEmpty():
             new_items.append(item)
     order.setOrderItems(new_items)
     order.changeOrderPricingStyle(pricing_style)
-    order.calculateTotal()
-    order.changeOrderStatus("Open")
+    order.calculateTotal() #make sure everything is set correctly
+    #order.changeOrderStatus("Open") not a good idea i think
 
 
-    Order_Manipulator.SaveOrder(order)
+    Order_Manipulator.SaveOrder(order) #export order data to file
     
     
-    if choose_export.value == 1:
+    if choose_export.value == 1: #you can do things on export
         PackingSlip.GeneratePackingSlip(order)
         PackingSlip.PrintPackingSlip(order)
         
-    if choose_ship.value == 1:
+    if choose_ship.value == 1: #i cant do shipping yet lol
         #ShipppingHandler.ShipOrder(order)
         pass
 
-    window2.destroy()
-    return order
+    window2.destroy() #kill me
+    return order #again not yet used but you could i guess
 
-def makePrices():
+def makePrices(): #pull data from item database so it can be memory cached rather than each item recalculating hitting it
     try:
         with open("../Items.txt", "r") as f:
             products = []
@@ -109,8 +113,8 @@ def makePrices():
         print("Failed To Read Item File")
         return 0, 0, 0, 0, 0
         
-def update_pricing_options():
-    global pricing_style
+def update_pricing_options(): #change pricing style on the fly 
+    global pricing_style #to be dynamic in coming update
     if pricing_option_button.value == "Base":
         pricing_style = "Base"
     elif pricing_option_button.value == "WordPress":
@@ -120,7 +124,7 @@ def update_pricing_options():
     elif pricing_option_button.value == "Edin. Mark.":
         pricing_style = "EditBoroMarket"
 
-def OrderDetails(main_window, ordernum):
+def OrderDetails(main_window, ordernum): #GUI to edit orders
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
     global item_price5, total, choose_export, choose_ship, finish, pricing_style
@@ -132,7 +136,7 @@ def OrderDetails(main_window, ordernum):
     products, baseprice, wordpress_price, etsy_price, editboromarket_price = makePrices()
     for i in range(0,5):
         realitems.append(Item())
-    window2 = Window(main_window, title="Edit Order", layout="grid", width=1100,height=700)
+    window2 = Window(main_window, title="Edit Order", layout="grid", width=1100,height=700) #look up how GUIZero and TKinter works ok
     welcome_message = Text(window2,text='Change Order.', size=18, font="Times New Roman", grid=[1,0])
 
     purchase_name_text = Text(window2,text='Buyer Name', size=15, font="Times New Roman", grid=[0,1])
@@ -180,6 +184,8 @@ def OrderDetails(main_window, ordernum):
     choose_ship = CheckBox(window2,text="Ship Order", grid=[1,20])
     finish = PushButton(window2,command=export,text='Save',grid=[0,19])
 
+
+    #load order for edititng
     order = Order_Manipulator.LoadOrder(ordernum)
     preorder = order
     purchase_name.value = order.getOrderName()
@@ -206,7 +212,7 @@ def OrderDetails(main_window, ordernum):
     price_update()
 
 
-def exporttask():
+def exporttask(): #save task after modification by overwrite
     global finish, name, discription, priority, permname
     global window2
 
@@ -216,7 +222,7 @@ def exporttask():
 
     window2.destroy()
 
-def TaskDetails(main_window, taskname):
+def TaskDetails(main_window, taskname): #GUI window to edit a task
     global finish, name, discription, priority, permname
     global window2
 

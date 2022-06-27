@@ -20,6 +20,10 @@ os.system("cp demooauth.txt ../oauth.txt")
 #create default first order number and will be 123
 os.system("cp default_order.txt ../Last_Order.txt")
 
+#init files to store open orders and tasks
+os.system("cp blanktext.txt ../Open_Orders.txt")
+os.system("cp blanktext.txt Tasks.tsk")
+
 #create default pricing list link from an empty file
 os.system("cp blanktext.txt ../Pricing_List_Link.txt")
 

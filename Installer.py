@@ -22,7 +22,7 @@ os.system("cp demooauth.txt ../oauth.txt")
 os.system("cp default_order.txt ../Last_Order.txt")
 
 #create item database file
-os.system("cp blanktext.txt ../Pricing_Master_List.txt")
+os.system("cp blanktext.txt ../Products.txt")
 
 #install tkinter the base for gui zero
 #sudo may be required to install tkinter

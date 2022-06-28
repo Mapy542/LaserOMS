@@ -78,6 +78,7 @@ def LoadOrder(ordernum):
             if "order_items" in locals():
                 items = []
                 for item in order_items:
+                    otherpricestyle = []
                     data = item.split("*")
                     for i in range(len(data)):
                         data[i] = data[i].split("|")
@@ -87,15 +88,17 @@ def LoadOrder(ordernum):
                             item_base_price = data[i][1]
                         if data[i][0] == 'Item_Profit':
                             item_profit = data[i][1]
-                        if data[i][0] == 'Item_Wordpress_Price':
-                            item_wordpress_price = data[i][1]
-                        if data[i][0] == 'Item_Etsy_Price':
-                            item_etsy_price = data[i][1]
-                        if data[i][0] == 'Item_EditBoroMarket_Price':
-                            item_editBoroMarket_price = data[i][1]
+                        if data[i][0] == 'Item_Revenue':
+                            item_revenue = data[i][1]
+                        if data[i][0] == 'Item_Profit':
+                            item_profit = data[i][1]
+                        if data[i][0] == 'Item_Other_Price_Style':
+                            style = data[i][1].split('~')
+                            style[1] = int(style[1])
+                            otherpricestyle.append(style)
                         if data[i][0] == 'Item_Quantity':
                             item_quantity = data[i][1]
-                    items.append(Item(item_product, int(item_base_price), int(item_profit), int(item_wordpress_price), int(item_etsy_price), int(item_editBoroMarket_price), int(item_quantity)))
+                    items.append(Item(product = item_product,baseprice= int(item_base_price),profit= int(item_profit),revenue= int(item_revenue),otherpricingstyles= otherpricestyle ,quantity= int(item_quantity)))
                 neworder = Order(order_number, order_date, order_name, order_address_line_1, order_address_line_2, order_city, order_state, order_zip,
                 order_phone, order_email, items, order_total, order_pricing_style, order_status)
 

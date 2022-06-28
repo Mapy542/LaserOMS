@@ -30,12 +30,7 @@ def SyncSheetItems():
                     profit_index = i
                 elif '**' in line1[i]:
                     pricing_styles_index.append(i, line1[i].strip('**'))
-                elif line1[i] == 'WP':
-                    wp_index = i
-                elif line1[i] == 'Etsy':
-                    etsy_index = i
-                elif line1[i] == 'Market':
-                    market_index = i
+
             
     except OSError:
         print("Failed To Read Items.cvs")
@@ -68,5 +63,5 @@ def SyncSheetItems():
         return False
 
     #update listing database
-    Listing_Manipulator.PriceDelta(products, product_base_prices, product_revenue, product_profit, other_pricing_styles)
+    Listing_Manipulator.Rebuild(products, product_base_prices, product_revenue, product_profit, other_pricing_styles)
    

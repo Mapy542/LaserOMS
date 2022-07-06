@@ -13,7 +13,6 @@ for i in range(len(packages)):
 #where all orders, listing data, and yearly expences are stored.
 os.system("mkdir ../Orders")
 os.system("mkdir ../Expences")
-os.system("mkdir ../Listings")
 
 #steup data for etsy api in this file
 os.system("cp demooauth.txt ../oauth.txt")
@@ -22,7 +21,8 @@ os.system("cp demooauth.txt ../oauth.txt")
 os.system("cp default_order.txt ../Last_Order.txt")
 
 #create item database file
-os.system("cp blanktext.txt ../Products.txt")
+os.system("cp default_indicators.txt ../Indicators.txt")
+os.system("cp blanktext.txt ../Listings.lst")
 
 #install tkinter the base for gui zero
 #sudo may be required to install tkinter

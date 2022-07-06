@@ -3,7 +3,6 @@ from Item_Object import Item
 from Order_Object import Order
 from Expence_Object import Expence
 from Task_Object import Task
-from Listing_Object import Listing
 from Bill_Of_Material_Object import BOM
 
 

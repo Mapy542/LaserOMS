@@ -1,88 +1,81 @@
 from Listing_Object import Listing
 from Bill_Of_Material_Object import BOM
+import os
 
-def Rebuild(products, product_base_prices, product_revenue, product_profit, other_pricing_styles):
-    #save new product list
+def Rebuild():
+    #download data from link
+    DownloadListings()
+
+    #read indicators from file
     try:
-        with open("../Listings/Products.csv", "w") as f:
-            f.truncate(0)
-            f.seek(0)
-            for i in range(len(products)):
-                f.write(products[i] + ",")
-            f.close()
-    except OSError:
-        print("Failed To Save Products List")
+        with open("../Indicators.txt", "r") as f:
+            indicators = f.read().strip().split(",")
+    except:
+        print("Failed To Read Indicators")
         return False
 
-        #save all listing data
-
-def LoadListing(listingname):
+    #parse file to find indicators
+    pricing_styles_index = []
+    indicies = []
     try:
-        with open("../Listings/Listings.lst", "r") as f:
-            lines = f.read().split('\n')
-            f.close()
-            for i in range(len(lines)):
-                if lines[i] == '':
+        with open("../Items.cvs", "r") as f:
+            line1 = f.readline()
+            line1.strip().split(',')
+            for i in range(len(line1)):
+                if line1[i] == 'Item':
+                    product_index = i
+                elif line1[i] == 'Base Price':
+                    base_price_index = i
+                elif line1[i] == 'Revenue':
+                    revenue_index = i
+                elif line1[i] == 'Profit':
+                    profit_index = i
+                elif '**' in line1[i]:
+                    pricing_styles_index.append(i, line1[i].strip('**'))
+
+            
+    except OSError:
+        print("Failed To Read Items.cvs")
+        return False
+
+    #parse file to find items
+    products = []
+    product_base_prices = []
+    product_revenue = []
+    product_profit = []
+
+    other_pricing_styles = []
+
+    try:
+        with open("../Items.cvs", "r") as f:
+            for line in f:
+                if line == '\n':
                     continue
-                lines[i] = lines[i].split(',')
-                if lines[i][0] == listingname:
-                    listing = lines[i]
-                    break
-                
-            itemnames = []
-            itemcosts = []
-            for i in range(len(listing)):
-                listing[i] = listing[i].split(':')
-                if listing[i][0] == 'Listing_Name':
-                    listing_name = listing[i][1]
-                if listing[i][0] == 'Item_Name':
-                    itemnames.append(listing[i][1])
-                if listing[i][0] == 'Item_Cost':
-                    itemcosts.append(int(listing[i][1]))
-            items = []
-            for i in range(len(itemnames)):
-                items.append([itemnames[i],itemcosts[i]])
-            newlisting = Listing(name = listing_name, items = items)
-            newlisting.recalculate_overall_cost()
-            return newlisting
+                line = line.strip().split(',')
+                products.append(line[product_index])
+                product_base_prices.append(int(line[base_price_index])*100)
+                product_revenue.append(int(line[revenue_index])*100)
+                product_profit.append(int(line[profit_index])*100)
+                item_pricing_styles = []
+                for i in range(len(pricing_styles_index)):
+                    item_pricing_styles.append(int(line[pricing_styles_index[i][0]])*100, line[pricing_styles_index[i][1]])
+                other_pricing_styles.append(item_pricing_styles)
     except OSError:
-        print("Failed To Load Listing")
-
-
-
-def SaveBOM(bom):
-    try:
-        with open("../Listings/" + str(bom.getName()) + ".bom", "w") as f:
-            f.write("BOM_Name:" + str(bom.getName()) + ",")
-            items = bom.getItems()
-            for singleitem in items:
-                f.write("Item_Name:" + str(singleitem[0]) + "," + "Item_Cost:" + str(singleitem[1]) + ",")
-            f.close()
-            return True
-    except OSError:
-        print("Failed To Save BOM")
+        print("Failed To Read Items.cvs")
         return False
 
-def LoadBOM(bomname):
+
+def DownloadListings():
+    #Get link from individuals file
     try:
-        with open("../Listings/" + str(bomname) + ".bom", "r") as f:
-            bom = f.read().split(',')
+        with open("../Pricing_List_Link.txt", "r") as f:
+            link = f.read().strip()
             f.close()
-            itemnames = []
-            itemcosts = []
-            for i in range(len(bom)):
-                bom[i] = bom[i].split(':')
-                if bom[i][0] == 'BOM_Name':
-                    bom_name = bom[i][1]
-                if bom[i][0] == 'Item_Name':
-                    itemnames.append(bom[i][1])
-                if bom[i][0] == 'Item_Cost':
-                    itemcosts.append(int(bom[i][1]))
-            items = []
-            for i in range(len(itemnames)):
-                items.append([itemnames[i],itemcosts[i]])
-            newbom = BOM(name = bom_name, items = items)
-            newbom.recalculate_overall_cost()
-            return newbom
     except OSError:
-        print("Failed To Load BOM")
+        print("Failed To Read Pricing List Link")
+        return False
+
+    #download data from link
+    os.system('wget -O ../Items.cvs ' + link)
+
+

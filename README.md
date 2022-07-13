@@ -28,6 +28,8 @@ and then include them in aouth.txt file.<br>
 Last_Order.txt is used to keep track of the last order that was manually created.<br>
 It can be adjusted to change manual order numbers. (NOTE IT DOES NOT check for duplicates)<br>
 Indicators.txt is used to pull the data out of the cvs file and into the program.<br>
+If you have multiple pricing styles, ie charge different amounts based no platform,<br>
+include them as an indicator. To be consitered not just another data field, put a double aterisk (**)<br>
 <h3>Projects:</h3>
 
     Employee wages tracking 

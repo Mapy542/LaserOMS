@@ -14,24 +14,26 @@ def Rebuild():
         print("Failed To Read Indicators")
         return False
 
+    pricing_styles_indicators = []
+    for name in indicators:
+        if "**" in name:
+            pricing_styles_indicators.append(name)
+    
+    for indicator in pricing_styles_indicators:
+        indicators.remove(indicator)
+
     #parse file to find indicators
-    pricing_styles_index = []
+    pricing_styles_indicies = []
     indicies = []
     try:
         with open("../Items.cvs", "r") as f:
             line1 = f.readline()
             line1.strip().split(',')
             for i in range(len(line1)):
-                if line1[i] == 'Item':
-                    product_index = i
-                elif line1[i] == 'Base Price':
-                    base_price_index = i
-                elif line1[i] == 'Revenue':
-                    revenue_index = i
-                elif line1[i] == 'Profit':
-                    profit_index = i
-                elif '**' in line1[i]:
-                    pricing_styles_index.append(i, line1[i].strip('**'))
+                if line1[i] in indicators:
+                    indicies.append(i, line1[i])
+                elif line1[i] in pricing_styles_indicators:
+                    pricing_styles_indicies.append(i, line1[i].strip('**'))
 
             
     except OSError:

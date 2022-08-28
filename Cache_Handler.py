@@ -29,9 +29,9 @@ def RebuildOrderCaches(): #Rebuild cache data from all orders
     for i in allorders:
         if i.getStatus() == "Open":
             openorders.append(i.getOrderNumber())
-        if i.getDate().split("-")[0] not in years:
-            years.append(i.getDate().split("-")[0])
-        years[i.getDate().split("-")[0]].append(i.getOrderNumber())
+        if i.getDate().split("-")[2] not in years:
+            years.append(i.getDate().split("-")[2])
+        years[i.getDate().split("-")[2]].append(i.getOrderNumber())
     try:
         with open("../Open_Orders.txt", "w+") as f:
             f.write(",".join(openorders))
@@ -94,7 +94,7 @@ def GetOpenOrders():
 
 def AddYearOrder(order):
     # This function will add an order to the year order cache.
-    year = order.getOrderDate().split("-")[0] #find order's creation year
+    year = order.getOrderDate().split("-")[2] #find order's creation year
     try:
         with open("../" + str(year) + "_Orders.txt", "w+") as f:
             orders = f.read().split(',')
@@ -110,7 +110,7 @@ def AddYearOrder(order):
 def RemoveYearOrder(ordernumber):
     # This function will remove an order from the year order cache.
     order = Order_Manipulator(ordernumber)
-    year = order.getDate().split("-")[0]
+    year = order.getDate().split("-")[2]
     try:
         with open("../" + str(year) + "_Orders.txt", "w+") as f:
             orders = f.read().split(',')

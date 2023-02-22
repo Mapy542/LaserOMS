@@ -1,9 +1,12 @@
-<h1># LaserOMS</h1><br>
-Lightweight python based local order/buisness management system with Etsy integration<br>
-<br>
-<h3>Basis:</h3><br>
-This system is intended to be run on multiple linux computers and all files are accessable via NAS device in a samba share.<br>
-<br>
+# LaserOMS
+
+Lightweight python based local order/buisness management system with Etsy integration\
+
+## Basis:
+
+This system is designed to track orders, expences, and inventory.\
+It is lightweight and designed to be run on a single computer. (Server Syncing is not yet implemented)\
+
 <h3>Features:</h3><br>
 Order storage, loging, shipping, packing slip generating, and API syncronization<br>
 Expence tracking and financial reporting<br>
@@ -32,17 +35,18 @@ If you have multiple pricing styles, ie charge different amounts based no platfo
 include them as an indicator. To be consitered not just another data field, put a double aterisk (**)<br>
 <h3>Projects:</h3>
 
-    Employee wages tracking 
+    Employee wages tracking
     dynamic items for order
     more flexible packing slip generation
     amazon integration
     etsy integration
+
 <br>
 <h3> Changes:</h3><br>
 
 Version 1.1.0<br>
-    Implimented dynamic pricing and listing management<br>
+Implimented dynamic pricing and listing management<br>
 <br>
 Version 1.0.0<br>
-    Original release with object oriented code. (was tuple based)<br>
-    Task Management included<br>
+Original release with object oriented code. (was tuple based)<br>
+Task Management included<br>

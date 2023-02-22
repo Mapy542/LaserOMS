@@ -104,9 +104,17 @@ def NewOrder(main_window):
     global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
     global item_price5, total, choose_export, choose_ship, finish
-    global products, styles
+    global styles
     global realitems, pricing_style
     global window2
+
+    global database
+    orders = database.table('Orders')
+    tasks = database.table('Tasks')
+    expenses = database.table('Expenses')
+    products = database.table('Products')
+    pricing_styles = database.table('Product_Pricing_Styles')
+    order_items = database.table('Order_Items')
 
     pricing_style = styles[0]['style_name']
     realitems = []

@@ -38,19 +38,19 @@ if (doOverwrite):
     database = tinydb.TinyDB('../OMS-Data.json')
     orders = database.table('Orders')  # Form orders table
     orders.insert({'order_ID': 111, 'order_name': 'LAST_ORDER',
-                   'order_status': "IGNORE", 'Process_Status': "IGNORE"})
+                   'order_status': "IGNORE", 'process_status': "IGNORE"})
     order_items = database.table('Order_Items')  # Form order items table
     order_items.insert({'order_ID': 111, 'item_UID': 'IGNORE',
-                        'item_quantity': 0, 'item_price': 0.00, 'Process_Status': "IGNORE"})
-    expences = database.table('Expenses')  # Form expences table
-    expences.insert({'expence_ID': 111, 'expence_name': 'LAST_EXPENCE',
-                     'Process_Status': "IGNORE"})
+                        'item_quantity': 0, 'item_price': 0.00, 'process_status': "IGNORE"})
+    expenses = database.table('Expenses')  # Form expenses table
+    expenses.insert({'expense_ID': 111, 'expense_name': 'LAST_EXPENSE',
+                     'process_status': "IGNORE"})
     inventory = database.table('Products')  # Form inventory table
     inventory.insert({'product_name': 'Empty',
-                     'product_base_price': 0, 'Process_Status': "UTILIZED"})
+                     'product_base_price': 0, 'process_status': "UTILIZED"})
     # Form product pricing styles table
     prods = database.table('Product_Pricing_Styles')
-    prods.insert({'style_name': 'Empty', 'Process_Status': "IGNORE"})
-    taks = database.table('Tasks')  # Form tasks table
-    taks.insert({'task_name': 'Empty', 'Process_Status': "IGNORE"})
+    prods.insert({'style_name': 'Empty', 'process_status': "IGNORE"})
+    tasks = database.table('Tasks')  # Form tasks table
+    tasks.insert({'task_name': 'Empty', 'process_status': "IGNORE"})
     database.close()

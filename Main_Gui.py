@@ -10,26 +10,26 @@ import PackingSlip
 #import Finance_Window
 #import Details
 import New_Task_Window
-#import New_Expence_Window
+#import New_Expense_Window
 #import Listing_Database_Window
 import tinydb
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 
 
-def new_order():  # open new order window
-    NewOrder(app, orders)
-    updatescreen()  # reload listbox of tasks or orders
+def NewOrderWindow():  # open new order window
+    NewOrder(app)
+    UpdateScreen()  # reload listbox of tasks or orders
 
 
-def loadUnfufilledOrders():
+def LoadUnfulfilledOrders():
 
     open_orders = orders.search((tinydb.Query(
-    ).order_status == 'OPEN') & (tinydb.Query().Process_Status == 'UTILIZE'))  # get all open orders and ignore shell holders
+    ).order_status == 'OPEN') & (tinydb.Query().process_status == 'UTILIZE'))  # get all open orders and ignore shell holders
     return open_orders  # return open orders
 
 
-def displayOrders(orders):
+def DisplayOrders(orders):
     displayvals = []  # list of strings to display
     for i in range(len(orders)):  # for each order
         displayvals.append(orders[i]['order_number'] +
@@ -38,20 +38,20 @@ def displayOrders(orders):
     return displayvals
 
 
-def showOpenOrders():
-    openorders = loadUnfufilledOrders()  # load open orders
-    visualdata = displayOrders(openorders)  # get visual data
+def ShowOpenOrders():
+    openorders = LoadUnfulfilledOrders()  # load open orders
+    visualdata = DisplayOrders(openorders)  # get visual data
     listbox.clear()  # clear listbox
     for i in visualdata:  # for each order
         listbox.append(i)  # add to listbox
     welcome_message.value = "Welcome to Laser OMS, " + \
-        str(len(openorders)) + ' unfufilled orders.'  # update message screen
+        str(len(openorders)) + ' unfulfilled orders.'  # update message screen
 
 
-def loadTasks():
+def LoadTasks():
     try:
         openorders = orders.search((tinydb.Query().order_status.any == 'OPEN') & (
-            tinydb.Query().Process_Status.any == 'UTILIZE'))  # get all open orders and ignore shell holders
+            tinydb.Query().process_status.any == 'UTILIZE'))  # get all open orders and ignore shell holders
         for i in range(len(openorders)):  # for each open order
             dates = openorders[i]['order_date'].split('-')  # split date
             dates = [int(i) for i in dates]  # convert to int
@@ -86,11 +86,15 @@ def loadTasks():
         tasks = tasks.sort(key=lambda x: x['task_priority'])
         return tasks, len(openorders)
     except:
-        return None
+        return None, 0
 
 
-def display_tasks():
-    tasks, openorders = loadTasks()  # load tasks
+def DisplayTasks():
+    tasks, openorders = LoadTasks()  # load tasks
+    if(tasks == None):
+        welcome_message.value = "Welcome to Laser OMS, 0 unfulfilled orders."
+        listbox.clear()
+        return
     task_list = []
     for i in range(len(tasks)):  # for each task
         task_list.append(tasks[i]['task_name'])  # add name to list
@@ -101,31 +105,30 @@ def display_tasks():
     for i in task_list:  # for each task
         listbox.append(i)  # add to listbox
 
-    welcome_message.value = "Welcome to Laser OMS, " + \
-        str(openorders) + ' unfufilled orders.'  # update message screen
+    welcome_message.value = "Welcome to Laser OMS, " + str(openorders) + ' unfulfilled orders.'  # update message screen
 
 
-def display_all_orders():
+def DisplayAllOrders():
     # get all open orders and ignore shell holders
-    allorders = orders.search(tinydb.Query().Process_Status == 'UTILIZE')
-    visualdata = displayOrders(allorders)  # get visual data
+    allorders = orders.search(tinydb.Query().process_status == 'UTILIZE')
+    visualdata = DisplayOrders(allorders)  # get visual data
     listbox.clear()  # clear listbox
     for i in visualdata:  # for each order
         listbox.append(i)  # add to listbox
     welcome_message.value = "Welcome to Laser OMS, " + \
-        str(len(allorders)) + ' unfufilled orders.'  # update message screen
+        str(len(allorders)) + ' unfulfilled orders.'  # update message screen
 
 
-def updatescreen():  # update the screen based on the selected display option
+def UpdateScreen():  # update the screen based on the selected display option
     if view_option.value == "Open Orders":
-        showOpenOrders()
+        ShowOpenOrders()
     elif view_option.value == "Tasks":
-        display_tasks()
+        DisplayTasks()
     elif view_option.value == "All Orders":
-        display_all_orders()
+        DisplayAllOrders()
 
 
-def print_slips():
+def PrintPackingSlips():
     for i in range(len(listbox.value)):  # for each selected order
         temp = listbox.value[i].split(',')  # split orders by comma
         if type(temp[0]) == int:  # make sure order number is selected and not a task
@@ -133,7 +136,7 @@ def print_slips():
             PackingSlip.PrintPackingSlip(temp[0], orders)  # print image
 
 
-def mark_fufilled():
+def MarkFulfilled():
     # sort between orders and tasks
     selected_data = listbox.value
     selected_orders = []
@@ -147,7 +150,7 @@ def mark_fufilled():
         # deal with orders
         for single_order in selected_orders:  # for each selected order
             trimmed = single_order.split(',')[0]  # get order number
-            orders.update({'order_status': 'FUFILLED'}, tinydb.Query(
+            orders.update({'order_status': 'FULFILLED'}, tinydb.Query(
             ).order_number == int(trimmed))  # update order status
 
         # deal with tasks
@@ -155,20 +158,20 @@ def mark_fufilled():
             # remove task from database
             tasks.remove(tinydb.Query().task_name == single_task)
 
-        updatescreen()  # update screen
+        UpdateScreen()  # update screen
 
 
-def create_expence():  # create expence via expence form
-    #New_Expence_Window.NewExpense(app, expences)
+def CreateExpense():  # create expense via expense form
+    #New_Expense_Window.NewExpense(app, expenses)
     pass
 
 
-def stats_run():  # display financial stats window
-    #Finance_Window.FinancesDisplay(app, orders, expences)
+def StatsWindow():  # display financial stats window
+    #Finance_Window.FinancesDisplay(app, orders, expenses)
     pass
 
 
-def show_details():
+def ShowDetails():
     # sort between orders and tasks
     selected_data = listbox.value
     selected_orders = []
@@ -187,16 +190,17 @@ def show_details():
         pass
 
 
-def new_task():  # create new task via task form
+def NewTask():  # create new task via task form
     #New_Task_Window.NewTask(app, tasks)
-    updatescreen()
+    UpdateScreen()
 
 
-def view_listings():  # view
-    Listing_Database_Window.ListingDisplay(app, products)
+def ViewListings():  # view
+    #Listing_Database_Window.ListingDisplay(app, products)
+    pass
 
 
-def rebuildproducts():
+def RebuildProducts():
     RebuildProductsFromSheets(products, pricing_styles)
 
 
@@ -205,7 +209,7 @@ try:
         '../OMS-Data.json', storage=CachingMiddleware(JSONStorage))
     orders = database.table('Orders')
     tasks = database.table('Tasks')
-    expences = database.table('Expences')
+    expenses = database.table('Expenses')
     products = database.table('Products')
     pricing_styles = database.table('Product_Pricing_Styles')
     order_items = database.table('Order_Items')
@@ -214,43 +218,43 @@ try:
     app.tk.call('wm', 'iconphoto', app.tk._w,
                 tkinter.PhotoImage(file='./Icon.png'))
 
-    welcome_message = Text(app, text="Welcome to Laser OMS, - unfufilled orders.",
+    welcome_message = Text(app, text="Welcome to Laser OMS, - unfulfilled orders.",
                            size=15, font="Times New Roman", grid=[0, 0, 4, 1])
     listbox = ListBox(app, items=[], multiselect=True, width=400,
                       height=200, scrollbar=True, grid=[0, 1, 4, 5])
 
     # view options
     view_option = Combo(app, options=["Tasks", "Open Orders", "All Orders"],
-                        command=updatescreen, grid=[5, 3, 1, 1], selected="Tasks")
+                        command=UpdateScreen, grid=[5, 3, 1, 1], selected="Tasks")
     reload = PushButton(app, text='Reload Grid',
-                        command=updatescreen, grid=[5, 2, 1, 1])
+                        command=UpdateScreen, grid=[5, 2, 1, 1])
 
-    updatescreen()
+    UpdateScreen()
 
     # options
     new_order_button = PushButton(
-        app, text='New Order', command=new_order, grid=[0, 7, 1, 1])
-    new_expence = PushButton(app, text='New Expence',
-                             command=create_expence, grid=[1, 7, 1, 1])
+        app, text='New Order', command=NewOrderWindow, grid=[0, 7, 1, 1])
+    new_expense = PushButton(app, text='New Expense',
+                             command=CreateExpense, grid=[1, 7, 1, 1])
     new_task_button = PushButton(
-        app, text='New Task', command=new_task, grid=[2, 7, 1, 1])
+        app, text='New Task', command=NewTask, grid=[2, 7, 1, 1])
     more_details = PushButton(app, text='More Details',
-                              command=show_details, grid=[3, 7, 1, 1])
+                              command=ShowDetails, grid=[3, 7, 1, 1])
 
     fufill_button = PushButton(
-        app, text='Mark as Fufilled', command=mark_fufilled, grid=[0, 8, 1, 1])
+        app, text='Mark as Fulfilled', command=MarkFulfilled, grid=[0, 8, 1, 1])
     print_button = PushButton(app, text='Print Slips',
-                              command=print_slips, grid=[1, 8, 1, 1])
+                              command=PrintPackingSlips, grid=[1, 8, 1, 1])
     #ship_button = PushButton(app,text='Ship Order',command=ship_orders,grid=[2,8,1,1])
 
     pricing_button = PushButton(
-        app, text='Update Pricing', command=rebuildproducts, grid=[0, 9, 1, 1])
+        app, text='Update Pricing', command=RebuildProducts, grid=[0, 9, 1, 1])
     #stats_button = PushButton(app,text='Financial Statistics',command=stats_run,grid=[1,9,1,1])
     #listingdataview_button = PushButton(app,text='Listing Database',command=view_listings,grid=[2,9,1,1])
 
     app.display()
-except:
-    pass
+except Exception as e:
+    print(e)
     database.close()
 finally:
     database.close()

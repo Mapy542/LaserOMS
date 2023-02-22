@@ -2,7 +2,7 @@ import os, Order_Cache_Handler
 from guizero import Window, Text, TextBox, CheckBox, Combo, PushButton, ListBox
 from datetime import datetime
 from Update_Item_Database import SyncSheetItems
-from New_Expence_Window import NewExpense
+from New_Expense_Window import NewExpense
 
 def update_listbox():
     data = Order_Cache_Handler().getFinanceCache()

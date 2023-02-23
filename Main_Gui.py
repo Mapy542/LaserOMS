@@ -1,10 +1,11 @@
 import os
 import tinydb
 import tkinter
-from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox
+from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox, yesno
 from datetime import datetime
 from New_Order_Window import NewOrder
 from Google_Sheets_Sync import RebuildProductsFromSheets
+from Settings_Window import Settings, VerifySettings
 import PackingSlip
 #import ShippingHandler
 #import Finance_Window
@@ -203,6 +204,9 @@ def ViewListings():  # view
 def RebuildProducts():
     RebuildProductsFromSheets(products, pricing_styles)
 
+def SettingsWindow():
+    Settings(app, database)
+
 
 try:
     database = tinydb.TinyDB(
@@ -251,6 +255,14 @@ try:
         app, text='Update Pricing', command=RebuildProducts, grid=[0, 9, 1, 1])
     #stats_button = PushButton(app,text='Financial Statistics',command=stats_run,grid=[1,9,1,1])
     #listingdataview_button = PushButton(app,text='Listing Database',command=view_listings,grid=[2,9,1,1])
+
+    settingsbutton = PushButton(app, text='Settings', command=SettingsWindow, grid=[3,9,1,1])
+
+    settingscheck = VerifySettings(database)
+    if settingscheck:
+        gotosettings = yesno("Settings Conflict", "Settings configuration error detected. Would you like to go to settings now?")
+        if gotosettings:
+            SettingsWindow()
 
     app.display()
 except Exception as e:

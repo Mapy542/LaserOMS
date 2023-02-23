@@ -27,7 +27,7 @@ if answer == "y" or answer == "Y":
 # check for existing files
 dir = os.listdir("../")
 
-if "Orders.json" not in dir or doOverwrite:
+if "OMS-Data.json" not in dir or doOverwrite:
     print("Creating Database file at \"../OMS-Data.json\"")
     f = open("../OMS-Data.json", "w")
     f.write("{}")
@@ -53,4 +53,6 @@ if (doOverwrite):
     prods.insert({'style_name': 'Empty', 'process_status': "IGNORE"})
     tasks = database.table('Tasks')  # Form tasks table
     tasks.insert({'task_name': 'Empty', 'process_status': "IGNORE"})
+    settings = database.table('Settings')  # Form settings table
+    settings.insert({'setting_name': 'Empty', 'setting_value': 'Empty', 'process_status': "IGNORE"})
     database.close()

@@ -1,7 +1,7 @@
 import os
 import tinydb
 import tkinter
-from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox, yesno
+from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox, yesno, warn
 from datetime import datetime
 from New_Order_Window import NewOrder
 from New_Expense_Window import NewExpense
@@ -36,11 +36,13 @@ def ShowOpenOrders():
 def LoadTasks(database):
     tasktable = database.table('Tasks')  # get tasks table
     orders = database.table('Orders')  # get orders table
+    settings = database.table('Settings')  # get settings table
 
-    tasks = tasktable.search(tinydb.Query().process_status == 'UTILIZE')  # get all tasks
+    tasks = tasktable.search(
+        tinydb.Query().process_status == 'UTILIZE')  # get all tasks
     openorders = orders.search((tinydb.Query().order_status == 'OPEN') & (
         tinydb.Query().process_status == 'UTILIZE'))  # get all open orders and ignore shell holders
-    
+
     if len(openorders) != 0:  # if there are open orders
         for i in range(len(openorders)):  # for each open order
             dates = openorders[i]['order_date'].split('-')  # split date
@@ -58,15 +60,17 @@ def LoadTasks(database):
                 ', ' + openorders[i]['order_name']  # set name in task format
             tasks.append(openorders[i])  # add to tasks
 
-    if tasks != []:  # if there are tasks
+    # if there are tasks
+    if tasks != [] and settings.search(tinydb.Query().setting_name == "Show_Task_Priority")[0]["setting_value"] == "True":
         max_priority = 0  # max priority
         min_priority = 100  # min priority
         for i in range(len(tasks)):  # find max and min priority
-            if int(tasks[i]['task_priority'])> max_priority:
+            if int(tasks[i]['task_priority']) > max_priority:
                 max_priority = int(tasks[i]['task_priority'])
             if int(tasks[i]['task_priority']) < min_priority:
                 min_priority = int(tasks[i]['task_priority'])
-            tasks[i]['task_priority'] = int(tasks[i]['task_priority'])  # convert to int
+            tasks[i]['task_priority'] = int(
+                tasks[i]['task_priority'])  # convert to int
         if max_priority > 75:  # if there is are priorities above and below 75
             # add high priority placeholder
             tasks.append({'task_name': 'High Priority', 'task_priority': 101})
@@ -77,16 +81,13 @@ def LoadTasks(database):
             # add low priority placeholder
             tasks.append({'task_name': 'Low Priority', 'task_priority': 25})
 
-        print(tasks)
         tasks.sort(key=lambda x: x['task_priority'])
-    print(tasks)
     return tasks, len(openorders)
-
 
 
 def DisplayTasks(database):
     tasks, openorders = LoadTasks(database)  # load tasks
-    if(tasks == []):
+    if (tasks == []):
         welcome_message.value = "Welcome to Laser OMS, 0 unfulfilled orders."
         listbox.clear()
         return
@@ -100,7 +101,8 @@ def DisplayTasks(database):
     for i in task_list:  # for each task
         listbox.append(i)  # add to listbox
 
-    welcome_message.value = "Welcome to Laser OMS, " + str(openorders) + ' unfulfilled orders.'  # update message screen
+    welcome_message.value = "Welcome to Laser OMS, " + \
+        str(openorders) + ' unfulfilled orders.'  # update message screen
 
 
 def DisplayAllOrders(database):
@@ -164,7 +166,6 @@ def CreateExpense():  # create expense via expense form
     NewExpense(app, database)
 
 
-
 def StatsWindow():  # display financial stats window
     #Finance_Window.FinancesDisplay(app, orders, expenses)
     pass
@@ -202,6 +203,7 @@ def ViewListings():  # view
 def RebuildProducts():
     RebuildProductsFromSheets(database)
 
+
 def SettingsWindow():
     Settings(app, database)
 
@@ -209,7 +211,7 @@ def SettingsWindow():
 try:
     database = tinydb.TinyDB(
         '../OMS-Data.json', storage=CachingMiddleware(JSONStorage))
-    
+
     app = App(title="Laser OMS", layout="grid", width=680, height=600)
     app.tk.call('wm', 'iconphoto', app.tk._w,
                 tkinter.PhotoImage(file='./Icon.png'))
@@ -220,7 +222,8 @@ try:
                       height=200, scrollbar=True, grid=[0, 1, 4, 5])
 
     # view options
-    view_option = Combo(app, options=["Tasks", "Open Orders", "All Orders"], grid=[5, 3, 1, 1], selected="Tasks")
+    view_option = Combo(app, options=["Tasks", "Open Orders", "All Orders"], grid=[
+                        5, 3, 1, 1], selected="Tasks")
     reload = PushButton(app, text='Reload Grid',
                         command=UpdateScreen, grid=[5, 2, 1, 1], args=[database])
 
@@ -247,17 +250,19 @@ try:
     #stats_button = PushButton(app,text='Financial Statistics',command=stats_run,grid=[1,9,1,1])
     #listingdataview_button = PushButton(app,text='Listing Database',command=view_listings,grid=[2,9,1,1])
 
-    settingsbutton = PushButton(app, text='Settings', command=SettingsWindow, grid=[3,9,1,1])
+    settingsbutton = PushButton(
+        app, text='Settings', command=SettingsWindow, grid=[3, 9, 1, 1])
 
     settingscheck = VerifySettings(database)
     if settingscheck:
-        gotosettings = yesno("Settings Conflict", "Settings configuration error detected. Would you like to go to settings now?")
+        gotosettings = yesno(
+            "Settings Conflict", "Settings configuration error detected. Would you like to go to settings now?")
         if gotosettings:
             SettingsWindow()
 
     app.display()
 except Exception as err:
-    print(f"Unexpected {err=}, {type(err)=}")
+    warn(f"Unexpected {err=}, {type(err)=}")
     print(traceback.format_exc())
     database.close()
 finally:

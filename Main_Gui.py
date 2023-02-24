@@ -17,32 +17,15 @@ import New_Task_Window
 import tinydb
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
+import traceback
 
 
 def NewOrderWindow():  # open new order window
-    NewOrder(app)
-    UpdateScreen()  # reload listbox of tasks or orders
-
-
-def LoadUnfulfilledOrders():
-
-    open_orders = orders.search((tinydb.Query(
-    ).order_status == 'OPEN') & (tinydb.Query().process_status == 'UTILIZE'))  # get all open orders and ignore shell holders
-    return open_orders  # return open orders
-
-
-def DisplayOrders(orders):
-    displayvals = []  # list of strings to display
-    for i in range(len(orders)):  # for each order
-        displayvals.append(orders[i]['order_number'] +
-                           ", " + orders[i]['order_name'])  # add order number and name to list
-
-    return displayvals
+    NewOrder(app, database)
+    UpdateScreen(database)  # reload listbox of tasks or orders
 
 
 def ShowOpenOrders():
-    openorders = LoadUnfulfilledOrders()  # load open orders
-    visualdata = DisplayOrders(openorders)  # get visual data
     listbox.clear()  # clear listbox
     for i in visualdata:  # for each order
         listbox.append(i)  # add to listbox
@@ -50,10 +33,15 @@ def ShowOpenOrders():
         str(len(openorders)) + ' unfulfilled orders.'  # update message screen
 
 
-def LoadTasks():
-    try:
-        openorders = orders.search((tinydb.Query().order_status.any == 'OPEN') & (
-            tinydb.Query().process_status.any == 'UTILIZE'))  # get all open orders and ignore shell holders
+def LoadTasks(database):
+    tasktable = database.table('Tasks')  # get tasks table
+    orders = database.table('Orders')  # get orders table
+
+    tasks = tasktable.search(tinydb.Query().process_status == 'UTILIZE')  # get all tasks
+    openorders = orders.search((tinydb.Query().order_status == 'OPEN') & (
+        tinydb.Query().process_status == 'UTILIZE'))  # get all open orders and ignore shell holders
+    
+    if len(openorders) != 0:  # if there are open orders
         for i in range(len(openorders)):  # for each open order
             dates = openorders[i]['order_date'].split('-')  # split date
             dates = [int(i) for i in dates]  # convert to int
@@ -69,13 +57,16 @@ def LoadTasks():
             openorders[i]['task_name'] = openorders[i]['order_number'] + \
                 ', ' + openorders[i]['order_name']  # set name in task format
             tasks.append(openorders[i])  # add to tasks
+
+    if tasks != []:  # if there are tasks
         max_priority = 0  # max priority
         min_priority = 100  # min priority
         for i in range(len(tasks)):  # find max and min priority
-            if tasks[i]['task_priority'] > max_priority:
-                max_priority = tasks[i]['task_priority']
-            if tasks[i]['task_priority'] < min_priority:
-                min_priority = tasks[i]['task_priority']
+            if int(tasks[i]['task_priority'])> max_priority:
+                max_priority = int(tasks[i]['task_priority'])
+            if int(tasks[i]['task_priority']) < min_priority:
+                min_priority = int(tasks[i]['task_priority'])
+            tasks[i]['task_priority'] = int(tasks[i]['task_priority'])  # convert to int
         if max_priority > 75:  # if there is are priorities above and below 75
             # add high priority placeholder
             tasks.append({'task_name': 'High Priority', 'task_priority': 101})
@@ -85,15 +76,17 @@ def LoadTasks():
         if max_priority > 25 and min_priority < 50:
             # add low priority placeholder
             tasks.append({'task_name': 'Low Priority', 'task_priority': 25})
-        tasks = tasks.sort(key=lambda x: x['task_priority'])
-        return tasks, len(openorders)
-    except:
-        return None, 0
+
+        print(tasks)
+        tasks.sort(key=lambda x: x['task_priority'])
+    print(tasks)
+    return tasks, len(openorders)
 
 
-def DisplayTasks():
-    tasks, openorders = LoadTasks()  # load tasks
-    if(tasks == None):
+
+def DisplayTasks(database):
+    tasks, openorders = LoadTasks(database)  # load tasks
+    if(tasks == []):
         welcome_message.value = "Welcome to Laser OMS, 0 unfulfilled orders."
         listbox.clear()
         return
@@ -110,8 +103,9 @@ def DisplayTasks():
     welcome_message.value = "Welcome to Laser OMS, " + str(openorders) + ' unfulfilled orders.'  # update message screen
 
 
-def DisplayAllOrders():
+def DisplayAllOrders(database):
     # get all open orders and ignore shell holders
+    orders = database.table('Orders')
     allorders = orders.search(tinydb.Query().process_status == 'UTILIZE')
     visualdata = DisplayOrders(allorders)  # get visual data
     listbox.clear()  # clear listbox
@@ -121,16 +115,16 @@ def DisplayAllOrders():
         str(len(allorders)) + ' unfulfilled orders.'  # update message screen
 
 
-def UpdateScreen():  # update the screen based on the selected display option
+def UpdateScreen(database):  # update the screen based on the selected display option
     if view_option.value == "Open Orders":
-        ShowOpenOrders()
+        ShowOpenOrders(database)
     elif view_option.value == "Tasks":
-        DisplayTasks()
+        DisplayTasks(database)
     elif view_option.value == "All Orders":
-        DisplayAllOrders()
+        DisplayAllOrders(database)
 
 
-def PrintPackingSlips():
+def PrintPackingSlips(database):
     for i in range(len(listbox.value)):  # for each selected order
         temp = listbox.value[i].split(',')  # split orders by comma
         if type(temp[0]) == int:  # make sure order number is selected and not a task
@@ -138,7 +132,10 @@ def PrintPackingSlips():
             PackingSlip.PrintPackingSlip(temp[0], orders)  # print image
 
 
-def MarkFulfilled():
+def MarkFulfilled(database):
+    orders = database.table('Orders')  # get orders table
+    tasks = database.table('Tasks')  # get tasks table
+
     # sort between orders and tasks
     selected_data = listbox.value
     selected_orders = []
@@ -160,7 +157,7 @@ def MarkFulfilled():
             # remove task from database
             tasks.remove(tinydb.Query().task_name == single_task)
 
-        UpdateScreen()  # update screen
+        UpdateScreen(database)  # update screen
 
 
 def CreateExpense():  # create expense via expense form
@@ -193,8 +190,8 @@ def ShowDetails():
 
 
 def NewTask():  # create new task via task form
-    #New_Task_Window.NewTask(app, tasks)
-    UpdateScreen()
+    New_Task_Window.NewTask(app, database)
+    UpdateScreen(database)
 
 
 def ViewListings():  # view
@@ -212,13 +209,7 @@ def SettingsWindow():
 try:
     database = tinydb.TinyDB(
         '../OMS-Data.json', storage=CachingMiddleware(JSONStorage))
-    orders = database.table('Orders')
-    tasks = database.table('Tasks')
-    expenses = database.table('Expenses')
-    products = database.table('Products')
-    pricing_styles = database.table('Product_Pricing_Styles')
-    order_items = database.table('Order_Items')
-
+    
     app = App(title="Laser OMS", layout="grid", width=680, height=600)
     app.tk.call('wm', 'iconphoto', app.tk._w,
                 tkinter.PhotoImage(file='./Icon.png'))
@@ -229,12 +220,11 @@ try:
                       height=200, scrollbar=True, grid=[0, 1, 4, 5])
 
     # view options
-    view_option = Combo(app, options=["Tasks", "Open Orders", "All Orders"],
-                        command=UpdateScreen, grid=[5, 3, 1, 1], selected="Tasks")
+    view_option = Combo(app, options=["Tasks", "Open Orders", "All Orders"], grid=[5, 3, 1, 1], selected="Tasks")
     reload = PushButton(app, text='Reload Grid',
-                        command=UpdateScreen, grid=[5, 2, 1, 1])
+                        command=UpdateScreen, grid=[5, 2, 1, 1], args=[database])
 
-    UpdateScreen()
+    UpdateScreen(database)
 
     # options
     new_order_button = PushButton(
@@ -246,8 +236,8 @@ try:
     more_details = PushButton(app, text='More Details',
                               command=ShowDetails, grid=[3, 7, 1, 1])
 
-    fufill_button = PushButton(
-        app, text='Mark as Fulfilled', command=MarkFulfilled, grid=[0, 8, 1, 1])
+    fulfill_button = PushButton(
+        app, text='Mark as Fulfilled', command=MarkFulfilled, grid=[0, 8, 1, 1], args=[database])
     print_button = PushButton(app, text='Print Slips',
                               command=PrintPackingSlips, grid=[1, 8, 1, 1])
     #ship_button = PushButton(app,text='Ship Order',command=ship_orders,grid=[2,8,1,1])
@@ -266,8 +256,9 @@ try:
             SettingsWindow()
 
     app.display()
-except Exception as e:
-    print(e)
+except Exception as err:
+    print(f"Unexpected {err=}, {type(err)=}")
+    print(traceback.format_exc())
     database.close()
 finally:
     database.close()

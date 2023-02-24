@@ -10,7 +10,6 @@ def RebuildProductsFromSheets(database):
     if download == None:
         return False
 
-    print(download)
     products = database.table('Products')
     pricing_styles = database.table('Product_Pricing_Styles')
 
@@ -34,7 +33,7 @@ def RebuildProductsFromSheets(database):
             fieldindexes.append(i)
 
     for i in range(len(pricingstylenames)):
-        pricing_styles.insert({'style_name': pricingstylenames[i], 'process_status': "UTILIZED", 'google_sheet_listing': "TRUE"})
+        pricing_styles.insert({'style_name': pricingstylenames[i], 'process_status': "UTILIZE", 'google_sheet_listing': "TRUE"})
 
     lines.pop(0)
     productcount = 0

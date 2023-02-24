@@ -4,6 +4,7 @@ import tkinter
 from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox, yesno
 from datetime import datetime
 from New_Order_Window import NewOrder
+from New_Expense_Window import NewExpense
 from Google_Sheets_Sync import RebuildProductsFromSheets
 from Settings_Window import Settings, VerifySettings
 import PackingSlip
@@ -163,8 +164,8 @@ def MarkFulfilled():
 
 
 def CreateExpense():  # create expense via expense form
-    #New_Expense_Window.NewExpense(app, expenses)
-    pass
+    NewExpense(app, database)
+
 
 
 def StatsWindow():  # display financial stats window

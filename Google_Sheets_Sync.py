@@ -1,44 +1,69 @@
-import os
+import urllib.request
+import tinydb
+from guizero import warn, info
 
 
-def RebuildProductsFromSheets(products, prods):
+
+def RebuildProductsFromSheets(database):
     # download data from link
-    DownloadListings()
-
-    try:
-        with open("../Items.cvs", "r") as f:
-            itemscvs = f.read().split("\n")
-            f.close()
-    except OSError:
-        print("Failed To Read Items.cvs")
+    download = DownloadListings(database)
+    if download == None:
         return False
 
-    fields = itemscvs[0].split(',')
+    print(download)
+    products = database.table('Products')
+    pricing_styles = database.table('Product_Pricing_Styles')
 
-    products.truncate()
-    for i in range(len(itemscvs)):  # for each item line
-        item = itemscvs[i].split(',')  # split into fields
-        itemdata = {}  # make dictionary
-        for i in range(len(fields)):  # for each field
-            itemdata[fields[i]] = item[i]  # add field to dictionary
-        products.insert(itemdata)  # add item to database
+    products.remove((tinydb.where('process_status') == 'UTILIZED') & (tinydb.where('google_sheet_listing') == "TRUE"))
+    pricing_styles.remove((tinydb.where('process_status') == 'UTILIZED') & (tinydb.where('google_sheet_listing') == "TRUE"))
+    lines = download.split('\n')
+    firstline = lines[0].split(',')
 
-    prods.truncate()
-    for i in range(len(fields)):  # for each field
-        if '**' in fields[i]:  # if field is a pricing style
-            prods.insert({'style_name': fields[i].replace(
-                '**', ''), 'Process_Status': "UTILIZE"})  # add style to database
+    fieldnames = []
+    fieldindexes = []
+    pricingstylenames = []
+    pricingstyleindexes = []
+    for i in range(len(firstline)):
+        if firstline[i] == "~":
+            break
+        elif "**" in firstline[i]:
+            pricingstylenames.append(firstline[i].replace("**", ""))
+            pricingstyleindexes.append(i)
+        elif firstline[i] != "":
+            fieldnames.append(firstline[i])
+            fieldindexes.append(i)
 
+    for i in range(len(pricingstylenames)):
+        pricing_styles.insert({'style_name': pricingstylenames[i], 'process_status': "UTILIZED", 'google_sheet_listing': "TRUE"})
 
-def DownloadListings():
-    # Get link from individuals file
+    lines.pop(0)
+    productcount = 0
+    for i in range(len(lines)):
+        line = lines[i].split(',')
+        if line[0] == '':
+            continue
+        product = {}
+        for j in range(len(fieldnames)):
+            product[fieldnames[j]] = line[fieldindexes[j]]
+        product['process_status'] = "UTILIZED"
+        product['google_sheet_listing'] = "TRUE"
+        products.insert(product)
+        productcount += 1
+
+    info("Product Import Successful", str(productcount) + " Products Imported From Google Sheet")
+    return True
+
+def DownloadListings(database):
+    settings = database.table('Settings')
+    url = settings.search(tinydb.where('setting_name') == 'Google_Sheet_Link')[0]['setting_value'].strip()
+    if url == '':
+        warn("Error", "No Google Sheet Link Found")
+        return None
     try:
-        with open("../Pricing_List_Link.txt", "r") as f:
-            link = f.read().strip()
-            f.close()
-    except OSError:
-        print("Failed To Read Pricing List Link")
-        return False
-
-    # download data from link
-    os.system('wget -O ../Items.cvs ' + link)
+        response = urllib.request.urlopen(url)
+        data = response.read()      # a `bytes` object
+        text = data.decode('utf-8') # a `str`; this step can't be used if data is binary
+    except:
+        warn("Error", "Failed To Download Google Sheet")
+        return None
+    return text

@@ -202,7 +202,7 @@ def ViewListings():  # view
 
 
 def RebuildProducts():
-    RebuildProductsFromSheets(products, pricing_styles)
+    RebuildProductsFromSheets(database)
 
 def SettingsWindow():
     Settings(app, database)

@@ -1,4 +1,4 @@
-from guizero import Text, TextBox, PushButton, Window, yesno
+from guizero import Text, TextBox, PushButton, Window
 import tinydb
 
 
@@ -21,7 +21,7 @@ def canceltask():
     if(name.value == '' and description.value == '' and priority.value == '0'):
         window2.destroy()
     else:
-        result = yesno("Cancel", "Are you sure you want to cancel?")
+        result = window2.yesno("Cancel", "Are you sure you want to cancel?")
         if result == True:
             window2.destroy()
 

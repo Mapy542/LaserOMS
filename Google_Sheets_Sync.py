@@ -1,12 +1,11 @@
 import urllib.request
 import tinydb
-from guizero import warn, info
 
 
 
-def RebuildProductsFromSheets(database):
+def RebuildProductsFromSheets(app, database):
     # download data from link
-    download = DownloadListings(database)
+    download = DownloadListings(app, database)
     if download == None:
         return False
 
@@ -49,20 +48,20 @@ def RebuildProductsFromSheets(database):
         products.insert(product)
         productcount += 1
 
-    info("Product Import Successful", str(productcount) + " Products Imported From Google Sheet")
+    app.info("Product Import Successful", str(productcount) + " Products Imported From Google Sheet")
     return True
 
-def DownloadListings(database):
+def DownloadListings(app, database):
     settings = database.table('Settings')
     url = settings.search(tinydb.where('setting_name') == 'Google_Sheet_Link')[0]['setting_value'].strip()
     if url == '':
-        warn("Error", "No Google Sheet Link Found")
+        app.warn("Error", "No Google Sheet Link Found")
         return None
     try:
         response = urllib.request.urlopen(url)
         data = response.read()      # a `bytes` object
         text = data.decode('utf-8') # a `str`; this step can't be used if data is binary
     except:
-        warn("Error", "Failed To Download Google Sheet")
+        app.warn("Error", "Failed To Download Google Sheet")
         return None
     return text

@@ -1,7 +1,7 @@
 import os
 import tinydb
 import tkinter
-from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox, yesno, warn
+from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox
 from datetime import datetime
 from New_Order_Window import NewOrder
 from New_Expense_Window import NewExpense
@@ -201,7 +201,7 @@ def ViewListings():  # view
 
 
 def RebuildProducts():
-    RebuildProductsFromSheets(database)
+    RebuildProductsFromSheets(app, database)
 
 
 def SettingsWindow():
@@ -226,8 +226,6 @@ try:
                         5, 3, 1, 1], selected="Tasks")
     reload = PushButton(app, text='Reload Grid',
                         command=UpdateScreen, grid=[5, 2, 1, 1], args=[database])
-
-    UpdateScreen(database)
 
     # options
     new_order_button = PushButton(
@@ -255,14 +253,16 @@ try:
 
     settingscheck = VerifySettings(database)
     if settingscheck:
-        gotosettings = yesno(
+        gotosettings = app.yesno(
             "Settings Conflict", "Settings configuration error detected. Would you like to go to settings now?")
         if gotosettings:
             SettingsWindow()
 
+    UpdateScreen(database)
+
     app.display()
 except Exception as err:
-    warn(f"Unexpected {err=}, {type(err)=}")
+    app.warn("Critcal Error", f"Unexpected {err=}, {type(err)=}")
     print(traceback.format_exc())
     database.close()
 finally:

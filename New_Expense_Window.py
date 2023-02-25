@@ -1,4 +1,4 @@
-from guizero import Text, TextBox, PushButton, Window, yesno
+from guizero import Text, TextBox, PushButton, Window
 import tinydb
 
 def price_update():
@@ -19,7 +19,7 @@ def close():
     if (item1.value == '' and item_quant1.value == '0' and item_price1.value == '0' and discrption.value == ''):
         window2.destroy()
     else:
-        result = yesno("Cancel", "Are you sure you want to cancel?")
+        result = window2.yesno("Cancel", "Are you sure you want to cancel?")
         if result == True:
             window2.destroy()
 

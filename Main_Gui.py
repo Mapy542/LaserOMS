@@ -87,7 +87,7 @@ def LoadTasks(database):
 
 def DisplayTasks(database):
     tasks, openorders = LoadTasks(database)  # load tasks
-    if (tasks == []):
+    if (tasks == []):  # if there are no tasks
         welcome_message.value = "Welcome to Laser OMS, 0 unfulfilled orders."
         listbox.clear()
         return
@@ -200,26 +200,27 @@ def ViewListings():  # view
     pass
 
 
-def RebuildProducts():
-    RebuildProductsFromSheets(app, database)
+def RebuildProducts():  # rebuild products from sheets
+    RebuildProductsFromSheets(app, database)  # rebuild products from sheets
 
 
-def SettingsWindow():
+def SettingsWindow():  # display settings window
     Settings(app, database)
 
 
 try:
     database = tinydb.TinyDB(
-        '../OMS-Data.json', storage=CachingMiddleware(JSONStorage))
+        '../OMS-Data.json', storage=CachingMiddleware(JSONStorage))  # load database (use memory cache)
 
-    app = App(title="Laser OMS", layout="grid", width=680, height=600)
+    app = App(title="Laser OMS", layout="grid",
+              width=680, height=600)  # create app
     app.tk.call('wm', 'iconphoto', app.tk._w,
-                tkinter.PhotoImage(file='./Icon.png'))
+                tkinter.PhotoImage(file='./Icon.png'))  # set icon
 
     welcome_message = Text(app, text="Welcome to Laser OMS, - unfulfilled orders.",
-                           size=15, font="Times New Roman", grid=[0, 0, 4, 1])
+                           size=15, font="Times New Roman", grid=[0, 0, 4, 1])  # welcome message
     listbox = ListBox(app, items=[], multiselect=True, width=400,
-                      height=200, scrollbar=True, grid=[0, 1, 4, 5])
+                      height=200, scrollbar=True, grid=[0, 1, 4, 5])  # listbox
 
     # view options
     view_option = Combo(app, options=["Tasks", "Open Orders", "All Orders"], grid=[
@@ -251,20 +252,24 @@ try:
     settingsbutton = PushButton(
         app, text='Settings', command=SettingsWindow, grid=[3, 9, 1, 1])
 
-    settingscheck = VerifySettings(database)
-    if settingscheck:
+    settingscheck = VerifySettings(database)  # verify settings
+    if settingscheck:  # if settings are invalid
         gotosettings = app.yesno(
             "Settings Conflict", "Settings configuration error detected. Would you like to go to settings now?")
+        # ask user if they want to go to settings
         if gotosettings:
             SettingsWindow()
 
-    UpdateScreen(database)
+    UpdateScreen(database)  # update screen
 
-    app.repeat(60000, UpdateScreen, args=[database]) # update info screen from db every 60 seconds
-    app.display()
-except Exception as err:
+    # update info screen from db every 60 seconds
+    app.repeat(60000, UpdateScreen, args=[database])
+    app.display()  # display app loop
+except Exception as err:  # catch all errors
+    # display error
     app.warn("Critcal Error", f"Unexpected {err=}, {type(err)=}")
     print(traceback.format_exc())
-    database.close()
+    database.close()  # close database
 finally:
-    database.close()
+    database.close()  # close database
+    # NOT CLOSED PROPERLY RESULTS IN LOSS OF CACHED CHANGES

@@ -12,8 +12,8 @@ def RebuildProductsFromSheets(app, database):
     products = database.table('Products')
     pricing_styles = database.table('Product_Pricing_Styles')
 
-    products.remove((tinydb.where('process_status') == 'UTILIZED') & (tinydb.where('google_sheet_listing') == "TRUE"))
-    pricing_styles.remove((tinydb.where('process_status') == 'UTILIZED') & (tinydb.where('google_sheet_listing') == "TRUE"))
+    products.remove((tinydb.where('process_status') == 'UTILIZE') & (tinydb.where('google_sheet_listing') == "TRUE"))
+    pricing_styles.remove((tinydb.where('process_status') == 'UTILIZE') & (tinydb.where('google_sheet_listing') == "TRUE"))
     lines = download.split('\n')
     firstline = lines[0].split(',')
 
@@ -43,8 +43,10 @@ def RebuildProductsFromSheets(app, database):
         product = {}
         for j in range(len(fieldnames)):
             product[fieldnames[j]] = line[fieldindexes[j]]
-        product['process_status'] = "UTILIZED"
+        product['process_status'] = "UTILIZE"
         product['google_sheet_listing'] = "TRUE"
+        for l in range(len(pricingstylenames)):
+            product[pricingstylenames[l].replace(" ", "_")] = line[pricingstyleindexes[l]]
         products.insert(product)
         productcount += 1
 

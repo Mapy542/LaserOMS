@@ -56,7 +56,7 @@ def LoadTasks(database):
                 priority = 100  # set to 100
             # set priority in task format
             openorders[i]['task_priority'] = priority
-            openorders[i]['task_name'] = openorders[i]['order_number'] + \
+            openorders[i]['task_name'] = str(openorders[i]['order_number']) + \
                 ', ' + openorders[i]['order_name']  # set name in task format
             tasks.append(openorders[i])  # add to tasks
 
@@ -260,6 +260,7 @@ try:
 
     UpdateScreen(database)
 
+    app.repeat(60000, UpdateScreen, args=[database]) # update info screen from db every 60 seconds
     app.display()
 except Exception as err:
     app.warn("Critcal Error", f"Unexpected {err=}, {type(err)=}")

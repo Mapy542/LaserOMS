@@ -40,8 +40,7 @@ if (doOverwrite):
     orders.insert({'order_ID': 111, 'order_name': 'LAST_ORDER',
                    'order_status': "IGNORE", 'process_status': "IGNORE"})
     order_items = database.table('Order_Items')  # Form order items table
-    order_items.insert({'order_ID': 111, 'item_UID': 'IGNORE',
-                        'item_quantity': 0, 'item_price': 0.00, 'process_status': "IGNORE"})
+    order_items.insert({'order_ID': 111, 'item_UID': 'IGNORE', 'process_status': "IGNORE"})
     expenses = database.table('Expenses')  # Form expenses table
     expenses.insert({'expense_ID': 111, 'expense_name': 'LAST_EXPENSE',
                      'process_status': "IGNORE"})

@@ -10,17 +10,20 @@ def PasswordHash(password):
 def VerifySettings(database):
     settings = database.table('Settings')
     MadeUpdate = False
-    if not settings.search((tinydb.Query().setting_name == 'Empty')):
+    if not settings.contains((tinydb.Query().setting_name == 'Empty')):
         settings.insert({'setting_name': 'Empty','setting_value': 'Empty', 'setting_type': 'BOOLEAN', 'process_status': "IGNORE"})
         MadeUpdate = True
-    if not settings.search((tinydb.Query().setting_name == 'Google_Sheet_Link')):
+    if not settings.contains((tinydb.Query().setting_name == 'Google_Sheet_Link')):
         settings.insert({'setting_name': 'Google_Sheet_Link', 'setting_value': '','setting_type': 'TEXT', 'process_status': "UTILIZE"})
         MadeUpdate = True
-    if not settings.search((tinydb.Query().setting_name == 'Show_Task_Priority')):
+    if not settings.contains((tinydb.Query().setting_name == 'Show_Task_Priority')):
         settings.insert({'setting_name': 'Show_Task_Priority', 'setting_value': 'True','setting_type': 'BOOLEAN', 'process_status': "UTILIZE"})
         MadeUpdate = True
-    if not settings.search((tinydb.Query().setting_name == 'Settings_Password')):
+    if not settings.contains((tinydb.Query().setting_name == 'Settings_Password')):
         settings.insert({'setting_name': 'Settings_Password', 'setting_value': PasswordHash('admin'),'setting_type': 'PASSWORD', 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    if not settings.contains((tinydb.Query().setting_name == 'Packing_Slip_Path')):
+        settings.insert({'setting_name': 'Packing_Slip_Path', 'setting_value': '../PackingSlips','setting_type': 'PATH', 'process_status': "UTILIZE"})
         MadeUpdate = True
     return MadeUpdate
 
@@ -98,6 +101,9 @@ def Settings(main_window, database):
 
     settings = database.table('Settings')
     password = window.question("Enter password", "Enter admin password to access settings")
+    if not password:
+        window.destroy()
+        return
     if not PasswordHash(password) == settings.search(tinydb.Query().setting_name == "Settings_Password")[0]['setting_value']:
         window.warn("Incorrect Password", "Incorrect password entered.")
         window.destroy()

@@ -1,5 +1,5 @@
 from guizero import Text, TextBox, PushButton, Window
-import tinydb
+import tinydb, datetime
 
 def price_update():
     global item1,item_quant1, item_price1,totaltext
@@ -7,9 +7,11 @@ def price_update():
 
 
 def export(database):
-    global item1,item_quant1, item_price1,totaltext,discrption, window2
+    global item1,item_quant1, item_price1,totaltext,discrption, window2, datefield
     expenses = database.table('Expenses')
-    expenses.insert({'expense_name': item1.value, 'expense_quantity': item_quant1.value, 'expense_unit_price': item_price1.value, 'expense_total': float(item_quant1.value) * float(item_price1.value), 'expense_notes': discrption.value, 'process_status': "UTILIZE"})
+    expenses.insert({'expense_name': item1.value, 'expense_quantity': item_quant1.value, 'expense_unit_price': item_price1.value, 
+                     'expense_total': float(item_quant1.value) * float(item_price1.value), 'expense_notes': discrption.value,
+                     'expense_date': datefield, 'process_status': "UTILIZE"})
 
 
     window2.destroy()
@@ -24,11 +26,11 @@ def close():
             window2.destroy()
 
 def NewExpense(main_window, database):
-    global item1,item_quant1, item_price1,totaltext,discrption
+    global item1,item_quant1, item_price1,totaltext,discrption, datefield
     global window2
 
-    window2 = Window(main_window, title="New Expense", layout="grid", width=1100,height=700)
-    welcome_message = Text(window2,text='Add Expense', size=18, font="Times New Roman", grid=[1,0])
+    window2 = Window(main_window, title="New Expense", layout="grid", width=500,height=600)
+    welcome_message = Text(window2,text='Add Expense', size=18, font="Times New Roman", grid=[0,0])
 
     #items
     nametext = Text(window2,text='Item Name', size=15, font="Times New Roman", grid=[0,1])
@@ -41,7 +43,9 @@ def NewExpense(main_window, database):
 
     discrptiontext = Text(window2, text='Additional Notes', size=15, font="Times New Roman", grid=[0,10])
     discrption = TextBox(window2, width=40,grid=[1,10],text='', multiline=True, height=15)
-    #Total
+
+    datetext = Text(window2,text='Date', size=15, font="Times New Roman", grid=[0,18])
+    datefield = TextBox(window2,text=datetime.datetime.now().strftime("%m-%d-%Y"), width=15, grid=[1,18])
 
 
     finish = PushButton(window2,command=export,text='Save',grid=[0,19], args=[database])

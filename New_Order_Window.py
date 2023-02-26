@@ -5,87 +5,102 @@ import tinydb
 import PackingSlip
 import random
 
+def MakeUIDS(order_items, itemcount):
+    allUIDS = []
+    order_items = order_items.all()
+    for item in order_items:
+        allUIDS.append(item['item_UID'])
+    returnUIDS = []
+    for i in range(itemcount):
+        UID = random.randint(1000000, 9999999)
+        while UID in allUIDS:
+            UID = random.randint(1000000, 9999999)
+        returnUIDS.append(UID)
+    return returnUIDS
+
+def MakeOrderID(orders):
+    allIDs = []
+    orders = orders.all()
+    for order in orders:
+        allIDs.append(order['order_ID'])
+    order_ID = 111
+    while order_ID in allIDs:
+        order_ID += 1
+    return order_ID
 
 def price_update():
-    global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
+    global purchase_name, address, address2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
-    global item_price5, total, choose_export, choose_ship, finish
-    global products
-    global realitems, pricing_style
-    global window2
+    global item_price5, total
+  
+    global window2, product_names, styles, products
 
-    product_names = []
-    for product in products:
-        product_names.append(product['product_name'])
     autofill1 = dl.get_close_matches(item1.value, product_names)
     item1.value = autofill1[0]
-    realitems[0] = products.search(tinydb.Query().product_name == item1.value)
-    item_price1.value = "$" + \
-        str(realitems[0][pricing_style]/100 * int(item_quant1.value))
+    item1_data = products.search((tinydb.Query().product_name == item1.value) & (tinydb.Query().process_status == "UTILIZE"))
+    item_price1.value = "$" + str(int(item1_data[0][pricing_option_button.value.replace(" ", "_")])* int(item_quant1.value))
+
     autofill2 = dl.get_close_matches(item2.value, product_names)
     item2.value = autofill2[0]
-    realitems[1] = products.search(tinydb.Query().product_name == item2.value)
-    item_price2.value = "$" + \
-        str(realitems[1][pricing_style]/100 * int(item_quant2.value))
+    item2_data = products.search((tinydb.Query().product_name == item2.value) & (tinydb.Query().process_status == "UTILIZE"))
+    item_price2.value = "$" + str(int(item2_data[0][pricing_option_button.value.replace(" ", "_")])* int(item_quant2.value))
+
     autofill3 = dl.get_close_matches(item3.value, product_names)
     item3.value = autofill3[0]
-    realitems[2] = products.search(tinydb.Query().product_name == item3.value)
-    item_price3.value = "$" + \
-        str(realitems[2][pricing_style]/100 * int(item_quant3.value))
+    item3_data = products.search((tinydb.Query().product_name == item3.value) & (tinydb.Query().process_status == "UTILIZE"))
+    item_price3.value = "$" + str(int(item3_data[0][pricing_option_button.value.replace(" ", "_")])* int(item_quant3.value))
+
     autofill4 = dl.get_close_matches(item4.value, product_names)
     item4.value = autofill4[0]
-    realitems[3] = products.search(tinydb.Query().product_name == item4.value)
-    item_price4.value = "$" + \
-        str(realitems[3][pricing_style]/100 * int(item_quant4.value))
+    item4_data = products.search((tinydb.Query().product_name == item4.value) & (tinydb.Query().process_status == "UTILIZE"))
+    item_price4.value = "$" + str(int(item4_data[0][pricing_option_button.value.replace(" ", "_")])* int(item_quant4.value))
+
     autofill5 = dl.get_close_matches(item5.value, product_names)
     item5.value = autofill5[0]
-    realitems[4] = products.search(tinydb.Query().product_name == item5.value)
-    item_price5.value = "$" + \
-        str(realitems[4][pricing_style]/100 * int(item_quant5.value))
+    item5_data = products.search((tinydb.Query().product_name == item5.value) & (tinydb.Query().process_status == "UTILIZE"))
+    item_price5.value = "$" + str(int(item5_data[0][pricing_option_button.value.replace(" ", "_")])* int(item_quant5.value))
 
-    totalnumber = realitems[0][pricing_style] * int(item_quant1.value) + realitems[1][pricing_style] * int(item_quant2.value) + realitems[2][pricing_style] * int(
-        item_quant3.value) + realitems[3][pricing_style] * int(item_quant4.value) + realitems[4][pricing_style] * int(item_quant5.value)
-    total.value = "Total: $" + str(totalnumber/100)
-
+    totalnumber = 0
+    for item in [item_price1, item_price2, item_price3, item_price4, item_price5]:
+        totalnumber += int(item.value.replace("$", ""))
+    total.value = "Total: $" + str(totalnumber)
 
 def export():
-    global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
+    global purchase_name, address, address2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
     global item_price5, total, choose_export, choose_ship, finish
-    global products, baseprice, wordpress_price, etsy_price, editboromarket_price
-    global realitems
-    global window2
-    global orders, order_items
+    global window2, styles, product_names, products, orders, order_items, datefield, forwarddatabase
 
-    last_order_number = orders.search(
-        tinydb.Query().order_name == 'LAST_ORDER')['order_number']
-    orders.update(tinydb.operations.increment('order_number'),
-                  tinydb.Query().order_name == 'LAST_ORDER')
+    ordernumber = MakeOrderID(orders)
 
-    UID = random.randint(1000000000, 9999999999)
-    all_uids = []
-    for order in orders:
-        all_uids.append(order['UID'])
-    while UID in all_uids:
-        UID = random.randint(1000000000, 9999999999)
-    orders.insert({'order_number': last_order_number + 1, 'order_name': purchase_name.value,
-                   'order_adress': adress.value, 'order_adress2': adress2.value, 'order_city': city.value,
-                   'order_state': state.value, 'order_zip': zip_code.value, 'order_items_UID': UID, 'order_date': datetime.today().strftime('%m-%d-%Y'),
-                   'order_status': 'Open', 'Process_Status': 'UTILIZE'})
+    itemcount = 0
+    for item in [item1, item2, item3, item4, item5]:
+        if item.value != 'Empty' and item.value != '':
+            itemcount += 1
+
+    itemsUIDS = MakeUIDS(order_items, itemcount)
+
+    orders.insert({'order_number': ordernumber, 'order_name': purchase_name.value,
+                   'order_address': address.value, 'order_address2': address2.value, 'order_city': city.value,
+                   'order_state': state.value, 'order_zip': zip_code.value, 'order_items_UID': itemsUIDS, 'order_date': datefield.value,
+                   'order_status': 'OPEN', 'process_status': 'UTILIZE'})
 
     price_update()
-    new_items = []
-    for item in realitems:
-        if item['product_name'] != 'Empty':
-            new_items.append(item)
+    itemquantities = [item_quant1.value, item_quant2.value, item_quant3.value, item_quant4.value, item_quant5.value]
+    itemincrement = 0
+    UIDIncrement = 0
+    for item in [item1, item2, item3, item4, item5]:
+        if item.value != 'Empty' and item.value != '':
+            product = products.search(tinydb.Query().product_name == item.value)
+            order_items.insert({'item_UID': itemsUIDS[UIDIncrement], 'item_name': product[0]['product_name'], 'item_quantity': int(itemquantities[itemincrement]),
+                                'item_unit_price': int(product[0][pricing_option_button.value.replace(" ", "_")]), 'product_snapshot': product[0]})
+            UIDIncrement += 1
+            itemincrement += 1
 
-    for item in new_items:
-        order_items.insert(item)
-        order_items[len(order_items) - 1]['UID'] = UID
 
     if choose_export.value == 1:
-        PackingSlip.GeneratePackingSlip(last_order_number + 1)
-        PackingSlip.PrintPackingSlip(last_order_number + 1)
+        PackingSlip.GeneratePackingSlip(forwarddatabase, ordernumber)
+        PackingSlip.PrintPackingSlip(forwarddatabase, ordernumber)
 
     if choose_ship.value == 1:
         # ShipppingHandler.ShipOrder(order)
@@ -93,38 +108,45 @@ def export():
 
     window2.destroy()
 
-
-def update_pricing_options():
-    global styles, pricing_style
-    pricing_style = styles[pricing_option_button.value]
+def selectproductfill(event):
+    global widget, window3
+    itemslist = event.widget
+    widget.value = itemslist.value
+    window3.destroy()
     price_update()
 
 
-def NewOrder(main_window):
-    global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
+def dropdownselect(event):
+    global window2, product_names, widget, window3
+    widget = event.widget
+    window3 = Window(window2, title="Select Product", layout="grid", width=400, height=400)
+    title = Text(window3, text="Select Product", grid=[0, 0])
+    itemslist = ListBox(window3, items=product_names, grid=[0, 1], scrollbar=True, width=350, height=350 )
+    itemslist.when_double_clicked = selectproductfill
+
+
+def NewOrder(main_window, database):
+    global purchase_name, address, address2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
     global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
     global item_price5, total, choose_export, choose_ship, finish
-    global styles
-    global realitems, pricing_style
-    global window2
+    global window2, styles, product_names, products, orders, order_items, datefield, forwarddatabase
 
-    global database
-    orders = database.table('Orders')
-    tasks = database.table('Tasks')
-    expenses = database.table('Expenses')
     products = database.table('Products')
-    pricing_styles = database.table('Product_Pricing_Styles')
+    forwarddatabase = database
+    product_pricing_styles = database.table('Product_Pricing_Styles')
+    orders = database.table('Orders')
     order_items = database.table('Order_Items')
 
-    pricing_style = styles[0]['style_name']
-    realitems = []
+    active_products = products.search(tinydb.Query().process_status == 'UTILIZE')
+    product_names = []
+    for product in active_products:
+        product_names.append(product['product_name'])
+    
+    styles = []
+    activestyles = product_pricing_styles.search(tinydb.Query().process_status == 'UTILIZE')
+    for style in activestyles:
+        styles.append(style['style_name'])
 
-    for i in range(0, 5):
-        realitems.append(products.get(tinydb.Query().product_name == "Empty"))
-
-    style_names = []
-    for i in range(len(styles)):
-        style_names.append(styles[i]['style_name'])
 
     window2 = Window(main_window, title="New Order",
                      layout="grid", width=1100, height=700)
@@ -135,12 +157,12 @@ def NewOrder(main_window):
         window2, text='Buyer Name', size=15, font="Times New Roman", grid=[0, 1])
     purchase_name = TextBox(window2, grid=[1, 1], width=30)
     # shipping info
-    adress_text = Text(window2, text='Adress', size=15,
+    address_text = Text(window2, text='Address', size=15,
                        font="Times New Roman", grid=[0, 3])
-    adress = TextBox(window2, grid=[1, 3], width=60)
-    adress_text2 = Text(window2, text='Line 2', size=15,
+    address = TextBox(window2, grid=[1, 3], width=60)
+    address_text2 = Text(window2, text='Line 2', size=15,
                         font="Times New Roman", grid=[0, 4])
-    adress2 = TextBox(window2, grid=[1, 4], width=60)
+    address2 = TextBox(window2, grid=[1, 4], width=60)
     city_text = Text(window2, text='City', size=15,
                      font="Times New Roman", grid=[0, 5])
     city = TextBox(window2, grid=[1, 5], width=30)
@@ -155,33 +177,38 @@ def NewOrder(main_window):
                          size=18, font="Times New Roman", grid=[1, 8])
 
     pricing_option_button = Combo(
-        window2, options=style_names, command=update_pricing_options, grid=[2, 7])
+        window2, options=styles, command=price_update, grid=[2, 7])
     # items
     item1 = TextBox(window2, width=30, grid=[0, 9], text='Empty')
+    item1.when_double_clicked = dropdownselect
     item_quant1 = TextBox(
         window2, grid=[1, 9], width=10, command=price_update, text='0')
     item_price1 = Text(window2, text='0', size=15,
                        font="Times New Roman", grid=[2, 9])
 
     item2 = TextBox(window2, width=30, grid=[0, 10], text='Empty')
+    item2.when_double_clicked = dropdownselect
     item_quant2 = TextBox(
         window2, grid=[1, 10], width=10, command=price_update, text='0')
     item_price2 = Text(window2, text='0', size=15,
                        font="Times New Roman", grid=[2, 10])
 
     item3 = TextBox(window2, width=30, grid=[0, 11], text='Empty')
+    item3.when_double_clicked = dropdownselect
     item_quant3 = TextBox(
         window2, grid=[1, 11], width=10, command=price_update, text='0')
     item_price3 = Text(window2, text='0', size=15,
                        font="Times New Roman", grid=[2, 11])
 
     item4 = TextBox(window2, width=30, grid=[0, 12], text='Empty')
+    item4.when_double_clicked = dropdownselect
     item_quant4 = TextBox(
         window2, grid=[1, 12], width=10, command=price_update, text='0')
     item_price4 = Text(window2, text='0', size=15,
                        font="Times New Roman", grid=[2, 12])
 
     item5 = TextBox(window2, width=30, grid=[0, 13], text='Empty')
+    item5.when_double_clicked = dropdownselect
     item_quant5 = TextBox(
         window2, grid=[1, 13], width=10, command=price_update, text='0')
     item_price5 = Text(window2, text='0', size=15,
@@ -190,6 +217,9 @@ def NewOrder(main_window):
     # Total
     total = Text(window2, text='Total: $0', size=18,
                  font="Times New Roman", grid=[2, 19])
+    
+    datetext = Text(window2, text='Order Date: ', size=15, font="Times New Roman", grid=[0, 18])
+    datefield = TextBox(window2, grid=[1, 18], width=15, text=datetime.today().strftime('%m-%d-%Y'))
 
     # Export Options
     choose_export = CheckBox(window2, text="Export Order", grid=[1, 19])

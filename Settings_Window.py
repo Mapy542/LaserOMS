@@ -63,63 +63,63 @@ def save():  # Save settings
 def ShowSettings(database):
     global listview
     settings = database.table('Settings')  # Get settings table
-    visiblesettings = settings.search(
+    VisibleSettings = settings.search(
         tinydb.Query().process_status == "UTILIZE")  # Get all settings that are to be shown
-    settingnames = []
-    settingsvalues = []
-    maxlengthsettingname = 0
-    for i in range(len(visiblesettings)):  # Get longest setting name
-        settingnames.append(visiblesettings[i]['setting_name'])
-        settingsvalues.append(visiblesettings[i]['setting_value'])
-        if len(visiblesettings[i]['setting_name']) > maxlengthsettingname:
-            maxlengthsettingname = len(visiblesettings[i]['setting_name'])
-    for i in range(len(settingnames)):  # Pad setting names to be the same length
-        settingnames[i] = settingnames[i] + \
-            (maxlengthsettingname - len(settingnames[i])) * " "
-        settingsvalues[i] = settingsvalues[i]
+    SettingNames = []
+    SettingValues = []
+    MaxSettingNameLength = 0
+    for i in range(len(VisibleSettings)):  # Get longest setting name
+        SettingNames.append(VisibleSettings[i]['setting_name'])
+        SettingValues.append(VisibleSettings[i]['setting_value'])
+        if len(VisibleSettings[i]['setting_name']) > MaxSettingNameLength:
+            MaxSettingNameLength = len(VisibleSettings[i]['setting_name'])
+    for i in range(len(SettingNames)):  # Pad setting names to be the same length
+        SettingNames[i] = SettingNames[i] + \
+            (MaxSettingNameLength - len(SettingNames[i])) * " "
+        SettingValues[i] = SettingValues[i]
 
     listview.clear()
-    for i in range(len(settingnames)):  # Add settings to listview
-        listview.append(settingnames[i] + " : " + settingsvalues[i])
+    for i in range(len(SettingNames)):  # Add settings to listview
+        listview.append(SettingNames[i] + " : " + SettingValues[i])
 
 
-def updatesetting():
-    global window, listview, databaseglob
-    settings = databaseglob.table('Settings')  # Get settings table
-    settingname = listview.value.split(" : ")[0].strip()  # Get setting name
-    settingvalue = listview.value.split(" : ")[1].strip()  # Get setting value
-    valuetype = settings.search(tinydb.Query().setting_name == settingname)[
+def UpdateSetting():
+    global window, listview, ForwardDataBase
+    settings = ForwardDataBase.table('Settings')  # Get settings table
+    SettingName = listview.value.split(" : ")[0].strip()  # Get setting name
+    SettingValue = listview.value.split(" : ")[1].strip()  # Get setting value
+    ValueType = settings.search(tinydb.Query().setting_name == SettingName)[
         0]['setting_type']  # Get setting type
-    if valuetype == "BOOLEAN":  # If setting is boolean, ask user if they want to change it to true or false
-        result = window.yesno(settingname, "Change " + settingname +
-                              " from " + settingvalue + " to true/false (True:Yes, False:No)")
+    if ValueType == "BOOLEAN":  # If setting is boolean, ask user if they want to change it to true or false
+        result = window.yesno(SettingName, "Change " + SettingName +
+                              " from " + SettingValue + " to true/false (True:Yes, False:No)")
         if result:  # If user wants to change to true, change to true
             settings.update({'setting_value': "True"},
-                            tinydb.Query().setting_name == settingname)
+                            tinydb.Query().setting_name == SettingName)
         else:  # If user wants to change to false, change to false
             settings.update({'setting_value': "False"},
-                            tinydb.Query().setting_name == settingname)
-    elif valuetype == "TEXT":  # If setting is text, ask user for new value
+                            tinydb.Query().setting_name == SettingName)
+    elif ValueType == "TEXT":  # If setting is text, ask user for new value
         result = window.question(
-            settingname, "Change " + settingname + " from " + settingvalue + " to new value")
+            SettingName, "Change " + SettingName + " from " + SettingValue + " to new value")
         if result:
             settings.update({'setting_value': result},
-                            tinydb.Query().setting_name == settingname)
-    elif valuetype == "PASSWORD":  # If setting is password, ask user for new password twice
+                            tinydb.Query().setting_name == SettingName)
+    elif ValueType == "PASSWORD":  # If setting is password, ask user for new password twice
         result1 = window.question("Admin Password", "Enter new password.")
         result2 = window.question("Admin Password", "Re-enter new password.")
         if result1 == result2:
             settings.update({'setting_value': PasswordHash(result1)},
-                            tinydb.Query().setting_name == settingname)
+                            tinydb.Query().setting_name == SettingName)
         else:  # If passwords do not match, warn user
             window.warn("Passwords do not match",
                         "Passwords do not match. Password not changed.")
-    ShowSettings(databaseglob)  # Show settings
+    ShowSettings(ForwardDataBase)  # Show settings
 
 
 def Settings(main_window, database):  # Settings window
-    global window, listview, databaseglob
-    databaseglob = database
+    global window, listview, ForwardDataBase
+    ForwardDataBase = database
 
     window = Window(main_window, title="Settings", width=680,
                     height=600, layout="grid")  # Create window
@@ -136,17 +136,17 @@ def Settings(main_window, database):  # Settings window
         window.destroy()  # Close window
         return
 
-    settingstext = Text(window, text="Settings", size=20,
+    SettingsText = Text(window, text="Settings", size=20,
                         grid=[0, 0, 2, 1])  # Create text
     listview = ListBox(window, items=[], width=600, height=300,
                        scrollbar=True, grid=[0, 1, 4, 5])  # Create listview of settings
     # Set font to courier (Monospaced so padding works)
     listview.font = "Courier"
     # When setting is double clicked, update setting
-    listview.when_double_clicked = updatesetting
+    listview.when_double_clicked = UpdateSetting
 
-    resetbutton = PushButton(window, text="Reset to Defaults", grid=[
+    ResetButton = PushButton(window, text="Reset to Defaults", grid=[
                              0, 7, 1, 1], command=reset, args=[window, database])  # Create reset button
-    savebutton = PushButton(window, text="Exit", grid=[
+    SaveButton = PushButton(window, text="Exit", grid=[
                             1, 7, 1, 1], command=save)  # Create save button
     ShowSettings(database)  # Show settings

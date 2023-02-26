@@ -4,69 +4,69 @@ import datetime
 
 
 def price_update():
-    global item1, item_quant1, item_price1, totaltext
-    totaltext.value = 'Total: $' + \
-        str(float(item_quant1.value) * float(item_price1.value))  # Update total
+    global Item1, ItemQuantity, ItemPrice, TotalText
+    TotalText.value = 'Total: $' + \
+        str(float(ItemQuantity.value) * float(ItemPrice.value))  # Update total
 
 
 def export(database):
-    global item1, item_quant1, item_price1, totaltext, discrption, window2, datefield
+    global Item1, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField
     expenses = database.table('Expenses')  # Get expenses table
-    expenses.insert({'expense_name': item1.value, 'expense_quantity': item_quant1.value, 'expense_unit_price': item_price1.value,
-                     'expense_total': float(item_quant1.value) * float(item_price1.value), 'expense_notes': discrption.value,
-                     'expense_date': datefield, 'process_status': "UTILIZE"})
+    expenses.insert({'expense_name': Item1.value, 'expense_quantity': ItemQuantity.value, 'expense_unit_price': ItemPrice.value,
+                     'expense_total': float(ItemQuantity.value) * float(ItemPrice.value), 'expense_notes': Description.value,
+                     'expense_date': DateField, 'process_status': "UTILIZE"})
     # Add expense to database
 
-    window2.destroy()  # Close window
+    Window2.destroy()  # Close window
 
 
 def close():
-    global item1, item_quant1, item_price1, totaltext, discrption, window2
-    if (item1.value == '' and item_quant1.value == '0' and item_price1.value == '0' and discrption.value == ''):
+    global Item1, ItemQuantity, ItemPrice, TotalText, Description, Window2
+    if (Item1.value == '' and ItemQuantity.value == '0' and ItemPrice.value == '0' and Description.value == ''):
         # If all fields are empty, close window
-        window2.destroy()
+        Window2.destroy()
     else:
-        # Ask user if they are sure they want to cancel
-        result = window2.yesno("Cancel", "Are you sure you want to cancel?")
+        # Ask user if they are sure they want to close
+        result = Window2.yesno("Cancel", "Are you sure you want to Cancel?")
         if result == True:
             # If user is sure, close window
-            window2.destroy()
+            Window2.destroy()
 
 
 def NewExpense(main_window, database):
-    global item1, item_quant1, item_price1, totaltext, discrption, datefield
-    global window2
+    global Item1, ItemQuantity, ItemPrice, TotalText, Description, DateField
+    global Window2
 
-    window2 = Window(main_window, title="New Expense",
+    Window2 = Window(main_window, title="New Expense",
                      layout="grid", width=500, height=600)  # Create window
-    welcome_message = Text(window2, text='Add Expense', size=18,
+    welcome_message = Text(Window2, text='Add Expense', size=18,
                            font="Times New Roman", grid=[0, 0])  # Create text
 
-    nametext = Text(window2, text='Item Name', size=15,
+    NameText = Text(Window2, text='Item Name', size=15,
                     font="Times New Roman", grid=[0, 1])  # Create text
-    item1 = TextBox(window2, width=30, grid=[1, 1], text='')  # Create textbox
-    quanttext = Text(window2, text='Quantity', size=15,
-                     font="Times New Roman", grid=[0, 2])  # Create text
-    item_quant1 = TextBox(
-        window2, grid=[1, 2], width=10, command=price_update, text='0')  # Create textbox
-    pricetext = Text(window2, text='Price per Sub-Unit', size=15,
+    Item1 = TextBox(Window2, width=30, grid=[1, 1], text='')  # Create textbox
+    QuantityText = Text(Window2, text='Quantity', size=15,
+                        font="Times New Roman", grid=[0, 2])  # Create text
+    ItemQuantity = TextBox(
+        Window2, grid=[1, 2], width=10, command=price_update, text='0')  # Create textbox
+    PriceText = Text(Window2, text='Price per Sub-Unit', size=15,
                      font="Times New Roman", grid=[0, 3])  # Create text
-    item_price1 = TextBox(
-        window2, grid=[1, 3], width=10, command=price_update, text='0')  # Create textbox
-    totaltext = Text(window2, text='Total: $0', size=15,
+    ItemPrice = TextBox(
+        Window2, grid=[1, 3], width=10, command=price_update, text='0')  # Create textbox
+    TotalText = Text(Window2, text='Total: $0', size=15,
                      font="Times New Roman", grid=[0, 4])  # Create text
 
-    discrptiontext = Text(window2, text='Additional Notes',
-                          size=15, font="Times New Roman", grid=[0, 10])
-    discrption = TextBox(window2, width=40, grid=[
-                         1, 10], text='', multiline=True, height=15)  # Create textbox
+    DescriptionText = Text(Window2, text='Additional Notes',
+                           size=15, font="Times New Roman", grid=[0, 10])
+    Description = TextBox(Window2, width=40, grid=[
+        1, 10], text='', multiline=True, height=15)  # Create textbox
 
-    datetext = Text(window2, text='Date', size=15,
+    DateText = Text(Window2, text='Date', size=15,
                     font="Times New Roman", grid=[0, 18])
-    datefield = TextBox(window2, text=datetime.datetime.now().strftime(
+    DateField = TextBox(Window2, text=datetime.datetime.now().strftime(
         "%m-%d-%Y"), width=15, grid=[1, 18])  # Create textbox
 
-    finish = PushButton(window2, command=export, text='Save', grid=[
-                        0, 19], args=[database])  # Create button
-    cancel = PushButton(window2, command=close, text='Cancel',
-                        grid=[1, 19])  # Create button
+    FinishButton = PushButton(Window2, command=export, text='Save', grid=[
+        0, 19], args=[database])  # Create button
+    CancelButton = PushButton(Window2, command=close, text='Cancel',
+                              grid=[1, 19])  # Create button

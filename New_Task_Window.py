@@ -2,14 +2,14 @@ from guizero import Text, TextBox, PushButton, Window
 import tinydb
 
 
-def export(database):  # Export data to database
+def Export(database):  # Export data to database
     global finish, name, description, priority
     global window2
     tasks = database.table('Tasks')
 
     # Check if task name already exists
-    existing_tasks = tasks.search(tinydb.Query().task_name == name.value)
-    if len(existing_tasks) != 0:
+    ExistingTasks = tasks.search(tinydb.Query().task_name == name.value)
+    if len(ExistingTasks) != 0:
         # If it does, add '- Copy' to the end of the name
         name.value = name.value + '- Copy'
     tasks.insert({'task_name': name.value, 'task_description': description.value,
@@ -17,7 +17,7 @@ def export(database):  # Export data to database
     window2.destroy()  # Close window
 
 
-def canceltask():
+def CancelTask():
     global finish, name, description, priority
     global window2
 
@@ -53,7 +53,7 @@ def NewTask(main_window, database):  # Create new task window
     priority = TextBox(window2, grid=[1, 7], width=10, text='0')
     # items header
 
-    finish = PushButton(window2, command=export, text='Save',
+    finish = PushButton(window2, command=Export, text='Save',
                         grid=[0, 19], args=[database])
-    cancel = PushButton(window2, command=canceltask,
+    cancel = PushButton(window2, command=CancelTask,
                         text='Cancel', grid=[1, 19])

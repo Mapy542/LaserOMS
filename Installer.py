@@ -19,8 +19,8 @@ os.system("sudo apt install python3-tk")
 # wipe data?
 answer = input("Would you like to wipe all databases? (y/n): ")
 if answer == "y" or answer == "Y":
-    doublecheck = input("Are you sure? (y/n): ")
-    if doublecheck == "y" or doublecheck == "Y":
+    DoubleCheck = input("Are you sure? (y/n): ")
+    if DoubleCheck == "y" or DoubleCheck == "Y":
         doOverwrite = True
 
 
@@ -40,7 +40,8 @@ if (doOverwrite):
     orders.insert({'order_ID': 111, 'order_name': 'LAST_ORDER',
                    'order_status': "IGNORE", 'process_status': "IGNORE"})
     order_items = database.table('Order_Items')  # Form order items table
-    order_items.insert({'order_ID': 111, 'item_UID': 'IGNORE', 'process_status': "IGNORE"})
+    order_items.insert(
+        {'order_ID': 111, 'item_UID': 'IGNORE', 'process_status': "IGNORE"})
     expenses = database.table('Expenses')  # Form expenses table
     expenses.insert({'expense_ID': 111, 'expense_name': 'LAST_EXPENSE',
                      'process_status': "IGNORE"})
@@ -53,5 +54,6 @@ if (doOverwrite):
     tasks = database.table('Tasks')  # Form tasks table
     tasks.insert({'task_name': 'Empty', 'process_status': "IGNORE"})
     settings = database.table('Settings')  # Form settings table
-    settings.insert({'setting_name': 'Empty', 'setting_value': 'Empty', 'process_status': "IGNORE"})
+    settings.insert({'setting_name': 'Empty',
+                    'setting_value': 'Empty', 'process_status': "IGNORE"})
     database.close()

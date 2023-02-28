@@ -33,6 +33,30 @@ def VerifySettings(database):
         settings.insert({'setting_name': 'Packing_Slip_Path', 'setting_value': '../PackingSlips',
                         'setting_type': 'PATH', 'process_status': "UTILIZE"})
         MadeUpdate = True
+    if not settings.contains((tinydb.Query().setting_name == 'Synchronize_Easy_Cart')):
+        settings.insert({'setting_name': 'Synchronize_Easy_Cart', 'setting_value': 'False',
+                        'setting_type': 'BOOLEAN', 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Is_MariaDB')):
+        settings.insert({'setting_name': 'Easy_Cart_Database_Is_MariaDB', 'setting_value': 'True',
+                        'setting_type': 'BOOLEAN', 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Address')):
+        settings.insert({'setting_name': 'Easy_Cart_Database_Address', 'setting_value': '',
+                        'setting_type': 'TEXT', 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Username')):
+        settings.insert({'setting_name': 'Easy_Cart_Database_Username', 'setting_value': '',
+                        'setting_type': 'TEXT', 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Password')):
+        settings.insert({'setting_name': 'Easy_Cart_Database_Password', 'setting_value': '',
+                        'setting_type': 'TEXT', 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Name')):
+        settings.insert({'setting_name': 'Easy_Cart_Database_Name', 'setting_value': '',
+                        'setting_type': 'TEXT', 'process_status': "UTILIZE"})
+        MadeUpdate = True
     return MadeUpdate
 
 

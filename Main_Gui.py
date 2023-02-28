@@ -7,6 +7,7 @@ from New_Order_Window import NewOrder
 from New_Expense_Window import NewExpense
 from Google_Sheets_Sync import RebuildProductsFromSheets
 from Settings_Window import Settings, VerifySettings
+from Easy_Cart_Injest import ImportEasyCartOrders
 import PackingSlip
 #import ShippingHandler
 #import Finance_Window
@@ -261,6 +262,8 @@ try:
             SettingsWindow()
 
     UpdateScreen(database)  # update screen
+
+    ImportEasyCartOrders(app, database)  # injest easy cart data (if any
 
     # update info screen from db every 60 seconds
     app.repeat(60000, UpdateScreen, args=[database])

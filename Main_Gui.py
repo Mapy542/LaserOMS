@@ -14,7 +14,7 @@ import PackingSlip
 #import Details
 import New_Task_Window
 #import New_Expense_Window
-#import Listing_Database_Window
+import Listing_Database_Window
 import tinydb
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
@@ -219,9 +219,8 @@ def StatsWindow():  # display financial stats window
     pass
 
 
-def ViewListings():  # view
-    #Listing_Database_Window.ListingDisplay(app, products)
-    pass
+def ViewListings(database):  # view
+    Listing_Database_Window.ListingDisplay(app, database)
 
 
 # API syncing
@@ -295,8 +294,14 @@ try:
         sync_options_div, text='Update Pricing', command=RebuildProducts, grid=[0, 0, 1, 1])
     Order_Sync = PushButton(sync_options_div, text='Synchronize Orders', command=SyncOrders,
                             grid=[1, 0, 1, 1], args=[database])
+
+    # stats options
+    stats_options_div = TitleBox(app, text='Statistics', grid=[
+                                 0, 10, 3, 1], layout='grid')
+    ListingDataView_button = PushButton(
+        stats_options_div, text='View All Products', command=ViewListings, grid=[2, 9, 1, 1], args=[database])
+
     #stats_button = PushButton(app,text='Financial Statistics',command=stats_run,grid=[1,9,1,1])
-    #ListingDataView_button = PushButton(app,text='Listing Database',command=view_listings,grid=[2,9,1,1])
 
     SettingsButton = PushButton(
         app, text='Settings', command=SettingsWindow, grid=[3, 9, 1, 1])

@@ -1,35 +1,58 @@
-import os, Order_Cache_Handler, Order_Manipulator
-from guizero import Window, Text, TextBox, CheckBox, Combo, PushButton, ListBox
-from datetime import datetime
-from Bill_Of_Material_Object import BOM
-from Listing_Object import Listing
-
-def getListings():
-    files = os.popen('ls ../Listings').read()
-    files = files.split('\n')
-    files = [i for i in files if i]
-    files = [i for i in files if i.endswith('.lst')]
-    return files
+import New_Order_Window
+import Google_Sheets_Sync
+from guizero import Window, Text, PushButton, ListBox
+import tinydb
 
 
+def UpdateListbox(InfoBox, database):
+    ProductsTable = database.table('Products')
+    InfoBox.clear()
+    products = ProductsTable.search(
+        tinydb.where('process_status') == 'UTILIZE')
+    for product in products:
+        MaxKeyLength = 0
+        keys = list(product)
+        values = list(product.values())
+        for i in range(len(keys)):
+            if len(keys[i]) > MaxKeyLength:
+                MaxKeyLength = len(keys[i])
 
-def update_listbox():
-    
-def ListingDisplay(main_window):
-    global listbox, new_expence, pricing_button, rebuild
+        for i in range(len(keys)):
+            if keys[i] == 'product_name':
+                InfoBox.append(values[i])
+            else:
+                InfoBox.append(
+                    '    ' + keys[i] + ':'+' '*(MaxKeyLength-len(keys[i])) + values[i])
+        InfoBox.append('')
+
+
+def NewOrder(main_window, database):
+    New_Order_Window.NewOrder(main_window, database)
+
+
+def SyncGoogleSheet(main_window, database):
+    Google_Sheets_Sync.RebuildProductsFromSheets(main_window, database)
+
+
+def ListingDisplay(main_window, database):
+    global InfoBox
     global window2
-    window2 = Window(main_window, title="Listings", layout="grid", width=1100,height=700)
+    window2 = Window(main_window, title="Listings",
+                     layout="grid", width=1100, height=700)
 
-    welcome_message = Text(window2, text="Listing Data" , size=15, font="Times New Roman",grid=[0,0,4,1])
-    listbox = ListBox(window2, items=[],multiselect=True,width=1000,height=500,scrollbar=True,grid=[0,1,4,5])
+    WelcomeMessage = Text(window2, text="Listing Data",
+                          size=15, font="Times New Roman", grid=[0, 0, 4, 1])
+    InfoBox = ListBox(window2, items=[], multiselect=True,
+                      width=1000, height=500, scrollbar=True, grid=[0, 1, 4, 5])
+    InfoBox.font = 'Courier'
 
-    update_listbox()
+    UpdateListbox(InfoBox, database)
 
-    #options
-    new_expence = PushButton(window2,text='Create New Expence',command=,grid=[0,7,1,1])
+    # options
+    RebuildButton = PushButton(window2, text='Reload', command=UpdateListbox, grid=[
+        0, 7, 1, 1], args=[InfoBox, database])
 
-    rebuild = PushButton(window2,text='Rebuild Statistics',command=update_listbox,grid=[1,8,1,1])
-    pricing_button = PushButton(window2,text='Update Pricing',command=,grid=[0,8,1,1])
-
-
-    window2.display()
+    NewOrderButton = PushButton(window2, text='Create New Order', command=NewOrder, grid=[
+        1, 8, 1, 1], args=[main_window, database])
+    UpdatePricingButton = PushButton(window2, text='Update Pricing', command=SyncGoogleSheet, grid=[
+        0, 8, 1, 1], args=[main_window, database])

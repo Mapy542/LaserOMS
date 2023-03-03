@@ -17,6 +17,10 @@ def VerifySettings(database):
         settings.insert({'setting_name': 'Empty', 'setting_value': 'Empty',
                         'setting_type': 'BOOLEAN', 'process_status': "IGNORE"})
         MadeUpdate = True
+    if not settings.contains((tinydb.Query().setting_name == 'LaserOMS_Version')):
+        settings.insert({'setting_name': 'LaserOMS_Version', 'setting_value': '1.0.0',
+                        'setting_type': 'STATIC', 'process_status': "UTILIZE"})
+        MadeUpdate = True
     if not settings.contains((tinydb.Query().setting_name == 'Google_Sheet_Link')):
         settings.insert({'setting_name': 'Google_Sheet_Link', 'setting_value': '',
                         'setting_type': 'TEXT', 'process_status': "UTILIZE"})

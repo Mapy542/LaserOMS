@@ -1,13 +1,13 @@
 import os
 import tinydb
 import tkinter
-from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox
+from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox, TitleBox
 from datetime import datetime
 from New_Order_Window import NewOrder
 from New_Expense_Window import NewExpense
 from Google_Sheets_Sync import RebuildProductsFromSheets
 from Settings_Window import Settings, VerifySettings
-from Easy_Cart_Injest import ImportEasyCartOrders
+from Easy_Cart_Ingest import ImportEasyCartOrders
 import PackingSlip
 #import ShippingHandler
 #import Finance_Window
@@ -20,13 +20,38 @@ from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 import traceback
 
-
-def NewOrderWindow():  # open new order window
-    NewOrder(app, database)
-    UpdateScreen(database)  # reload listbox of tasks or orders
+# Main Visuals
 
 
-def ShowOpenOrders():
+def DisplayAllOrders(database):
+    # get all open orders and ignore shell holders
+    orders = database.table('Orders')
+    AllOrders = orders.search(tinydb.Query().process_status == 'UTILIZE')
+    for item in AllOrders:
+        item['order_number'] = int(item['order_number'])
+    AllOrders = sorted(AllOrders, key=lambda k: k['order_number'])
+    VisualData = []  # list of orders to display
+    for i in range(len(AllOrders)):  # for each open order
+        VisualData.append(
+            str(AllOrders[i]['order_number']) + ', ' + AllOrders[i]['order_name'])
+    listbox.clear()  # clear listbox
+    for i in VisualData:  # for each order
+        listbox.append(i)  # add to listbox
+    WelcomeMessage.value = "Welcome to Laser OMS, " + \
+        str(len(AllOrders)) + ' unfulfilled orders.'  # update message screen
+
+
+def ShowOpenOrders(database):  # show open orders
+    orders = database.table('Orders')  # get orders table
+    OpenOrders = orders.search((tinydb.Query().order_status == 'OPEN') & (
+        tinydb.Query().process_status == 'UTILIZE'))  # get all open orders and ignore shell holders
+    for item in OpenOrders:
+        item['order_number'] = int(item['order_number'])
+    OpenOrders = sorted(OpenOrders, key=lambda k: k['order_number'])
+    VisualData = []  # list of orders to display
+    for i in range(len(OpenOrders)):  # for each open order
+        VisualData.append(
+            str(OpenOrders[i]['order_number']) + ', ' + OpenOrders[i]['order_name'])
     listbox.clear()  # clear listbox
     for i in VisualData:  # for each order
         listbox.append(i)  # add to listbox
@@ -106,27 +131,33 @@ def DisplayTasks(database):
         str(OpenOrders) + ' unfulfilled orders.'  # update message screen
 
 
-def DisplayAllOrders(database):
-    # get all open orders and ignore shell holders
-    orders = database.table('Orders')
-    AllOrders = orders.search(tinydb.Query().process_status == 'UTILIZE')
-    VisualData = DisplayOrders(AllOrders)  # get visual data
-    listbox.clear()  # clear listbox
-    for i in VisualData:  # for each order
-        listbox.append(i)  # add to listbox
-    WelcomeMessage.value = "Welcome to Laser OMS, " + \
-        str(len(AllOrders)) + ' unfulfilled orders.'  # update message screen
-
-
 def UpdateScreen(database):  # update the screen based on the selected display option
+    fulfill_button.enabled = True
     if ViewOptionDropDown.value == "Open Orders":
         ShowOpenOrders(database)
     elif ViewOptionDropDown.value == "Tasks":
         DisplayTasks(database)
     elif ViewOptionDropDown.value == "All Orders":
         DisplayAllOrders(database)
+        fulfill_button.enabled = False
 
 
+# new data entries
+def NewOrderWindow():  # open new order window
+    NewOrder(app, database)
+    UpdateScreen(database)  # reload listbox of tasks or orders
+
+
+def CreateExpense():  # create expense via expense form
+    NewExpense(app, database)
+
+
+def NewTask():  # create new task via task form
+    New_Task_Window.NewTask(app, database)
+    UpdateScreen(database)
+
+
+# modify data entries
 def PrintPackingSlips(database):
     for i in range(len(listbox.value)):  # for each selected order
         temp = listbox.value[i].split(',')  # split orders by comma
@@ -163,15 +194,6 @@ def MarkFulfilled(database):
         UpdateScreen(database)  # update screen
 
 
-def CreateExpense():  # create expense via expense form
-    NewExpense(app, database)
-
-
-def StatsWindow():  # display financial stats window
-    #Finance_Window.FinancesDisplay(app, orders, expenses)
-    pass
-
-
 def ShowDetails():
     # sort between orders and tasks
     SelectedData = listbox.value
@@ -191,9 +213,10 @@ def ShowDetails():
         pass
 
 
-def NewTask():  # create new task via task form
-    New_Task_Window.NewTask(app, database)
-    UpdateScreen(database)
+#Statistics and details
+def StatsWindow():  # display financial stats window
+    #Finance_Window.FinancesDisplay(app, orders, expenses)
+    pass
 
 
 def ViewListings():  # view
@@ -201,10 +224,25 @@ def ViewListings():  # view
     pass
 
 
+# API syncing
 def RebuildProducts():  # rebuild products from sheets
     RebuildProductsFromSheets(app, database)  # rebuild products from sheets
 
 
+def SyncOrders(database):  # sync orders from sheets
+    settings = database.table('Settings')
+    EasyCart = settings.search(
+        tinydb.Query().setting_name == 'Synchronize_Easy_Cart')[0]['setting_value']
+
+    orders = 0
+    if EasyCart == 'True':
+        orders += ImportEasyCartOrders(app, database)
+
+    app.info('Orders Synchronized', str(orders) +
+             ' orders have been imported from APIs.')
+
+
+# settings
 def SettingsWindow():  # display settings window
     Settings(app, database)
 
@@ -229,24 +267,34 @@ try:
     reload = PushButton(app, text='Reload Grid',
                         command=UpdateScreen, grid=[5, 2, 1, 1], args=[database])
 
-    # options
+    # new options
+    new_options_div = TitleBox(app, text='New', grid=[
+                               0, 7, 3, 1], layout='grid')
     new_order_button = PushButton(
-        app, text='New Order', command=NewOrderWindow, grid=[0, 7, 1, 1])
-    new_expense = PushButton(app, text='New Expense',
-                             command=CreateExpense, grid=[1, 7, 1, 1])
+        new_options_div, text='New Order', command=NewOrderWindow, grid=[0, 0, 1, 1])
+    new_expense = PushButton(new_options_div, text='New Expense',
+                             command=CreateExpense, grid=[1, 0, 1, 1])
     new_task_button = PushButton(
-        app, text='New Task', command=NewTask, grid=[2, 7, 1, 1])
-    more_details = PushButton(app, text='More Details',
-                              command=ShowDetails, grid=[3, 7, 1, 1])
+        new_options_div, text='New Task', command=NewTask, grid=[2, 0, 1, 1])
 
+    # modify options
+    modify_options_div = TitleBox(app, text='Modify', grid=[
+                                  0, 8, 3, 1], layout='grid')
+    more_details = PushButton(modify_options_div, text='More Details',
+                              command=ShowDetails, grid=[0, 0, 1, 1])
     fulfill_button = PushButton(
-        app, text='Mark as Fulfilled', command=MarkFulfilled, grid=[0, 8, 1, 1], args=[database])
-    print_button = PushButton(app, text='Print Slips',
-                              command=PrintPackingSlips, grid=[1, 8, 1, 1])
+        modify_options_div, text='Mark as Fulfilled', command=MarkFulfilled, grid=[2, 0, 1, 1], args=[database])
+    print_button = PushButton(modify_options_div, text='Print Slips',
+                              command=PrintPackingSlips, grid=[1, 0, 1, 1])
     #ship_button = PushButton(app,text='Ship Order',command=ship_orders,grid=[2,8,1,1])
 
-    pricing_button = PushButton(
-        app, text='Update Pricing', command=RebuildProducts, grid=[0, 9, 1, 1])
+    # sync options
+    sync_options_div = TitleBox(app, text='Synchronize', grid=[
+                                0, 9, 3, 1], layout='grid')
+    Product_Pricing_Sync = PushButton(
+        sync_options_div, text='Update Pricing', command=RebuildProducts, grid=[0, 0, 1, 1])
+    Order_Sync = PushButton(sync_options_div, text='Synchronize Orders', command=SyncOrders,
+                            grid=[1, 0, 1, 1], args=[database])
     #stats_button = PushButton(app,text='Financial Statistics',command=stats_run,grid=[1,9,1,1])
     #ListingDataView_button = PushButton(app,text='Listing Database',command=view_listings,grid=[2,9,1,1])
 
@@ -262,8 +310,6 @@ try:
             SettingsWindow()
 
     UpdateScreen(database)  # update screen
-
-    ImportEasyCartOrders(app, database)  # injest easy cart data (if any
 
     # update info screen from db every 60 seconds
     app.repeat(60000, UpdateScreen, args=[database])

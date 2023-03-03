@@ -10,7 +10,7 @@ def RebuildProductsFromSheets(app, database):
 
     products = database.table('Products')  # Get products table
     PricingStyles = database.table(
-        'Product_PricingStyles')  # Get pricing styles table
+        'Product_Pricing_Styles')  # Get pricing styles table
 
     # Remove all products and pricing styles that are to be imported from google sheets
     products.remove((tinydb.where('process_status') == 'UTILIZE') & (

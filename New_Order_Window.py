@@ -9,7 +9,17 @@ import random
 # Makes a list of random UIDs (double check that they are not already in the database)
 def MakeUIDs(order_items, ItemCount):
     allUIDs = []
-    order_items = order_items.all()  # Get all items in the order
+    order_items = order_items.search(
+        tinydb.Query().process_status == "UTILIZE")  # Get all items
+    if order_items == []:  # If there are no items in the database, return a list of random UIDs
+        returnUIDs = []
+        returnUIDs.append(random.randint(1000000, 9999999))
+        for i in range(ItemCount):
+            UID = random.randint(1000000, 9999999)
+            while UID in returnUIDs:
+                UID = random.randint(1000000, 9999999)
+            returnUIDs.append(UID)
+        return returnUIDs
     for item in order_items:
         allUIDs.append(item['item_UID'])  # Add all UIDs to a list
     returnUIDs = []
@@ -198,7 +208,7 @@ def NewOrder(main_window, database):
     address = TextBox(window2, grid=[1, 3], width=60)
     AddressText2 = Text(window2, text='Line 2', size=15,
                         font="Times New Roman", grid=[0, 4])
-    Address2 = TextBox(window2, grid=[1, 4], width=60)
+    address2 = TextBox(window2, grid=[1, 4], width=60)
     CityText = Text(window2, text='City', size=15,
                     font="Times New Roman", grid=[0, 5])
     city = TextBox(window2, grid=[1, 5], width=30)

@@ -77,16 +77,10 @@ def ImportEasyCartOrders(app, database0):
         conn.close()
 
         # clear orders in tinydb
-        RemovableOrders = orders.search((tinydb.Query().easy_cart_order == 'TRUE') & (
-            tinydb.Query().process_status == 'UTILIZE'))
-        if RemovableOrders != []:
-            UIDs_Lists = [entry['order_items_UID']
-                          for entry in RemovableOrders]
-            UIDs = [item for sublist in UIDs_Lists for item in sublist]
-            orders.remove((tinydb.where('process_status') == 'UTILIZE')
-                          & (tinydb.where('easy_cart_order') == 'TRUE'))
-            for UID in UIDs:
-                order_items.remove(tinydb.where('UID') == UID)
+        orders.remove((tinydb.where('process_status') == 'UTILIZE')
+                      & (tinydb.where('easy_cart_order') == 'TRUE'))
+        order_items.remove((tinydb.where('process_status') == 'UTILIZE') & (
+            tinydb.where('easy_cart_item') == 'TRUE'))
 
         # transpose items to tinydb format
         OrderToItemUID = {}
@@ -97,10 +91,12 @@ def ImportEasyCartOrders(app, database0):
             ItemUID = New_Order_Window.MakeUIDs(order_items, 1)[0]
             OrderToItemUID[OrderItem['order_id']].append(ItemUID)
             DBOrderItem = {}
-            DBOrderItem['UID'] = ItemUID
+            DBOrderItem['item_UID'] = ItemUID
             DBOrderItem['item_name'] = OrderItem['title']
             DBOrderItem['item_quantity'] = OrderItem['quantity']
             DBOrderItem['item_unit_price'] = OrderItem['unit_price']
+            DBOrderItem['easy_cart_item'] = 'TRUE'
+            DBOrderItem['process_status'] = 'UTILIZE'
             DBOrderItem['product_snapshot'] = OrderItem
             order_items.insert(DBOrderItem)
 
@@ -126,7 +122,8 @@ def ImportEasyCartOrders(app, database0):
             DBOrder['order_state'] = order['shipping_state']
             DBOrder['order_zip'] = order['shipping_zip']
 
-            DBOrder['order_date'] = order['order_date']
+            date = order['order_date'].split(' ')[0].split('-')
+            DBOrder['order_date'] = date[1] + '-' + date[2] + '-' + date[0]
 
             DBOrder['order_status'] = EasyCartOrderStatusLookup[int(
                 order['orderstatus_id'])]

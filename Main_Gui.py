@@ -10,7 +10,7 @@ from Settings_Window import Settings, VerifySettings
 from Easy_Cart_Ingest import ImportEasyCartOrders
 import PackingSlip
 #import ShippingHandler
-#import Finance_Window
+import Finance_Window
 #import Details
 import New_Task_Window
 #import New_Expense_Window
@@ -214,9 +214,8 @@ def ShowDetails():
 
 
 #Statistics and details
-def StatsWindow():  # display financial stats window
-    #Finance_Window.FinancesDisplay(app, orders, expenses)
-    pass
+def FinanceStatistics(database):  # display financial stats window
+    Finance_Window.FinancesDisplay(app, database)
 
 
 def ViewListings(database):  # view
@@ -299,9 +298,10 @@ try:
     stats_options_div = TitleBox(app, text='Statistics', grid=[
                                  0, 10, 3, 1], layout='grid')
     ListingDataView_button = PushButton(
-        stats_options_div, text='View All Products', command=ViewListings, grid=[2, 9, 1, 1], args=[database])
+        stats_options_div, text='View All Products', command=ViewListings, grid=[0, 0, 1, 1], args=[database])
 
-    #stats_button = PushButton(app,text='Financial Statistics',command=stats_run,grid=[1,9,1,1])
+    FinanceStatistics = PushButton(stats_options_div, text='Financial Statistics',
+                                   command=FinanceStatistics, grid=[1, 0, 1, 1], args=[database])
 
     SettingsButton = PushButton(
         app, text='Settings', command=SettingsWindow, grid=[3, 9, 1, 1])

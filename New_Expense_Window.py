@@ -14,7 +14,7 @@ def export(database):
     expenses = database.table('Expenses')  # Get expenses table
     expenses.insert({'expense_name': Item1.value, 'expense_quantity': ItemQuantity.value, 'expense_unit_price': ItemPrice.value,
                      'expense_total': float(ItemQuantity.value) * float(ItemPrice.value), 'expense_notes': Description.value,
-                     'expense_date': DateField, 'process_status': "UTILIZE"})
+                     'expense_date': DateField.value, 'process_status': "UTILIZE"})
     # Add expense to database
 
     Window2.destroy()  # Close window

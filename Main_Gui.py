@@ -158,12 +158,12 @@ def NewTask():  # create new task via task form
 
 
 # modify data entries
-def PrintPackingSlips(database):
-    for i in range(len(listbox.value)):  # for each selected order
-        temp = listbox.value[i].split(',')  # split orders by comma
-        if type(temp[0]) == int:  # make sure order number is selected and not a task
-            PackingSlip.GeneratePackingSlip(temp[0], orders)  # generate image
-            PackingSlip.PrintPackingSlip(temp[0], orders)  # print image
+def PrintPackingSlips(database, listbox):
+    values = listbox.value  # get selected orders
+    for i in values:  # for each selected order
+        trimmed = i.split(',')[0]  # get order number
+        if trimmed.isdigit():
+            PackingSlip.GeneratePackingSlip(app, database, trimmed)
 
 
 def MarkFulfilled(database):
@@ -283,7 +283,7 @@ try:
     fulfill_button = PushButton(
         modify_options_div, text='Mark as Fulfilled', command=MarkFulfilled, grid=[2, 0, 1, 1], args=[database])
     print_button = PushButton(modify_options_div, text='Print Slips',
-                              command=PrintPackingSlips, grid=[1, 0, 1, 1])
+                              command=PrintPackingSlips, grid=[1, 0, 1, 1], args=[database, listbox])
     #ship_button = PushButton(app,text='Ship Order',command=ship_orders,grid=[2,8,1,1])
 
     # sync options
@@ -316,6 +316,7 @@ try:
 
     UpdateScreen(database)  # update screen
 
+    PackingSlip.GeneratePackingSlip(app, database, '11116')
     # update info screen from db every 60 seconds
     app.repeat(60000, UpdateScreen, args=[database])
     app.display()  # display app loop

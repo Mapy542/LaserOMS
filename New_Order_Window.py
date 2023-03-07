@@ -34,10 +34,11 @@ def MakeUIDs(order_items, ItemCount):
 # Makes a unique order ID (double check that it is not already in the database)
 def MakeOrderID(orders):
     allIDs = []
-    orders = orders.all()  # Get all orders
-    for order in orders:
-        allIDs.append(order['order_ID'])  # Add all order IDs to a list
-    order_ID = 111
+    AvailableOrders = orders.search(tinydb.Query().process_status ==
+                                    "UTILIZE")  # Get all orders
+    for order in AvailableOrders:
+        allIDs.append(order['order_number'])  # Add all order IDs to a list
+    order_ID = 112
     while order_ID in allIDs:  # If the order ID is already in the database, generate a new one
         order_ID += 1
     return order_ID
@@ -116,7 +117,7 @@ def export():
     # Make a list of UIDs for the order items
     itemsUIDs = MakeUIDs(order_items, ItemCount)
 
-    orders.insert({'order_number': OrderNumber, 'order_name': PurchaseName.value,
+    orders.insert({'order_number': str(OrderNumber), 'order_name': PurchaseName.value,
                    'order_address': address.value, 'order_address2': address2.value, 'order_city': city.value,
                    'order_state': state.value, 'order_zip': ZipCode.value, 'order_items_UID': itemsUIDs, 'order_date': DateField.value,
                    'order_status': 'OPEN', 'process_status': 'UTILIZE'})  # Insert the order into the database
@@ -133,7 +134,7 @@ def export():
             product = products.search(
                 tinydb.Query().product_name == item.value)
             order_items.insert({'item_UID': itemsUIDs[UIDIncrement], 'item_name': product[0]['product_name'], 'item_quantity': int(ItemQuantities[ItemIncrement]),
-                                'item_unit_price': int(product[0][PricingOptionButton.value.replace(" ", "_")]), 'product_snapshot': product[0]})  # Insert the order item into the database
+                                'item_unit_price': int(product[0][PricingOptionButton.value.replace(" ", "_")]), 'process_status': 'UTILIZE', 'product_snapshot': product[0]})  # Insert the order item into the database
             UIDIncrement += 1
             ItemIncrement += 1
 

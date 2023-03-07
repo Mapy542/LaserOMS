@@ -57,3 +57,6 @@ if (doOverwrite):
     settings.insert({'setting_name': 'Empty',
                     'setting_value': 'Empty', 'process_status': "IGNORE"})
     database.close()
+
+# make image folder
+os.mkdir('../LaserOMS_Images', mode=0o777)

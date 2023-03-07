@@ -220,6 +220,7 @@ def GeneratePackingSlip(app, database, OrderNumber):
         app.warn('Packing Slip Error', traceback.format_exc())
 
 
+# send packing slip  to be more general use soon. Set for my print lol
 def PrintPackingSlip(order):
     try:
         os.system("lp -d Envy-5000 ../Orders/" +

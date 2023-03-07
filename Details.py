@@ -4,7 +4,7 @@ import difflib as dl
 from Item_Object import Item
 from Order_Object import Order
 from Task_Object import Task
-import Order_Manipulator, Cache_Handler, PackingSlip#, ShippingHandler
+import Order_Manipulator, Order_Cache_Handler, PackingSlip#, ShippingHandler
 
 #edit exisitng orders and tasks
 #possible expences edit to come

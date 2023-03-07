@@ -1,1 +1,1 @@
-Pillow,guizero,usps-api,etsy2,pyperclip,tk
+Pillow,guizero,usps-api,etsy2,tinydb,mariadb

@@ -11,11 +11,6 @@ packages = recs.split(',')
 for i in range(len(packages)):
     os.system("pip install --upgrade " + str(packages[i]))
 
-# install tkinter the base for gui zero
-# sudo may be required to install tkinter
-print("Installing Tkinter with APT")
-os.system("sudo apt install python3-tk")
-
 # wipe data?
 answer = input("Would you like to wipe all databases? (y/n): ")
 if answer == "y" or answer == "Y":

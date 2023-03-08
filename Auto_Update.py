@@ -81,6 +81,19 @@ def UpdateSoftware(app, database):
     # delete zip folder
     os.rmdir(source)
 
+    # Find and install all required Packages.
+    os.system("python3 -m pip install --upgrade pip")  # update pip
+    try:
+        with open("Packages.txt", "r") as f:
+            recs = f.read()
+            print(recs)
+            f.close()
+            packages = recs.split(',')
+            for i in range(len(packages)):
+                os.system("pip install --upgrade " + str(packages[i]))
+    except:
+        app.warn('Update Error', 'Unable to find Packages.txt')
+
     app.info('Update Complete',
              'LaserOMS has been updated to the latest version Restarting...')
     exit()

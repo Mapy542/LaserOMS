@@ -317,7 +317,7 @@ try:
             SettingsWindow()
 
     UpdateScreen(database)  # update screen
-    result = Auto_Update.CheckForUpdates(app, database)  # check for updates
+    result = Auto_Update.CheckForUpdate(app, database)  # check for updates
     if result:
         result2 = app.yesno(
             'Update Available', 'An update is available. Would you like to update now?')

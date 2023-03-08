@@ -319,7 +319,10 @@ try:
     UpdateScreen(database)  # update screen
     result = Auto_Update.CheckForUpdates(app, database)  # check for updates
     if result:
-        Auto_Update.UpdateSoftware(app, database)  # update software
+        result2 = app.yesno(
+            'Update Available', 'An update is available. Would you like to update now?')
+        if result2:
+            Auto_Update.UpdateSoftware(app, database)  # update software
 
     # update info screen from db every 60 seconds
     app.repeat(60000, UpdateScreen, args=[database])

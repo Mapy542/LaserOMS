@@ -15,77 +15,77 @@ def VerifySettings(database):
     MadeUpdate = False
     if not settings.contains((tinydb.Query().setting_name == 'Empty')):
         settings.insert({'setting_name': 'Empty', 'setting_value': 'Empty',
-                        'setting_type': 'BOOLEAN', 'process_status': "IGNORE"})
+                        'setting_type': 'BOOLEAN', 'setting_rank': 0, 'process_status': "IGNORE"})
         MadeUpdate = True
 
     # Version
     if not settings.contains((tinydb.Query().setting_name == 'LaserOMS_Version')):
         settings.insert({'setting_name': 'LaserOMS_Version', 'setting_value': '1.0.0',
-                        'setting_type': 'STATIC', 'process_status': "UTILIZE"})
+                        'setting_type': 'STATIC', 'setting_rank': 1, 'process_status': "UTILIZE"})
         MadeUpdate = True
 
     # Product Sync Settings
     if not settings.contains((tinydb.Query().setting_name == 'Google_Sheet_Link')):
         settings.insert({'setting_name': 'Google_Sheet_Link', 'setting_value': '',
-                        'setting_type': 'TEXT', 'process_status': "UTILIZE"})
+                        'setting_type': 'TEXT', 'setting_rank': 2, 'process_status': "UTILIZE"})
         MadeUpdate = True
 
     # Main Visual Settings
     if not settings.contains((tinydb.Query().setting_name == 'Show_Task_Priority')):
         settings.insert({'setting_name': 'Show_Task_Priority', 'setting_value': 'True',
-                        'setting_type': 'BOOLEAN', 'process_status': "UTILIZE"})
+                        'setting_type': 'BOOLEAN', 'setting_rank': 3, 'process_status': "UTILIZE"})
         MadeUpdate = True
 
     # Images
     if not settings.contains((tinydb.Query().setting_name == 'Images_Folder_Path')):
         settings.insert({'setting_name': 'Images_Folder_Path', 'setting_value': '../LaserOMS_Images',
-                        'setting_type': 'FOLDER', 'process_status': "UTILIZE"})
+                        'setting_type': 'FOLDER', 'setting_rank': 4, 'process_status': "UTILIZE"})
         MadeUpdate = True
 
     # Settings Password
     if not settings.contains((tinydb.Query().setting_name == 'Settings_Password')):
         settings.insert({'setting_name': 'Settings_Password', 'setting_value': PasswordHash(
-            'admin'), 'setting_type': 'PASSWORD', 'process_status': "UTILIZE"})
+            'admin'), 'setting_type': 'PASSWORD', 'setting_rank': 5, 'process_status': "UTILIZE"})
         MadeUpdate = True
 
     # Easy Cart Settings
     if not settings.contains((tinydb.Query().setting_name == 'Synchronize_Easy_Cart')):
         settings.insert({'setting_name': 'Synchronize_Easy_Cart', 'setting_value': 'False',
-                        'setting_type': 'BOOLEAN', 'process_status': "UTILIZE"})
+                        'setting_type': 'BOOLEAN', 'setting_rank': 6, 'process_status': "UTILIZE"})
         MadeUpdate = True
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Is_MariaDB')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Is_MariaDB', 'setting_value': 'True',
-                        'setting_type': 'BOOLEAN', 'process_status': "UTILIZE"})
+                        'setting_type': 'BOOLEAN', 'setting_rank': 7, 'process_status': "UTILIZE"})
         MadeUpdate = True
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Address')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Address', 'setting_value': '',
-                        'setting_type': 'TEXT', 'process_status': "UTILIZE"})
+                        'setting_type': 'TEXT', 'setting_rank': 8, 'process_status': "UTILIZE"})
         MadeUpdate = True
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Username')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Username', 'setting_value': '',
-                        'setting_type': 'TEXT', 'process_status': "UTILIZE"})
+                        'setting_type': 'TEXT', 'setting_rank': 9, 'process_status': "UTILIZE"})
         MadeUpdate = True
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Password')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Password', 'setting_value': '',
-                        'setting_type': 'TEXT', 'process_status': "UTILIZE"})
+                        'setting_type': 'TEXT', 'setting_rank': 10, 'process_status': "UTILIZE"})
         MadeUpdate = True
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Name')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Name', 'setting_value': '',
-                        'setting_type': 'TEXT', 'process_status': "UTILIZE"})
+                        'setting_type': 'TEXT', 'setting_rank': 11, 'process_status': "UTILIZE"})
         MadeUpdate = True
 
     # Packing Slip Settings
     if not settings.contains((tinydb.Query().setting_name == 'Packing_Slip_Text_Color')):
         settings.insert({'setting_name': 'Packing_Slip_Text_Color', 'setting_value': '#000000',
-                        'setting_type': 'COLOR', 'process_status': "UTILIZE"})
+                        'setting_type': 'COLOR', 'setting_rank': 12, 'process_status': "UTILIZE"})
         MadeUpdate = True
     if not settings.contains((tinydb.Query().setting_name == 'Packing_Slip_Background_Path')):
         settings.insert({'setting_name': 'Packing_Slip_Background_Path', 'setting_value': '',
-                        'setting_type': 'PATH', 'process_status': "UTILIZE"})
+                        'setting_type': 'PATH', 'setting_rank': 13, 'process_status': "UTILIZE"})
         MadeUpdate = True
     if not settings.contains((tinydb.Query().setting_name == 'Packing_Slip_Include_Prices')):
         settings.insert({'setting_name': 'Packing_Slip_Include_Prices', 'setting_value': 'True',
-                        'setting_type': 'BOOLEAN', 'process_status': "UTILIZE"})
+                        'setting_type': 'BOOLEAN', 'setting_rank': 14, 'process_status': "UTILIZE"})
         MadeUpdate = True
     return MadeUpdate
 
@@ -119,6 +119,8 @@ def ShowSettings(database):
     settings = database.table('Settings')  # Get settings table
     VisibleSettings = settings.search(
         tinydb.Query().process_status == "UTILIZE")  # Get all settings that are to be shown
+    # Sort settings by rank
+    VisibleSettings = sorted(VisibleSettings, key=lambda k: k['setting_rank'])
     SettingNames = []
     SettingValues = []
     MaxSettingNameLength = 0

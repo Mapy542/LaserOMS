@@ -8,6 +8,7 @@ from New_Expense_Window import NewExpense
 from Google_Sheets_Sync import RebuildProductsFromSheets
 from Settings_Window import Settings, VerifySettings
 from Easy_Cart_Ingest import ImportEasyCartOrders
+import Auto_Update
 import PackingSlip
 #import ShippingHandler
 import Finance_Window
@@ -236,6 +237,7 @@ def SyncOrders(database):  # sync orders from sheets
     if EasyCart == 'True':
         orders += ImportEasyCartOrders(app, database)
 
+    UpdateScreen(database)  # update screen
     app.info('Orders Synchronized', str(orders) +
              ' orders have been imported from APIs.')
 
@@ -315,8 +317,13 @@ try:
             SettingsWindow()
 
     UpdateScreen(database)  # update screen
+    result = Auto_Update.CheckForUpdate(app, database)  # check for updates
+    if result:
+        result2 = app.yesno(
+            'Update Available', 'An update is available. Would you like to update now?')
+        if result2:
+            Auto_Update.UpdateSoftware(app, database)  # update software
 
-    PackingSlip.GeneratePackingSlip(app, database, '11116')
     # update info screen from db every 60 seconds
     app.repeat(60000, UpdateScreen, args=[database])
     app.display()  # display app loop

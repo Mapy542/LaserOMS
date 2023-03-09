@@ -15,7 +15,8 @@ def GeneratePackingSlip(app, database, OrderNumber):
         Path = settings.search((tinydb.Query().setting_name == 'Packing_Slip_Background_Path') & (tinydb.Query()['process_status'] == 'UTILIZE'))[
             0]['setting_value']
         if Path == '':
-            Path = 'Order_Slip.png'
+            Path = os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                                'Order_Slip.png')
 
         TextColor = settings.search((tinydb.Query().setting_name == 'Packing_Slip_Text_Color') & (tinydb.Query()['process_status'] == 'UTILIZE'))[
             0]['setting_value']

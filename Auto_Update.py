@@ -46,7 +46,8 @@ def UpdateSoftware(app, database):
     ).setting_name == "LaserOMS_Version")  # update version number in database
 
     import shutil
-    folder = os.path.realpath(os.path.dirname(__file__))  # delete all files in current directory
+    # delete all files in current directory
+    folder = os.path.realpath(os.path.dirname(__file__))
     for filename in os.listdir(folder):
         if filename == '.git':
             continue
@@ -84,7 +85,8 @@ def UpdateSoftware(app, database):
     # Find and install all required Packages.
     os.system("python3 -m pip install --upgrade pip")  # update pip
     try:
-        with open("Packages.txt", "r") as f:
+        with open(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                               "Packages.txt"), "r") as f:
             recs = f.read()
             print(recs)
             f.close()

@@ -3,6 +3,7 @@ from datetime import datetime
 import difflib as dl
 import tinydb
 import hashlib
+import os
 
 
 def PasswordHash(password):  # Hashes password using sha256 into a 64 character string
@@ -38,7 +39,8 @@ def VerifySettings(database):
 
     # Images
     if not settings.contains((tinydb.Query().setting_name == 'Images_Folder_Path')):
-        settings.insert({'setting_name': 'Images_Folder_Path', 'setting_value': '../LaserOMS_Images',
+        settings.insert({'setting_name': 'Images_Folder_Path', 'setting_value': os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                                                                                             '../LaserOMS_Images'),
                         'setting_type': 'FOLDER', 'setting_rank': 4, 'process_status': "UTILIZE"})
         MadeUpdate = True
 

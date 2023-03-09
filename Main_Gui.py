@@ -12,7 +12,7 @@ import Auto_Update
 import PackingSlip
 #import ShippingHandler
 import Finance_Window
-#import Details
+import Details
 import New_Task_Window
 #import New_Expense_Window
 import Listing_Database_Window
@@ -195,7 +195,7 @@ def MarkFulfilled(database):
         UpdateScreen(database)  # update screen
 
 
-def ShowDetails():
+def ShowDetails(database):
     # sort between orders and tasks
     SelectedData = listbox.value
     SelectedOrders = []
@@ -207,8 +207,8 @@ def ShowDetails():
             SelectedTasks.append(order)
 
     for OrderNumber in SelectedOrders:  # for each selected order
-        # Details.OrderDetails(app, OrderNumber, orders)  # display order details
-        pass
+        # display order details
+        Details.OrderDetails(app, database, OrderNumber)
     for TaskName in SelectedTasks:  # for each selected task
         # Details.TaskDetails(app, TaskName, tasks)  # display task details
         pass

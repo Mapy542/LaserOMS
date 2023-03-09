@@ -37,7 +37,7 @@ def MakeOrderID(orders):
     AvailableOrders = orders.search(tinydb.Query().process_status ==
                                     "UTILIZE")  # Get all orders
     for order in AvailableOrders:
-        allIDs.append(order['order_number'])  # Add all order IDs to a list
+        allIDs.append(int(order['order_number']))  # Add all order IDs to a list
     order_ID = 112
     while order_ID in allIDs:  # If the order ID is already in the database, generate a new one
         order_ID += 1

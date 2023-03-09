@@ -3,7 +3,7 @@ import os
 
 # Find and install all required Packages.
 os.system("python3 -m pip install --upgrade pip")
-f = open("Packages.txt", "r")
+f = open(os.path.join(os.path.realpath(os.path.dirname(__file__)), 'Packages.txt'), "r")
 recs = f.read()
 print(recs)
 f.close()
@@ -24,13 +24,15 @@ dir = os.listdir("../")
 
 if "OMS-Data.json" not in dir or doOverwrite:
     print("Creating Database file at \"../OMS-Data.json\"")
-    f = open("../OMS-Data.json", "w")
+    f = open(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+        '../OMS-Data.json'), "w")
     f.write("{}")
     f.close()
 
 # setup tables
 if (doOverwrite):
-    database = tinydb.TinyDB('../OMS-Data.json')
+    database = tinydb.TinyDB(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+        '../OMS-Data.json'))
     orders = database.table('Orders')  # Form orders table
     orders.insert({'order_ID': 111, 'order_name': 'LAST_ORDER',
                    'order_status': "IGNORE", 'process_status': "IGNORE"})
@@ -54,4 +56,5 @@ if (doOverwrite):
     database.close()
 
 # make image folder
-os.mkdir('../LaserOMS_Images', mode=0o777)
+os.mkdir(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+        '../LaserOMS-Images'), mode=0o777)

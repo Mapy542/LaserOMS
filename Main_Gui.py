@@ -248,13 +248,14 @@ def SettingsWindow():  # display settings window
 
 
 try:
-    database = tinydb.TinyDB(
-        '../OMS-Data.json', storage=CachingMiddleware(JSONStorage))  # load database (use memory cache)
+    database = tinydb.TinyDB(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+        '../OMS-Data.json'), storage=CachingMiddleware(JSONStorage))  # load database (use memory cache)
 
     app = App(title="Laser OMS", layout="grid",
               width=680, height=600)  # create app
     app.tk.call('wm', 'iconphoto', app.tk._w,
-                tkinter.PhotoImage(file='./Icon.png'))  # set icon
+                tkinter.PhotoImage(file=os.path.join(os.path.realpath(os.path.dirname(__file__)),
+        'Icon.png')))  # set icon
 
     WelcomeMessage = Text(app, text="Welcome to Laser OMS, - unfulfilled orders.",
                           size=15, font="Times New Roman", grid=[0, 0, 4, 1])  # welcome message

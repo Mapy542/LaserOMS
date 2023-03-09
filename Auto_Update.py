@@ -46,7 +46,7 @@ def UpdateSoftware(app, database):
     ).setting_name == "LaserOMS_Version")  # update version number in database
 
     import shutil
-    folder = os.getcwd()  # delete all files in current directory
+    folder = os.path.realpath(os.path.dirname(__file__))  # delete all files in current directory
     for filename in os.listdir(folder):
         if filename == '.git':
             continue
@@ -68,8 +68,8 @@ def UpdateSoftware(app, database):
     z.extractall(folder)
 
     # move files from zip
-    source = os.path.join(os.getcwd(), "LaserOMS-main")
-    destination = os.getcwd()
+    source = os.path.join(folder, "LaserOMS-main")
+    destination = folder
 
     # code to move the files from sub-folder to main folder.
     files = os.listdir(source)

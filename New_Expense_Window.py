@@ -12,6 +12,8 @@ def price_update():
 def export(database):
     global Item1, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField
     expenses = database.table('Expenses')  # Get expenses table
+    # Replace the / with a - to clean up the date
+    DateField.value = DateField.value.replace("/", "-")
     expenses.insert({'expense_name': Item1.value, 'expense_quantity': ItemQuantity.value, 'expense_unit_price': ItemPrice.value,
                      'expense_total': float(ItemQuantity.value) * float(ItemPrice.value), 'expense_notes': Description.value,
                      'expense_date': DateField.value, 'process_status': "UTILIZE"})

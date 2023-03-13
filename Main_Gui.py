@@ -181,18 +181,18 @@ def MarkFulfilled(database):
         else:
             SelectedTasks.append(order)
 
-        # deal with orders
-        for SingleOrder in SelectedOrders:  # for each selected order
-            trimmed = SingleOrder.split(',')[0]  # get order number
-            orders.update({'order_status': 'FULFILLED'}, tinydb.Query(
-            ).order_number == int(trimmed))  # update order status
+    # deal with orders
+    for SingleOrder in SelectedOrders:  # for each selected order
+        trimmed = SingleOrder.split(',')[0]  # get order number
+        orders.update({'order_status': 'FULFILLED'}, tinydb.Query(
+        ).order_number == int(trimmed))  # update order status
 
-        # deal with tasks
-        for SingleTask in SelectedTasks:  # for each selected task
-            # remove task from database
-            tasks.remove(tinydb.Query().task_name == SingleTask)
+    # deal with tasks
+    for SingleTask in SelectedTasks:  # for each selected task
+        # remove task from database
+        tasks.remove(tinydb.Query().task_name == SingleTask)
 
-        UpdateScreen(database)  # update screen
+    UpdateScreen(database)  # update screen
 
 
 def ShowDetails(database):
@@ -208,9 +208,9 @@ def ShowDetails(database):
 
     for OrderNumber in SelectedOrders:  # for each selected order
         # display order details
-        Details.OrderDetails(app, database, OrderNumber)
+        Details.EditDefaultOrder(app, database, OrderNumber)
     for TaskName in SelectedTasks:  # for each selected task
-        # Details.TaskDetails(app, TaskName, tasks)  # display task details
+        Details.EditTask(app, database, TaskName)  # display task details
         pass
 
 
@@ -249,13 +249,13 @@ def SettingsWindow():  # display settings window
 
 try:
     database = tinydb.TinyDB(os.path.join(os.path.realpath(os.path.dirname(__file__)),
-        '../OMS-Data.json'), storage=CachingMiddleware(JSONStorage))  # load database (use memory cache)
+                                          '../OMS-Data.json'), storage=CachingMiddleware(JSONStorage))  # load database (use memory cache)
 
     app = App(title="Laser OMS", layout="grid",
               width=680, height=600)  # create app
     app.tk.call('wm', 'iconphoto', app.tk._w,
                 tkinter.PhotoImage(file=os.path.join(os.path.realpath(os.path.dirname(__file__)),
-        'Icon.png')))  # set icon
+                                                     'Icon.png')))  # set icon
 
     WelcomeMessage = Text(app, text="Welcome to Laser OMS, - unfulfilled orders.",
                           size=15, font="Times New Roman", grid=[0, 0, 4, 1])  # welcome message
@@ -282,7 +282,7 @@ try:
     modify_options_div = TitleBox(app, text='Modify', grid=[
                                   0, 8, 3, 1], layout='grid')
     more_details = PushButton(modify_options_div, text='More Details',
-                              command=ShowDetails, grid=[0, 0, 1, 1])
+                              command=ShowDetails, grid=[0, 0, 1, 1], args=[database])
     fulfill_button = PushButton(
         modify_options_div, text='Mark as Fulfilled', command=MarkFulfilled, grid=[2, 0, 1, 1], args=[database])
     print_button = PushButton(modify_options_div, text='Print Slips',

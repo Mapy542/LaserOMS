@@ -13,6 +13,7 @@ Lightweight python based local order/business management system with Etsy integr
 - Product spreadsheet connection
 - Packing slip generation
 - Customization and flexibility
+- Windows and Linux support
 
 ## Installation:
 
@@ -21,6 +22,10 @@ Most of the additional file paths can be change in settings, but it is important
 To finish installation, run the file
 
     installer.py
+
+Answer any prompts that appear. After the installer finishes, run the file
+
+    Main_Gui.py
 
 ## Overview:
 

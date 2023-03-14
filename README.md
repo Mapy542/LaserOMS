@@ -70,11 +70,14 @@ The password can be changed by selecting the password setting. The user must ent
 
 ## Changes:
 
-Version 1.2.0
+Version 1.1.1
 
 - Quality of life features
 - - Settings stay in consistent order
 - - Automatic updates of software.
+- - View all details of tasks and orders
+- Bug fixes
+- - Fixed major bug with default path selection in windows
 
 Version 1.1.0
 

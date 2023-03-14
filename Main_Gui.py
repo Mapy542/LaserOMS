@@ -208,7 +208,7 @@ def ShowDetails(database):
 
     for OrderNumber in SelectedOrders:  # for each selected order
         # display order details
-        Details.EditDefaultOrder(app, database, OrderNumber)
+        Details.EditOrder(app, database, OrderNumber)
     for TaskName in SelectedTasks:  # for each selected task
         Details.EditTask(app, database, TaskName)  # display task details
         pass

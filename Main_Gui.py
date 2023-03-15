@@ -10,11 +10,11 @@ from Settings_Window import Settings, VerifySettings
 from Easy_Cart_Ingest import ImportEasyCartOrders
 import Auto_Update
 import PackingSlip
-#import ShippingHandler
+# import ShippingHandler
 import Finance_Window
-#import Details
+import Details
 import New_Task_Window
-#import New_Expense_Window
+# import New_Expense_Window
 import Listing_Database_Window
 import tinydb
 from tinydb.middlewares import CachingMiddleware
@@ -181,21 +181,21 @@ def MarkFulfilled(database):
         else:
             SelectedTasks.append(order)
 
-        # deal with orders
-        for SingleOrder in SelectedOrders:  # for each selected order
-            trimmed = SingleOrder.split(',')[0]  # get order number
-            orders.update({'order_status': 'FULFILLED'}, tinydb.Query(
-            ).order_number == int(trimmed))  # update order status
+    # deal with orders
+    for SingleOrder in SelectedOrders:  # for each selected order
+        trimmed = SingleOrder.split(',')[0]  # get order number
+        orders.update({'order_status': 'FULFILLED'}, tinydb.Query(
+        )['order_number'] == str(trimmed))  # update order status
 
-        # deal with tasks
-        for SingleTask in SelectedTasks:  # for each selected task
-            # remove task from database
-            tasks.remove(tinydb.Query().task_name == SingleTask)
+    # deal with tasks
+    for SingleTask in SelectedTasks:  # for each selected task
+        # remove task from database
+        tasks.remove(tinydb.Query().task_name == SingleTask)
 
-        UpdateScreen(database)  # update screen
+    UpdateScreen(database)  # update screen
 
 
-def ShowDetails():
+def ShowDetails(database):
     # sort between orders and tasks
     SelectedData = listbox.value
     SelectedOrders = []
@@ -207,14 +207,14 @@ def ShowDetails():
             SelectedTasks.append(order)
 
     for OrderNumber in SelectedOrders:  # for each selected order
-        # Details.OrderDetails(app, OrderNumber, orders)  # display order details
-        pass
+        # display order details
+        Details.EditOrder(app, database, OrderNumber)
     for TaskName in SelectedTasks:  # for each selected task
-        # Details.TaskDetails(app, TaskName, tasks)  # display task details
+        Details.EditTask(app, database, TaskName)  # display task details
         pass
 
 
-#Statistics and details
+# Statistics and details
 def FinanceStatistics(database):  # display financial stats window
     Finance_Window.FinancesDisplay(app, database)
 
@@ -248,13 +248,14 @@ def SettingsWindow():  # display settings window
 
 
 try:
-    database = tinydb.TinyDB(
-        '../OMS-Data.json', storage=CachingMiddleware(JSONStorage))  # load database (use memory cache)
+    database = tinydb.TinyDB(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                                          '../OMS-Data.json'), storage=CachingMiddleware(JSONStorage))  # load database (use memory cache)
 
     app = App(title="Laser OMS", layout="grid",
               width=680, height=600)  # create app
     app.tk.call('wm', 'iconphoto', app.tk._w,
-                tkinter.PhotoImage(file='./Icon.png'))  # set icon
+                tkinter.PhotoImage(file=os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                                                     'Icon.png')))  # set icon
 
     WelcomeMessage = Text(app, text="Welcome to Laser OMS, - unfulfilled orders.",
                           size=15, font="Times New Roman", grid=[0, 0, 4, 1])  # welcome message
@@ -269,7 +270,7 @@ try:
 
     # new options
     new_options_div = TitleBox(app, text='New', grid=[
-                               0, 7, 3, 1], layout='grid')
+        0, 7, 3, 1], layout='grid')
     new_order_button = PushButton(
         new_options_div, text='New Order', command=NewOrderWindow, grid=[0, 0, 1, 1])
     new_expense = PushButton(new_options_div, text='New Expense',
@@ -279,18 +280,18 @@ try:
 
     # modify options
     modify_options_div = TitleBox(app, text='Modify', grid=[
-                                  0, 8, 3, 1], layout='grid')
+        0, 8, 3, 1], layout='grid')
     more_details = PushButton(modify_options_div, text='More Details',
-                              command=ShowDetails, grid=[0, 0, 1, 1])
+                              command=ShowDetails, grid=[0, 0, 1, 1], args=[database])
     fulfill_button = PushButton(
         modify_options_div, text='Mark as Fulfilled', command=MarkFulfilled, grid=[2, 0, 1, 1], args=[database])
     print_button = PushButton(modify_options_div, text='Print Slips',
                               command=PrintPackingSlips, grid=[1, 0, 1, 1], args=[database, listbox])
-    #ship_button = PushButton(app,text='Ship Order',command=ship_orders,grid=[2,8,1,1])
+    # ship_button = PushButton(app,text='Ship Order',command=ship_orders,grid=[2,8,1,1])
 
     # sync options
     sync_options_div = TitleBox(app, text='Synchronize', grid=[
-                                0, 9, 3, 1], layout='grid')
+        0, 9, 3, 1], layout='grid')
     Product_Pricing_Sync = PushButton(
         sync_options_div, text='Update Pricing', command=RebuildProducts, grid=[0, 0, 1, 1])
     Order_Sync = PushButton(sync_options_div, text='Synchronize Orders', command=SyncOrders,
@@ -298,7 +299,7 @@ try:
 
     # stats options
     stats_options_div = TitleBox(app, text='Statistics', grid=[
-                                 0, 10, 3, 1], layout='grid')
+        0, 10, 3, 1], layout='grid')
     ListingDataView_button = PushButton(
         stats_options_div, text='View All Products', command=ViewListings, grid=[0, 0, 1, 1], args=[database])
 

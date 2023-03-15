@@ -14,11 +14,11 @@ def GetRevenueStats(database):
     MonthlyRevenue = {}
 
     for order in AllOrders:
-        year = order['order_date'].split('-')[2]
+        year = int(order['order_date'].split('-')[2])
         if len(year) > 4:
             # cut off the time or other data included after year
             year = year[:len(year) - 4]
-        month = order['order_date'].split('-')[0]
+        month = int(order['order_date'].split('-')[0])
 
         if year not in YearlyRevenue:
             YearlyRevenue[year] = 0
@@ -49,11 +49,11 @@ def GetExpenseStats(database):
     MonthlyExpenses = {}
 
     for expense in ActiveExpenses:
-        year = expense['expense_date'].split('-')[2]
+        year = int(expense['expense_date'].split('-')[2])
         if len(year) > 4:
             # cut off the time or other data included after year
             year = year[:len(year) - 4]
-        month = expense['expense_date'].split('-')[0]
+        month = int(expense['expense_date'].split('-')[0])
 
         if year not in YearlyExpenses:
             YearlyExpenses[year] = 0

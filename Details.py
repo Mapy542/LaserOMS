@@ -1,254 +1,456 @@
 from guizero import Text, TextBox, CheckBox, Combo, PushButton, ListBox, Window
 from datetime import datetime
 import difflib as dl
-from Item_Object import Item
-from Order_Object import Order
-from Task_Object import Task
-import Order_Manipulator, Order_Cache_Handler, PackingSlip#, ShippingHandler
-
-#edit exisitng orders and tasks
-#possible expences edit to come
+import tinydb
+import PackingSlip
+import New_Order_Window
 
 
-def price_update(): #data update for fields on order items
-    global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
-    global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
-    global item_price5, total, choose_export, choose_ship, finish, pricing_style
-    global products, baseprice, wordpress_price, etsy_price, editboromarket_price
-    global realitems
-    global window2
+def PriceUpdate():
+    global PurchaseName, address, address2, city, state, ZipCode, PricingOptionButton, item1, item2, item3, item4, item5
+    global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
+    global ItemPrice5, Total
 
-    print(products)
-    print(item1.value)
+    global window2, product_names, styles, products
 
-    autofill1 = dl.get_close_matches(item1.value, products) #autofill from most possible correct option
-    item1.value = autofill1[0]
-    realitems[0].changeProduct(autofill1[0]) #update product data
-    realitems[0].changeQuantity(int(item_quant1.value))
-    item_price1.value = "$" + str(realitems[0].getPrice(pricing_style)/100) #other fields to display
-    autofill2 = dl.get_close_matches(item2.value, products) #rense and repeat for all items #hopefully make this more dynamic
+    # Get the closest match to the item name
+    autofill1 = dl.get_close_matches(item1.value, product_names)
+    item1.value = autofill1[0]  # Set the item name to the closest match
+    item1_data = products.search((tinydb.Query().product_name == item1.value) & (
+        tinydb.Query().process_status == "UTILIZE"))  # Get the data for the item
+    # Set the price to the price of the item times the quantity
+    ItemPrice1.value = "$" + \
+        str(int(item1_data[0][PricingOptionButton.value.replace(
+            " ", "_")]) * int(ItemQuantity1.value))
+
+    autofill2 = dl.get_close_matches(item2.value, product_names)
     item2.value = autofill2[0]
-    realitems[1].changeProduct(autofill2[0])
-    realitems[1].changeQuantity(int(item_quant2.value))
-    item_price2.value = "$" + str(realitems[1].getPrice(pricing_style)/100)
-    autofill3 = dl.get_close_matches(item3.value, products)
+    item2_data = products.search((tinydb.Query().product_name == item2.value) & (
+        tinydb.Query().process_status == "UTILIZE"))
+    ItemPrice2.value = "$" + \
+        str(int(item2_data[0][PricingOptionButton.value.replace(
+            " ", "_")]) * int(ItemQuantity2.value))
+
+    autofill3 = dl.get_close_matches(item3.value, product_names)
     item3.value = autofill3[0]
-    realitems[2].changeProduct(autofill3[0])
-    realitems[2].changeQuantity(int(item_quant3.value))
-    item_price3.value = "$" + str(realitems[2].getPrice(pricing_style)/100)
-    autofill4 = dl.get_close_matches(item4.value, products)
+    item3_data = products.search((tinydb.Query().product_name == item3.value) & (
+        tinydb.Query().process_status == "UTILIZE"))
+    ItemPrice3.value = "$" + \
+        str(int(item3_data[0][PricingOptionButton.value.replace(
+            " ", "_")]) * int(ItemQuantity3.value))
+
+    autofill4 = dl.get_close_matches(item4.value, product_names)
     item4.value = autofill4[0]
-    realitems[3].changeProduct(autofill4[0])
-    realitems[3].changeQuantity(int(item_quant4.value))
-    item_price4.value = "$" + str(realitems[3].getPrice(pricing_style)/100)
-    autofill5 = dl.get_close_matches(item5.value, products)
+    item4_data = products.search((tinydb.Query().product_name == item4.value) & (
+        tinydb.Query().process_status == "UTILIZE"))
+    ItemPrice4.value = "$" + \
+        str(int(item4_data[0][PricingOptionButton.value.replace(
+            " ", "_")]) * int(ItemQuantity4.value))
+
+    autofill5 = dl.get_close_matches(item5.value, product_names)
     item5.value = autofill5[0]
-    realitems[4].changeProduct(autofill5[0])
-    realitems[4].changeQuantity(int(item_quant5.value))
-    item_price5.value = "$" + str(realitems[4].getPrice(pricing_style)/100)
-    totalval = 0
-    for item in realitems: #sum total and update display
-        totalval += item.getPrice(pricing_style)
-    total.value = "Total: $" + str(totalval/100)
+    item5_data = products.search((tinydb.Query().product_name == item5.value) & (
+        tinydb.Query().process_status == "UTILIZE"))
+    ItemPrice5.value = "$" + \
+        str(int(item5_data[0][PricingOptionButton.value.replace(
+            " ", "_")]) * int(ItemQuantity5.value))
+
+    TotalNumber = 0
+    for item in [ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4, ItemPrice5]:  # Add up all the prices
+        TotalNumber += int(item.value.replace("$", "")
+                           )  # Add up all the prices
+    # Set the Total to the sum of all the prices
+    Total.value = "Total: $" + str(TotalNumber)
 
 
-def export(): #export order options into order file on save
-    global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
-    global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
-    global item_price5, total, choose_export, choose_ship, finish, pricing_style
-    global products, baseprice, wordpress_price, etsy_price, editboromarket_price
-    global realitems, preorder
-    global window2 # this is definetly the correct way to do it #deathtolocalvariables
+def OrderExport():
+    global PurchaseName, address, address2, city, state, ZipCode, PricingOptionButton, item1, item2, item3, item4, item5
+    global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
+    global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish, OriginalItemUIDs, OriginalOrderNumber
+    global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
 
-    order = Order() #make blank order
-    order.setOrderNumber(preorder.getOrderNumber()) #fill data from old order
-    order.setOrderDate(preorder.getOrderDate())
-    order.setOrderName(purchase_name.value)
-    order.setOrderAddress(adress.value, adress2.value, city.value, state.value, zip_code.value) #fill data from new inputs
-    #order.setOrderPhone() #N/A but co-pilot liked it so i felt bad
-    #order.setOrderEmail(email.value)
-    price_update() #make sure all items are parsed and correct. No bad prices
-    new_items = []
-    for item in realitems:
-        if item.isNonEmpty():
-            new_items.append(item)
-    order.setOrderItems(new_items)
-    order.changeOrderPricingStyle(pricing_style)
-    order.calculateTotal() #make sure everything is set correctly
-    #order.changeOrderStatus("Open") not a good idea i think
+    ItemCount = 0
+    for item in [item1, item2, item3, item4, item5]:  # Count the number of items
+        if item.value != 'Empty' and item.value != '':  # Count the number of items
+            ItemCount += 1
 
+    # Replace the / with a - to clean up the date
+    DateField.value = DateField.value.replace("/", "-")
 
-    Order_Manipulator.SaveOrder(order) #export order data to file
-    
-    
-    if choose_export.value == 1: #you can do things on export
-        PackingSlip.GeneratePackingSlip(order)
-        PackingSlip.PrintPackingSlip(order)
-        
-    if choose_ship.value == 1: #i cant do shipping yet lol
-        #ShipppingHandler.ShipOrder(order)
+    for uid in OriginalItemUIDs:  # Delete the original order items
+        order_items.remove(tinydb.Query().item_UID == uid)
+
+    # Make a list of UIDs for the order items
+    itemsUIDs = New_Order_Window.MakeUIDs(order_items, ItemCount)
+
+    orders.update({'order_name': PurchaseName.value,  # Update the order in the database
+                   'order_address': address.value, 'order_address2': address2.value, 'order_city': city.value,
+                   'order_state': state.value, 'order_zip': ZipCode.value, 'order_items_UID': itemsUIDs, 'order_date': DateField.value,
+                   'order_status': 'OPEN', 'process_status': 'UTILIZE'}, tinydb.Query().order_number == str(OriginalOrderNumber))
+
+    PriceUpdate()
+    ItemQuantities = [ItemQuantity1.value, ItemQuantity2.value, ItemQuantity3.value,
+                      ItemQuantity4.value, ItemQuantity5.value]  # Make a list of the quantities
+    ItemIncrement = 0
+    UIDIncrement = 0
+    # Insert the order items into the database
+    for item in [item1, item2, item3, item4, item5]:
+        if item.value != 'Empty' and item.value != '':  # Insert the order items into the database
+            # Get the data for the item
+            product = products.search(
+                tinydb.Query().product_name == item.value)
+            order_items.insert({'item_UID': itemsUIDs[UIDIncrement], 'item_name': product[0]['product_name'], 'item_quantity': int(ItemQuantities[ItemIncrement]),
+                                'item_unit_price': int(product[0][PricingOptionButton.value.replace(" ", "_")]), 'process_status': 'UTILIZE', 'product_snapshot': product[0]})  # Insert the order item into the database
+            UIDIncrement += 1
+            ItemIncrement += 1
+
+    if ChooseExportCheckBox.value == 1:  # If the user wants to export the order
+        PackingSlip.GeneratePackingSlip(
+            window2, ForwardDataBase, OriginalOrderNumber)
+        PackingSlip.PrintPackingSlip(
+            window2, ForwardDataBase, OriginalOrderNumber)
+
+    if ChooseShippingCheckBox.value == 1:  # If the user wants to ship the order
+        # ShippingHandler.ShipOrder(order)
         pass
 
-    window2.destroy() #kill me
-    return order #again not yet used but you could i guess
+    window2.destroy()  # Close the window
 
-def makePrices(): #pull data from item database so it can be memory cached rather than each item recalculating hitting it
-    try:
-        with open("../Items.txt", "r") as f:
-            products = []
-            baseprice = []
-            wordpress_price = []
-            etsy_price = []
-            editboromarket_price = []
-            for line in f:
-                prices = line.split(',')
-                products.append(prices[0])
-                baseprice.append(prices[1])
-                wordpress_price.append(prices[3])
-                etsy_price.append(prices[4])
-                editboromarket_price.append(prices[5])
-            f.close()
-            return products, baseprice, wordpress_price, etsy_price, editboromarket_price
-    except OSError:
-        print("Failed To Read Item File")
-        return 0, 0, 0, 0, 0
-        
-def update_pricing_options(): #change pricing style on the fly 
-    global pricing_style #to be dynamic in coming update
-    if pricing_option_button.value == "Base":
-        pricing_style = "Base"
-    elif pricing_option_button.value == "WordPress":
-        pricing_style = "Wordpress"
-    elif pricing_option_button.value == "Etsy":
-        pricing_style = "Etsy"
-    elif pricing_option_button.value == "Edin. Mark.":
-        pricing_style = "EditBoroMarket"
 
-def OrderDetails(main_window, ordernum): #GUI to edit orders
-    global purchase_name, adress, adress2, city, state, zip_code, pricing_option_button, item1, item2, item3, item4, item5
-    global item_quant1, item_quant2, item_quant3, item_quant4, item_quant5, item_price1, item_price2, item_price3, item_price4
-    global item_price5, total, choose_export, choose_ship, finish, pricing_style
-    global products, baseprice, wordpress_price, etsy_price, editboromarket_price
-    global realitems, preorder
+def SelectedProductFill(event):  # Fill the product name in the widget
+    global widget, window3
+    ItemsList = event.widget  # Get the listbox
+    widget.value = ItemsList.value  # Set the widget to the selected item
+    window3.destroy()  # Close the window
+    PriceUpdate()  # Update the prices
+
+
+def DropDownSelection(event):  # Select a product from the dropdown
+    global window2, product_names, widget, window3
+    widget = event.widget  # Get the widget
+    window3 = Window(window2, title="Select Product", layout="grid",
+                     width=400, height=400)  # Create a new window
+    title = Text(window3, text="Select Product", grid=[0, 0])  # Create a title
+    ItemsList = ListBox(window3, items=product_names, grid=[
+                        0, 1], scrollbar=True, width=350, height=350)  # Create a listbox
+    # When the user double clicks an item, run the SelectedProductFill function
+    ItemsList.when_double_clicked = SelectedProductFill
+
+
+def EditDefaultOrder(main_window, database, OrderNumber):
+    global PurchaseName, address, address2, city, state, ZipCode, PricingOptionButton, item1, item2, item3, item4, item5
+    global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
+    global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish, OriginalOrderNumber, OriginalItemUIDs
+    global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
+
+    products = database.table('Products')  # Get the products table
+    ForwardDataBase = database  # Set the forward database to the database
+    # Get the product pricing styles table
+    product_pricing_styles = database.table('Product_Pricing_Styles')
+    orders = database.table('Orders')  # Get the orders table
+    EditableOrder = orders.search((tinydb.Query().order_number == OrderNumber) & (
+        tinydb.Query().process_status == 'UTILIZE'))[0]  # Get the order to edit
+    # Get the original order number
+    OriginalOrderNumber = EditableOrder['order_number']
+    # Get the original item UIDs
+    OriginalItemUIDs = EditableOrder['order_items_UID']
+    order_items = database.table('Order_Items')  # Get the order items table
+
+    active_products = products.search(
+        tinydb.Query().process_status == 'UTILIZE')  # Get all the active products
+    product_names = []
+    for product in active_products:  # Get all the active product names
+        # Add the product name to the list
+        product_names.append(product['product_name'])
+
+    styles = []
+    ActiveStyles = product_pricing_styles.search(
+        tinydb.Query().process_status == 'UTILIZE')  # Get all the active styles
+    for style in ActiveStyles:
+        styles.append(style['style_name'])
+
+    window2 = Window(main_window, title="Edit Order",
+                     layout="grid", width=1100, height=700)  # Create a new window
+    WelcomeMessage = Text(window2, text='Edit Order',
+                          size=18, font="Times New Roman", grid=[1, 0])  # Create a welcome message
+
+    PurchaseNameText = Text(
+        window2, text='Buyer Name', size=15, font="Times New Roman", grid=[0, 1])  # Buyer name
+    PurchaseName = TextBox(window2, grid=[1, 1], width=30)
+    # shipping info
+    AddressText = Text(window2, text='Address', size=15,
+                       font="Times New Roman", grid=[0, 3])
+    address = TextBox(window2, grid=[1, 3], width=60)
+    AddressText2 = Text(window2, text='Line 2', size=15,
+                        font="Times New Roman", grid=[0, 4])
+    address2 = TextBox(window2, grid=[1, 4], width=60)
+    CityText = Text(window2, text='City', size=15,
+                    font="Times New Roman", grid=[0, 5])
+    city = TextBox(window2, grid=[1, 5], width=30)
+    StateText = Text(window2, text='State', size=15,
+                     font="Times New Roman", grid=[0, 6])
+    state = TextBox(window2, grid=[1, 6], width=10)
+    ZipText = Text(window2, text='Zip Code', size=15,
+                   font="Times New Roman", grid=[0, 7])
+    ZipCode = TextBox(window2, grid=[1, 7], width=10)
+    # items header
+    ItemsMessage = Text(window2, text='Include Items',
+                        size=18, font="Times New Roman", grid=[1, 8])
+
+    PricingOptionButton = Combo(
+        window2, options=styles, command=PriceUpdate, grid=[2, 7])
+    # items
+    item1 = TextBox(window2, width=30, grid=[0, 9], text='Empty')
+    item1.when_double_clicked = DropDownSelection
+    ItemQuantity1 = TextBox(
+        window2, grid=[1, 9], width=10, command=PriceUpdate, text='0')
+    ItemPrice1 = Text(window2, text='0', size=15,
+                      font="Times New Roman", grid=[2, 9])
+
+    item2 = TextBox(window2, width=30, grid=[0, 10], text='Empty')
+    item2.when_double_clicked = DropDownSelection
+    ItemQuantity2 = TextBox(
+        window2, grid=[1, 10], width=10, command=PriceUpdate, text='0')
+    ItemPrice2 = Text(window2, text='0', size=15,
+                      font="Times New Roman", grid=[2, 10])
+
+    item3 = TextBox(window2, width=30, grid=[0, 11], text='Empty')
+    item3.when_double_clicked = DropDownSelection
+    ItemQuantity3 = TextBox(
+        window2, grid=[1, 11], width=10, command=PriceUpdate, text='0')
+    ItemPrice3 = Text(window2, text='0', size=15,
+                      font="Times New Roman", grid=[2, 11])
+
+    item4 = TextBox(window2, width=30, grid=[0, 12], text='Empty')
+    item4.when_double_clicked = DropDownSelection
+    ItemQuantity4 = TextBox(
+        window2, grid=[1, 12], width=10, command=PriceUpdate, text='0')
+    ItemPrice4 = Text(window2, text='0', size=15,
+                      font="Times New Roman", grid=[2, 12])
+
+    item5 = TextBox(window2, width=30, grid=[0, 13], text='Empty')
+    item5.when_double_clicked = DropDownSelection
+    ItemQuantity5 = TextBox(
+        window2, grid=[1, 13], width=10, command=PriceUpdate, text='0')
+    ItemPrice5 = Text(window2, text='0', size=15,
+                      font="Times New Roman", grid=[2, 13])
+
+    # Total
+    Total = Text(window2, text='Total: $0', size=18,
+                 font="Times New Roman", grid=[2, 19])
+
+    DateText = Text(window2, text='Order Date: ', size=15,
+                    font="Times New Roman", grid=[0, 18])
+    DateField = TextBox(
+        window2, grid=[1, 18], width=15, text=datetime.today().strftime('%m-%d-%Y'))
+
+    PurchaseName.value = EditableOrder['order_name']
+    address.value = EditableOrder['order_address']
+    address2.value = EditableOrder['order_address2']
+    city.value = EditableOrder['order_city']
+    state.value = EditableOrder['order_state']
+    ZipCode.value = EditableOrder['order_zip']
+    DateField.value = EditableOrder['order_date']
+    UIDs = EditableOrder['order_items_UID']
+    items = []
+    for uid in UIDs:
+        item = order_items.search((tinydb.Query().item_UID == uid) & (
+            tinydb.Query().process_status == 'UTILIZE'))[0]
+        items.append(item)
+    if len(items) > 0:
+        item1.value = items[0]['item_name']
+        ItemQuantity1.value = items[0]['item_quantity']
+    if len(items) > 1:
+        item2.value = items[1]['item_name']
+        ItemQuantity2.value = items[1]['item_quantity']
+    if len(items) > 2:
+        item3.value = items[2]['item_name']
+        ItemQuantity3.value = items[2]['item_quantity']
+    if len(items) > 3:
+        item4.value = items[3]['item_name']
+        ItemQuantity4.value = items[3]['item_quantity']
+    if len(items) > 4:
+        item5.value = items[4]['item_name']
+        ItemQuantity5.value = items[4]['item_quantity']
+    PriceUpdate()
+
+    # Export Options
+    ChooseExportCheckBox = CheckBox(window2, text="Export Order", grid=[1, 19])
+    ChooseShippingCheckBox = CheckBox(window2, text="Ship Order", grid=[1, 20])
+    finish = PushButton(window2, command=OrderExport,
+                        text='Save', grid=[0, 19])
+
+
+def ViewEasyCartOrder(main_window, database, OrderNumber):
+    orders = database.table('Orders')  # Get the orders table
+    Order = orders.search((tinydb.Query().order_number == OrderNumber) & (
+        tinydb.Query().process_status == 'UTILIZE'))[0]  # Get the order to edit
+    order_items = database.table('Order_Items')  # Get the order items table
+
+    window2 = Window(main_window, title="View EasyCart Order",
+                     layout="grid", width=1100, height=700)  # Create a new window
+    WelcomeMessage = Text(window2, text='View EasyCart Order',
+                          size=18, font="Times New Roman", grid=[1, 0])  # Create a welcome message
+
+    PurchaseNameText = Text(
+        window2, text='Buyer Name', size=15, font="Times New Roman", grid=[0, 1])  # Buyer name
+    PurchaseName = Text(window2, grid=[1, 1], size=15,
+                        font="Times New Roman", text='Buyer Name')
+    # shipping info
+    AddressText = Text(window2, text='Address', size=15,
+                       font="Times New Roman", grid=[0, 3])
+    address = Text(window2, grid=[1, 3], size=15,
+                   font="Times New Roman", text='Line 1')
+    AddressText2 = Text(window2, text='Line 2', size=15,
+                        font="Times New Roman", grid=[0, 4])
+    address2 = Text(window2, grid=[1, 4], size=15,
+                    font="Times New Roman", text='Line 2')
+    CityText = Text(window2, text='City', size=15,
+                    font="Times New Roman", grid=[0, 5])
+    city = Text(window2, grid=[1, 5], size=15,
+                font="Times New Roman", text='City')
+    StateText = Text(window2, text='State', size=15,
+                     font="Times New Roman", grid=[0, 6])
+    state = Text(window2, grid=[1, 6], size=15,
+                 font="Times New Roman", text='State')
+    ZipText = Text(window2, text='Zip Code', size=15,
+                   font="Times New Roman", grid=[0, 7])
+    ZipCode = Text(window2, grid=[1, 7], size=15,
+                   font="Times New Roman", text='Zip Code')
+    # items header
+    ItemsMessage = Text(window2, text='Additional Information',
+                        size=18, font="Times New Roman", grid=[1, 8])
+
+    listbox = ListBox(window2, items=[], grid=[0, 9, 4, 5],
+                      width=400, height=200, scrollbar=True)
+
+    PurchaseName.value = Order['order_name']
+    address.value = Order['order_address']
+    address2.value = Order['order_address2']
+    city.value = Order['order_city']
+    state.value = Order['order_state']
+    ZipCode.value = Order['order_zip']
+
+    EasyCartData = Order['easy_cart_snapshot']
+    Keys = list(EasyCartData.keys())
+    for key in Keys:
+        if EasyCartData[key] == '':
+            continue
+        listbox.append('    ' + key + ' : ' + str(EasyCartData[key]))
+
+    # add a bunch of empty lines to make the window look better
+    for i in range(0, 5):
+        listbox.append('')
+
+    UIDs = Order['order_items_UID']
+    for uid in UIDs:
+        item = order_items.search((tinydb.Query().item_UID == uid) & (
+            tinydb.Query().process_status == 'UTILIZE'))[0]
+        ItemKeys = list(item.keys())
+        for key in ItemKeys:
+            if item[key] == '':
+                continue
+            if key == 'product_snapshot':  # if the key is the product snapshot, add the SubKeys
+                SubKeys = list(item[key].keys())
+                for SubKey in SubKeys:
+                    if item[key][SubKey] == '':
+                        continue
+                    listbox.append('        ' + SubKey +
+                                   ' : ' + str(item[key][SubKey]))
+                continue
+
+            listbox.append('    ' + key + ' : ' + str(item[key]))
+        # add a blank line between items
+        listbox.append('')
+
+    # Export Options
+    ChooseExportCheckBox = CheckBox(window2, text="Export Order", grid=[1, 19])
+    ChooseShippingCheckBox = CheckBox(window2, text="Ship Order", grid=[1, 20])
+    finish = PushButton(window2, text='Exit', grid=[0, 19])
+
+
+def EditOrder(main_window, database, OrderNumber):
+    orders = database.table('Orders')
+    Order = orders.search((tinydb.Query().order_number == str(OrderNumber)) & (
+        tinydb.Query().process_status == 'UTILIZE'))[0]
+
+    try:  # test if the order is an easy cart order
+        Order = Order['easy_cart_order']
+        ViewEasyCartOrder(main_window, database, OrderNumber)
+        return
+    except KeyError:
+        pass
+
+    try:  # test if the order is an etsy order
+        Order = Order['etsy_order']
+
+        return
+    except KeyError:
+        pass
+
+    # If the order is not an easy cart order or an etsy order, it is a custom order
+    # is modifiable in details
+    EditDefaultOrder(main_window, database, OrderNumber)
+    return
+
+
+def TaskExport(database):  # Export data to database
+    global finish, name, description, priority, StartName
     global window2
-    realitems = []
-    pricing_style = "Base"
-    products, baseprice, wordpress_price, etsy_price, editboromarket_price = makePrices()
-    for i in range(0,5):
-        realitems.append(Item())
-    window2 = Window(main_window, title="Edit Order", layout="grid", width=1100,height=700) #look up how GUIZero and TKinter works ok
-    welcome_message = Text(window2,text='Change Order.', size=18, font="Times New Roman", grid=[1,0])
+    tasks = database.table('Tasks')
 
-    purchase_name_text = Text(window2,text='Buyer Name', size=15, font="Times New Roman", grid=[0,1])
-    purchase_name = TextBox(window2,grid=[1,1], width=30)
-    #shipping info
-    adress_text = Text(window2,text='Adress', size=15, font="Times New Roman", grid=[0,3])
-    adress = TextBox(window2,grid=[1,3], width=60)
-    adress_text2 = Text(window2,text='Line 2', size=15, font="Times New Roman", grid=[0,4])
-    adress2 = TextBox(window2,grid=[1,4], width=60)
-    city_text = Text(window2,text='City', size=15, font="Times New Roman", grid=[0,5])
-    city = TextBox(window2,grid=[1,5], width=30)
-    state_text = Text(window2,text='State', size=15, font="Times New Roman", grid=[0, 6])
-    state = TextBox(window2,grid=[1,6], width=10)
-    zip_text = Text(window2,text='Zip Code', size=15, font="Times New Roman", grid=[0,7])
-    zip_code = TextBox(window2,grid=[1,7], width=10)
-    #items header
-    items_message = Text(window2,text='Include Items', size=18, font="Times New Roman", grid=[1,8])
-    pricing_option_button = Combo(window2,options=['Base','WordPress','Etsy','Edin. Mark.'], command=update_pricing_options, grid=[2,7])
-    #items
-    item1 = TextBox(window2, width=30,grid=[0,9],text='Empty')
-    item_quant1 = TextBox(window2,grid=[1,9], width=10, command=price_update, text='0')
-    item_price1 = Text(window2,text='0', size=15, font="Times New Roman", grid=[2,9])
-
-    item2 = TextBox(window2, width=30,grid=[0,10],text='Empty')
-    item_quant2 = TextBox(window2,grid=[1,10], width=10, command=price_update, text='0')
-    item_price2 = Text(window2,text='0', size=15, font="Times New Roman", grid=[2,10])
-
-    item3 = TextBox(window2, width=30,grid=[0,11],text='Empty')
-    item_quant3 = TextBox(window2,grid=[1,11], width=10, command=price_update, text='0')
-    item_price3 = Text(window2,text='0', size=15, font="Times New Roman", grid=[2,11])
-
-    item4 = TextBox(window2, width=30,grid=[0,12],text='Empty')
-    item_quant4 = TextBox(window2,grid=[1,12], width=10, command=price_update, text='0')
-    item_price4 = Text(window2,text='0', size=15, font="Times New Roman", grid=[2,12])
-
-    item5 = TextBox(window2, width=30,grid=[0,13],text='Empty')
-    item_quant5 = TextBox(window2,grid=[1,13], width=10, command=price_update, text='0')
-    item_price5 = Text(window2,text='0', size=15, font="Times New Roman", grid=[2,13])
-
-    #Total
-    total = Text(window2,text='Total: $0', size=18, font="Times New Roman", grid=[2,19])
-
-    #Export Options
-    choose_export = CheckBox(window2,text="Export Order", grid=[1,19])
-    choose_ship = CheckBox(window2,text="Ship Order", grid=[1,20])
-    finish = PushButton(window2,command=export,text='Save',grid=[0,19])
+    if name.value == StartName:  # If the task name is the same as the original, update the task
+        tasks.update({'task_name': name.value, 'task_description': description.value, 'task_priority': priority.value,
+                      'process_status': 'UTILIZE'}, tinydb.Query().task_name == name.value)
+    else:  # If the task name is different, remove the old task and add a new one
+        tasks.remove((tinydb.Query().task_name == StartName) &
+                     (tinydb.Query().process_status == 'UTILIZE'))
+        tasks.insert({'task_name': name.value, 'task_description': description.value, 'task_priority': priority.value,
+                      'process_status': 'UTILIZE'})
+    window2.destroy()  # Close window
 
 
-    #load order for edititng
-    order = Order_Manipulator.LoadOrder(ordernum)
-    preorder = order
-    purchase_name.value = order.getOrderName()
-    adress.value = order.getOrderAddress()[0]
-    adress2.value = order.getOrderAddress()[1]
-    city.value = order.getOrderAddress()[2]
-    state.value = order.getOrderAddress()[3]
-    zip_code.value = order.getOrderAddress()[4]
-    if len(order.order_items) >= 1:
-        item1.value = order.order_items[0].getProduct()
-        item_quant1.value = str(order.order_items[0].getQuantity())
-    if len(order.order_items) >= 2:
-        item2.value = order.order_items[1].getProduct()
-        item_quant2.value = str(order.order_items[1].getQuantity())
-    if len(order.order_items) >= 3:
-        item3.value = order.order_items[2].getProduct()
-        item_quant3.value = str(order.order_items[2].getQuantity())
-    if len(order.order_items) >= 4:
-        item4.value = order.order_items[3].getProduct()
-        item_quant4.value = str(order.order_items[3].getQuantity())  
-    if len(order.order_items) >= 5:
-        item5.value = order.order_items[4].getProduct()
-        item_quant5.value = str(order.order_items[4].getQuantity())
-    price_update()
-
-
-def exporttask(): #save task after modification by overwrite
-    global finish, name, discription, priority, permname
+def CancelTask():
     global window2
 
-    tasky = Task(name = name.value, discription = discription.value, priority = priority.value)
-    Order_Manipulator.DeleteTask(permname)
-    Order_Manipulator.SaveTask(tasky)
+    # Ask user if they are sure they want to cancel
+    result = window2.yesno("Cancel", "Are you sure you want to cancel?")
+    if result == True:  # If user is sure, close window
+        window2.destroy()
 
-    window2.destroy()
 
-def TaskDetails(main_window, taskname): #GUI window to edit a task
-    global finish, name, discription, priority, permname
+def EditTask(main_window, database, TaskName):  # Create new task window
+    global finish, name, description, priority, StartName
     global window2
 
-    window2 = Window(main_window, title="Edit Task", layout="grid", width=1100,height=700)
-    welcome_message = Text(window2,text='Task Changer', size=18, font="Times New Roman", grid=[1,0])
+    tasks = database.table('Tasks')
+    EditingTask = tasks.search((tinydb.Query().task_name == TaskName) & (
+        tinydb.Query().process_status == 'UTILIZE'))
+    StartName = EditingTask[0]['task_name']
 
-    name_text = Text(window2,text='Task Name', size=15, font="Times New Roman", grid=[0,1])
-    name = TextBox(window2,grid=[1,1], width=30)
-    #shipping info
-    discription_text = Text(window2,text='Discription', size=15, font="Times New Roman", grid=[0,3])
-    discription = TextBox(window2,grid=[1,3], width=60)
-    prioirty_text = Text(window2,text='Priority', size=15, font="Times New Roman", grid=[0,7])
-    priority = TextBox(window2,grid=[1,7], width=10)
-    #items header
+    window2 = Window(main_window, title="Edit Task",
+                     layout="grid", width=1100, height=700)
+    welcome_message = Text(window2, text='Edit Task',
+                           size=18, font="Times New Roman", grid=[1, 0])
 
-    finish = PushButton(window2,command=exporttask,text='Save',grid=[0,19])
+    name_text = Text(window2, text='Task Name', size=15,
+                     font="Times New Roman", grid=[0, 1])
+    name = TextBox(window2, grid=[1, 1], width=30)
+    # shipping info
+    description_text = Text(window2, text='Description',
+                            size=15, font="Times New Roman", grid=[0, 3])
+    description = TextBox(
+        window2, grid=[1, 3], width=60, multiline=True, height=15)
+    priority_text = Text(window2, text='Priority', size=15,
+                         font="Times New Roman", grid=[0, 7])
+    priority = TextBox(window2, grid=[1, 7], width=10, text='0')
+    # items header
 
-    permname = "" #keep what the task was before so we can overwrite it
-    tasks = Order_Manipulator.LoadTasks()
-    for i in range(len(tasks)):
-        if tasks[i].getName() == taskname:
-            name.value = tasks[i].getName()
-            permname = tasks[i].getName()
-            discription.value = tasks[i].getDiscription()
-            priority.value = tasks[i].getPriority()
-            break
+    finish = PushButton(window2, command=TaskExport, text='Save',
+                        grid=[0, 19], args=[database])
+    cancel = PushButton(window2, command=CancelTask,
+                        text='Cancel', grid=[1, 19])
 
-
-        
+    name.value = EditingTask[0]['task_name']
+    description.value = EditingTask[0]['task_description']
+    priority.value = EditingTask[0]['task_priority']

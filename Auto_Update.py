@@ -46,7 +46,8 @@ def UpdateSoftware(app, database):
     ).setting_name == "LaserOMS_Version")  # update version number in database
 
     import shutil
-    folder = os.getcwd()  # delete all files in current directory
+    # delete all files in current directory
+    folder = os.path.realpath(os.path.dirname(__file__))
     for filename in os.listdir(folder):
         if filename == '.git':
             continue
@@ -68,8 +69,8 @@ def UpdateSoftware(app, database):
     z.extractall(folder)
 
     # move files from zip
-    source = os.path.join(os.getcwd(), "LaserOMS-main")
-    destination = os.getcwd()
+    source = os.path.join(folder, "LaserOMS-main")
+    destination = folder
 
     # code to move the files from sub-folder to main folder.
     files = os.listdir(source)
@@ -80,6 +81,20 @@ def UpdateSoftware(app, database):
 
     # delete zip folder
     os.rmdir(source)
+
+    # Find and install all required Packages.
+    os.system("python3 -m pip install --upgrade pip")  # update pip
+    try:
+        with open(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                               "Packages.txt"), "r") as f:
+            recs = f.read()
+            print(recs)
+            f.close()
+            packages = recs.split(',')
+            for i in range(len(packages)):
+                os.system("pip install --upgrade " + str(packages[i]))
+    except:
+        app.warn('Update Error', 'Unable to find Packages.txt')
 
     app.info('Update Complete',
              'LaserOMS has been updated to the latest version Restarting...')

@@ -37,7 +37,8 @@ def MakeOrderID(orders):
     AvailableOrders = orders.search(tinydb.Query().process_status ==
                                     "UTILIZE")  # Get all orders
     for order in AvailableOrders:
-        allIDs.append(order['order_number'])  # Add all order IDs to a list
+        # Add all order IDs to a list
+        allIDs.append(int(order['order_number']))
     order_ID = 112
     while order_ID in allIDs:  # If the order ID is already in the database, generate a new one
         order_ID += 1
@@ -116,6 +117,9 @@ def export():
 
     # Make a list of UIDs for the order items
     itemsUIDs = MakeUIDs(order_items, ItemCount)
+
+    # Replace the / with a - to clean up the date
+    DateField.value = DateField.value.replace("/", "-")
 
     orders.insert({'order_number': str(OrderNumber), 'order_name': PurchaseName.value,
                    'order_address': address.value, 'order_address2': address2.value, 'order_city': city.value,

@@ -5,7 +5,6 @@ import traceback
 
 
 def GeneratePackingSlip(app, database, OrderNumber):
-    print(OrderNumber)
     try:
         settings = database.table('Settings')
         orders = database.table('Orders')
@@ -75,8 +74,10 @@ def GeneratePackingSlip(app, database, OrderNumber):
             return
 
         # Fonts
-        SmallFont = ImageFont.truetype('Bright.TTF', 15)
-        NormalFont = ImageFont.truetype('Bright.TTF', 30)
+        SmallFont = ImageFont.truetype(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                                                    'Bright.TTF'), 15)
+        NormalFont = ImageFont.truetype(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                                                     'Bright.TTF'), 30)
 
         # Dividing Line
         Canvas.line((400, 600, 400, 1800), fill=(TextColor))
@@ -223,6 +224,8 @@ def GeneratePackingSlip(app, database, OrderNumber):
 
 # send packing slip  to be more general use soon. Set for my print lol
 def PrintPackingSlip(order):
+    return
+    # not working yet
     try:
         os.system("lp -d Envy-5000 ../Orders/" +
                   str(order.getOrderNumber()) + '.png ')

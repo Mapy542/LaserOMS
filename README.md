@@ -75,6 +75,10 @@ The password can be changed by selecting the password setting. The user must ent
 
 ## Changes:
 
+Version 1.1.2
+
+- Finance statistics and packing slip generation bug fixes
+
 Version 1.1.1
 
 - Quality of life features

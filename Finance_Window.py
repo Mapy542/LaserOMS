@@ -14,10 +14,11 @@ def GetRevenueStats(database):
     MonthlyRevenue = {}
 
     for order in AllOrders:
-        year = int(order['order_date'].split('-')[2])
+        year = order['order_date'].split('-')[2]
         if len(year) > 4:
             # cut off the time or other data included after year
             year = year[:len(year) - 4]
+        year = int(year)
         month = int(order['order_date'].split('-')[0])
 
         if year not in YearlyRevenue:
@@ -29,7 +30,6 @@ def GetRevenueStats(database):
         ItemUIDs = order['order_items_UID']
 
         for uid in ItemUIDs:
-            print(uid)
             Item = order_items.search(tinydb.where('item_UID') == uid)[0]
             total = float(Item['item_quantity']) * \
                 float(Item['item_unit_price'])
@@ -49,10 +49,11 @@ def GetExpenseStats(database):
     MonthlyExpenses = {}
 
     for expense in ActiveExpenses:
-        year = int(expense['expense_date'].split('-')[2])
+        year = expense['expense_date'].split('-')[2]
         if len(year) > 4:
             # cut off the time or other data included after year
             year = year[:len(year) - 4]
+        year = int(year)
         month = int(expense['expense_date'].split('-')[0])
 
         if year not in YearlyExpenses:

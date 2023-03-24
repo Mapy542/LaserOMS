@@ -89,7 +89,7 @@ def VerifySettings(database):
         MadeUpdate = True
 
     # Expense and Financial Settings
-    if not settings.contains((tinydb.Query().setting_name == 'PShow_Expenses_Without_Image_Verification')):
+    if not settings.contains((tinydb.Query().setting_name == 'Show_Expenses_Without_Image_Verification')):
         settings.insert({'setting_name': 'Show_Expenses_Without_Image_Verification', 'setting_value': 'True',
                         'setting_type': 'BOOLEAN', 'setting_rank': 15, 'process_status': "UTILIZE"})
         MadeUpdate = True

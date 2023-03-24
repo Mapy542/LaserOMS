@@ -63,7 +63,7 @@ def GetExpenseStats(database):
             (tinydb.where('process_status') == 'UTILIZE'))
     else:  # show expenses only with images
         ActiveExpenses = expenses.search(
-            (tinydb.where('process_status') == 'UTILIZE') & (~ (tinydb.where.image_path == '')))
+            (tinydb.where('process_status') == 'UTILIZE') & (~ (tinydb.where.expense_image_path == '')))
 
     YearlyExpenses = {}
     MonthlyExpenses = {}

@@ -1,7 +1,8 @@
-from guizero import Window, Text, TextBox, CheckBox, Combo, PushButton, ListBox
+from guizero import Window, Text, Combo, PushButton, ListBox, TitleBox
 import tinydb
 import New_Expense_Window
 import Google_Sheets_Sync
+import Expense_Details_Window
 
 
 def GetRevenueStats(database):
@@ -45,8 +46,8 @@ def GetRevenueStats(database):
 def VerifyExpenseColumns(database):
     expenses = database.table('Expenses')
     # make sure every expense has required fields for later comparisons
-    expenses.update(tinydb.operations.add('image_path'), (~(tinydb.Query(
-    ).image_path.exists())) & (tinydb.Query().process_status == 'UTILIZE'))
+    expenses.update({'expense_image_path': ''}, (~(tinydb.Query(
+    ).expense_image_path.exists())))
     # add image_path field if it does not exist on the expense
 
 
@@ -56,7 +57,7 @@ def GetExpenseStats(database):
     VerifyExpenseColumns(database)
     settings = database.table('Settings')  # find settings
     ShowNonImageExpenses = settings.search((tinydb.Query(
-    ).setting_name == 'Show_Expenses_Without_Image_Verification') & (tinydb.Query.process_status == 'UTILIZE'))[0]['setting_value']
+    ).setting_name == 'Show_Expenses_Without_Image_Verification') & (tinydb.Query().process_status == 'UTILIZE'))[0]['setting_value']
 
     if ShowNonImageExpenses == 'True':  # if show all expenses
         ActiveExpenses = expenses.search(
@@ -91,7 +92,14 @@ def GetExpenseStats(database):
     return YearlyExpenses, MonthlyExpenses
 
 
-def UpdateListbox(database):
+def UpdateListbox(database, ShowCombo):
+    if ShowCombo.value == 'Statistics':
+        ShowFinancialStats(database)
+    elif ShowCombo.value == 'Expenses':
+        ShowExpenses(database)
+
+
+def ShowFinancialStats(database):
     YearlyRevenue, MonthlyRevenue = GetRevenueStats(
         database)  # returns 2 lists of dictionaries
     YearlyExpenses, MonthlyExpenses = GetExpenseStats(database)
@@ -136,6 +144,41 @@ def UpdateListbox(database):
             listbox.append("")
 
 
+def ShowExpenses(database):
+    listbox.clear()
+
+    expenses = database.table('Expenses')  # load all expenses
+
+    # make sure expenses can be compared from settings
+    VerifyExpenseColumns(database)
+    settings = database.table('Settings')  # find settings
+    ShowNonImageExpenses = settings.search((tinydb.Query(
+    ).setting_name == 'Show_Expenses_Without_Image_Verification') & (tinydb.Query().process_status == 'UTILIZE'))[0]['setting_value']
+
+    if ShowNonImageExpenses == 'True':  # if show all expenses
+        listbox.append('Check mark indicates expense has image.')
+        ActiveExpenses = expenses.search(
+            (tinydb.where('process_status') == 'UTILIZE'))
+        ActiveExpenses = sorted(
+            ActiveExpenses, key=lambda k: k['expense_date'])
+        for expense in ActiveExpenses:
+            if expense['expense_image_path'] == '':
+                HasImage = ''
+            else:
+                HasImage = ', ' + u'\u2611'
+            listbox.append(expense['expense_name'] + ": " + str(float(
+                expense['expense_quantity']) * float(expense['expense_unit_price'])) + HasImage)
+
+    else:  # show expenses only with images
+        ActiveExpenses = expenses.search(
+            (tinydb.where('process_status') == 'UTILIZE') & (~ (tinydb.where.expense_image_path == '')))
+        ActiveExpenses = sorted(
+            ActiveExpenses, key=lambda k: k['expense_date'])  # sort by date
+        for expense in ActiveExpenses:
+            listbox.append(expense['expense_name'] + ": " + str(
+                float(expense['expense_quantity']) * float(expense['expense_unit_price'])))
+
+
 def CreateExpense(window2, database):
     New_Expense_Window.NewExpense(window2, database)
 
@@ -144,9 +187,30 @@ def SyncSheet(app, database):
     Google_Sheets_Sync.RebuildProductsFromSheets(app, database)
 
 
+def EditExpense():
+    global listbox
+    global window2
+    global DatabasePassThrough
+    global ShowCombo
+    if listbox.value == None or ShowCombo.value == 'Statistics':  # if no expense selected
+        return
+    expense = listbox.value[0].split(
+        ':')[0]  # get expense name from listbox
+    Expense_Details_Window.ExpenseEdit(
+        window2, DatabasePassThrough, expense)  # open expense edit window
+
+
+def ExportExpenses(database, window2):
+    pass
+
+
 def FinancesDisplay(main_window, database):
     global listbox
     global window2
+    global DatabasePassThrough
+    global ShowCombo
+    DatabasePassThrough = database
+
     window2 = Window(main_window, title="Finances",
                      layout="grid", width=1100, height=700)
 
@@ -154,14 +218,25 @@ def FinancesDisplay(main_window, database):
                           size=15, font="Times New Roman", grid=[0, 0, 4, 1])
     listbox = ListBox(window2, items=[], multiselect=True,
                       width=800, height=500, scrollbar=True, grid=[0, 1, 4, 5])
-
-    UpdateListbox(database)
+    listbox.when_double_clicked = EditExpense
 
     # options
-    NewExpense = PushButton(
-        window2, text='Create New Expense', command=CreateExpense, grid=[1, 8, 1, 1], args=[window2, database])
 
+    ShowCombo = Combo(window2, options=[
+                      'Statistics', 'Expenses'], grid=[5, 3, 1, 1])
     RebuildButton = PushButton(
-        window2, text='Reload', command=UpdateListbox, grid=[0, 7, 1, 1], args=[database])
-    UpdatePricingButton = PushButton(window2, text='Update Pricing', command=SyncSheet, grid=[
-                                     0, 8, 1, 1], args=[main_window, database])
+        window2, text='Reload', command=UpdateListbox, grid=[5, 2, 1, 1], args=[database, ShowCombo])
+
+    SyncDiv = TitleBox(window2, text='Sync', grid=[0, 8, 3, 1])
+    UpdatePricingButton = PushButton(SyncDiv, text='Update Pricing', command=SyncSheet, grid=[
+                                     0, 0, 1, 1], args=[main_window, database])
+
+    ExpensesDiv = TitleBox(window2, text='Expenses', grid=[0, 9, 3, 1])
+    NewExpense = PushButton(
+        ExpensesDiv, text='Create New Expense', command=CreateExpense, grid=[0, 0, 1, 1], args=[window2, database])
+    EditExpenseButton = PushButton(
+        ExpensesDiv, text='Edit Expense', command=EditExpense, grid=[1, 0, 1, 1])
+    ExportExpensesButton = PushButton(ExpensesDiv, text='Export Expenses', command=ExportExpenses, grid=[
+                                      2, 0, 1, 1], args=[database, window2])
+
+    UpdateListbox(database, ShowCombo)

@@ -56,7 +56,7 @@ Upon finishing the order, the user can select to automatically print a packing s
 
 New tasks and expenses can be created by selecting the new task or new expense button in the main window.\
 When creating a new task, the user gives the task a name, and can fill it out with an additional description. The priority of the task can be selected from 0 to 100. This will affect the order of the tasks being shown on the home page.\
-When creating a new expense, the user enters a name of the expense, the amount, and a description. The total price of the expense is calculated by multiplying the unit price by the quantity to avoid user calculation errors. The date of the expense can be changed by entering a different date. The date defaults to the current date.
+When creating a new expense, the user enters a name of the expense, the amount, and a description. The total price of the expense is calculated by multiplying the unit price by the quantity to avoid user calculation errors. The date of the expense can be changed by entering a different date. The date defaults to the current date. For the purposes of taxes, and deduction reporting, the user can attach an image of a receipt or confirmation of purchase to each expense. For multiple images, separate expenses should be created. Images attached are copied to a separate and user definable folder. Original images may be deleted after and expense is created.
 
 ### Settings:
 
@@ -64,6 +64,10 @@ The settings page can be accessed by selecting the settings button in the main w
 The user will be prompted to enter the password to access the settings page. The default password is 'admin' but it is recommended the user change this.\
 The settings page contains a large list of settings. Double clicking a setting will allow the user to change the value of the setting. A pop-up will ask the user to: select yes or no, enter text, select a file, select a folder, or pick a color.
 The password can be changed by selecting the password setting. The user must enter the same password twice to confirm the change. The password settings will display an obfuscated version of the password for security.\
+
+### Statistics:
+
+The statistics page can be accessed by selecting the statistics button in the main window. This will open a new window with the statistics of finances broken down by year and month. A list of expenses can be show, and searched through by name or date. Double clicking on each expense will open a new window with the details of the expense. Selecting the open image, will open the default image viewer on the system with the expense attached image.\
 
 ## Projects:
 
@@ -74,6 +78,13 @@ The password can be changed by selecting the password setting. The user must ent
 - Multiple Instance support or database locking
 
 ## Changes:
+
+Version 1.1.3
+
+- Expense statistics upgrades
+- - Added ability to view expense details and attach expense images.
+- Added expense report generation
+- Finance statistics upgrades
 
 Version 1.1.2
 

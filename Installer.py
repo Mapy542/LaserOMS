@@ -1,4 +1,3 @@
-import tinydb
 import os
 
 # Find and install all required Packages.
@@ -18,6 +17,10 @@ if answer == "y" or answer == "Y":
     DoubleCheck = input("Are you sure? (y/n): ")
     if DoubleCheck == "y" or DoubleCheck == "Y":
         doOverwrite = True
+    else:
+        doOverwrite = False
+else:
+    doOverwrite = False
 
 
 # check for existing files
@@ -33,6 +36,7 @@ if "OMS-Data.json" not in dir or doOverwrite:
 
 # setup tables
 if (doOverwrite):
+    import tinydb
     database = tinydb.TinyDB(os.path.join(os.path.realpath(os.path.dirname(__file__)),
                                           '../OMS-Data.json'))
     orders = database.table('Orders')  # Form orders table

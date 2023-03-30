@@ -83,6 +83,7 @@ Version 1.1.3
 
 - Expense statistics upgrades
 - - Added ability to view expense details and attach expense images.
+- Added expense report generation
 - Finance statistics upgrades
 
 Version 1.1.2

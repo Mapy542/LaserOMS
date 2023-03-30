@@ -64,7 +64,7 @@ def GetExpenseStats(database):
             (tinydb.where('process_status') == 'UTILIZE'))
     else:  # show expenses only with images
         ActiveExpenses = expenses.search(
-            (tinydb.where('process_status') == 'UTILIZE') & (~ (tinydb.where.expense_image_path == '')))
+            (tinydb.where('process_status') == 'UTILIZE') & (~ (tinydb.where('expense_image_path') == '')))
 
     YearlyExpenses = {}
     MonthlyExpenses = {}
@@ -92,11 +92,15 @@ def GetExpenseStats(database):
     return YearlyExpenses, MonthlyExpenses
 
 
-def UpdateListbox(database, ShowCombo):
+def UpdateListbox(database, ShowCombo, ExpenseSortDiv):
     if ShowCombo.value == 'Statistics':
         ShowFinancialStats(database)
+        ExpenseSort.visible = False
+        ExpenseSortDiv.hide()
     elif ShowCombo.value == 'Expenses':
         ShowExpenses(database)
+        ExpenseSort.visible = True
+        ExpenseSortDiv.show()
 
 
 def ShowFinancialStats(database):
@@ -144,7 +148,16 @@ def ShowFinancialStats(database):
             listbox.append("")
 
 
+def MakeVerifiedExpenseText(expense, CheckMark, ShowNonImageExpenses):
+    # if expense is verified or if show all expenses is true
+    if not ShowNonImageExpenses or expense['expense_image_path'] != '':
+        return ''
+    else:
+        return ', ' + CheckMark
+
+
 def ShowExpenses(database):
+    global ExpenseSort
     listbox.clear()
 
     expenses = database.table('Expenses')  # load all expenses
@@ -155,28 +168,44 @@ def ShowExpenses(database):
     ShowNonImageExpenses = settings.search((tinydb.Query(
     ).setting_name == 'Show_Expenses_Without_Image_Verification') & (tinydb.Query().process_status == 'UTILIZE'))[0]['setting_value']
 
+    CheckMark = ', ' + u'\u2611'
+
     if ShowNonImageExpenses == 'True':  # if show all expenses
-        listbox.append('Check mark indicates expense has image.')
         ActiveExpenses = expenses.search(
             (tinydb.where('process_status') == 'UTILIZE'))
-        ActiveExpenses = sorted(
-            ActiveExpenses, key=lambda k: k['expense_date'])
-        for expense in ActiveExpenses:
-            if expense['expense_image_path'] == '':
-                HasImage = ''
-            else:
-                HasImage = ', ' + u'\u2611'
-            listbox.append(expense['expense_name'] + ": " + str(float(
-                expense['expense_quantity']) * float(expense['expense_unit_price'])) + HasImage)
+        listbox.append(CheckMark + ' Indicated expenses have receipt images.')
 
     else:  # show expenses only with images
         ActiveExpenses = expenses.search(
-            (tinydb.where('process_status') == 'UTILIZE') & (~ (tinydb.where.expense_image_path == '')))
-        ActiveExpenses = sorted(
-            ActiveExpenses, key=lambda k: k['expense_date'])  # sort by date
-        for expense in ActiveExpenses:
-            listbox.append(expense['expense_name'] + ": " + str(
-                float(expense['expense_quantity']) * float(expense['expense_unit_price'])))
+            (tinydb.where('process_status') == 'UTILIZE') & (~ (tinydb.where('expense_image_path') == '')))
+
+    ToShowExpenseSort = ExpenseSort.value  # get sort option
+
+    ExpenseSort.clear()  # clear sort options
+    ExpenseSort.append('All')  # reset sort options
+    AddedYears = []
+    for expense in ActiveExpenses:  # for each expense
+        Year = expense['expense_date'].split('-')[2]  # get year
+        if len(Year) > 4:
+            # cut off the time or other data included after year
+            Year = Year[:len(Year) - 4]
+        Year = int(Year)
+        if str(Year) not in AddedYears:  # if year not added
+            ExpenseSort.append(str(Year))  # add year to sort options
+            AddedYears.append(str(Year))  # add year to added years
+
+        if ToShowExpenseSort == 'All':  # if all expenses
+            VerifiedExpenseText = MakeVerifiedExpenseText(
+                expense, CheckMark, ShowNonImageExpenses)
+            listbox.append(expense['expense_name'] + ': ' + expense['expense_date'] + ', ' + str(
+                float(expense['expense_quantity']) * float(expense['expense_unit_price'])) + VerifiedExpenseText)  # add expense to listbox
+        elif ToShowExpenseSort == str(Year):  # if expenses from year
+            VerifiedExpenseText = MakeVerifiedExpenseText(
+                expense, CheckMark, ShowNonImageExpenses)
+            listbox.append(expense['expense_name'] + ': ' + expense['expense_date'] + ', ' + str(
+                float(expense['expense_quantity']) * float(expense['expense_unit_price'])) + VerifiedExpenseText)  # add expense to listbox
+
+    ExpenseSort.value = ToShowExpenseSort  # set sort option to previous
 
 
 def CreateExpense(window2, database):
@@ -208,7 +237,7 @@ def FinancesDisplay(main_window, database):
     global listbox
     global window2
     global DatabasePassThrough
-    global ShowCombo
+    global ShowCombo, ExpenseSort
     DatabasePassThrough = database
 
     window2 = Window(main_window, title="Finances",
@@ -220,18 +249,25 @@ def FinancesDisplay(main_window, database):
                       width=800, height=500, scrollbar=True, grid=[0, 1, 4, 5])
     listbox.when_double_clicked = EditExpense
 
+    # sort expenses
+    ExpenseSortDiv = TitleBox(window2, text='Sort Expenses by', grid=[
+                              5, 4, 1, 1], layout='grid')
+    ExpenseSort = Combo(ExpenseSortDiv, options=['All'], grid=[0, 0, 1, 1])
+
     # options
-
-    ShowCombo = Combo(window2, options=[
-                      'Statistics', 'Expenses'], grid=[5, 3, 1, 1])
+    ListBoxModeDiv = TitleBox(window2, text='Display Mode', grid=[
+                              5, 3, 1, 1], layout='grid')
+    ShowCombo = Combo(ListBoxModeDiv, options=[
+                      'Statistics', 'Expenses'], grid=[0, 0, 1, 1])
     RebuildButton = PushButton(
-        window2, text='Reload', command=UpdateListbox, grid=[5, 2, 1, 1], args=[database, ShowCombo])
+        ListBoxModeDiv, text='Reload', command=UpdateListbox, grid=[0, 1, 1, 1], args=[database, ShowCombo, ExpenseSortDiv])
 
-    SyncDiv = TitleBox(window2, text='Sync', grid=[0, 8, 3, 1])
+    SyncDiv = TitleBox(window2, text='Sync', grid=[0, 8, 3, 1], layout='grid')
     UpdatePricingButton = PushButton(SyncDiv, text='Update Pricing', command=SyncSheet, grid=[
-                                     0, 0, 1, 1], args=[main_window, database])
+                                     0, 0, 1, 1], args=[window2, database])
 
-    ExpensesDiv = TitleBox(window2, text='Expenses', grid=[0, 9, 3, 1])
+    ExpensesDiv = TitleBox(window2, text='Expenses', grid=[
+                           0, 9, 3, 1], layout='grid')
     NewExpense = PushButton(
         ExpensesDiv, text='Create New Expense', command=CreateExpense, grid=[0, 0, 1, 1], args=[window2, database])
     EditExpenseButton = PushButton(
@@ -239,4 +275,4 @@ def FinancesDisplay(main_window, database):
     ExportExpensesButton = PushButton(ExpensesDiv, text='Export Expenses', command=ExportExpenses, grid=[
                                       2, 0, 1, 1], args=[database, window2])
 
-    UpdateListbox(database, ShowCombo)
+    UpdateListbox(database, ShowCombo, ExpenseSortDiv)

@@ -3,6 +3,7 @@ import tinydb
 import New_Expense_Window
 import Google_Sheets_Sync
 import Expense_Details_Window
+import Export_Expenses
 
 
 def GetRevenueStats(database):
@@ -230,7 +231,21 @@ def EditExpense():
 
 
 def ExportExpenses(database, window2):
-    pass
+    year = window2.question('Export Expenses for a Year',
+                            'Enter the year to export expenses for: (None for all years)', 'None')
+    if year != 'None':
+        month = window2.question('Export Expenses for a Month',
+                                 'Enter the month to export expenses for: (None for all months)', 'None')
+    else:
+        month = 'None'
+
+    ShowVerified = window2.yesno(
+        'Export Verified Expenses', 'Would you like to export only expenses with image receipt verification?')
+
+    # make opposite of ShowVerified
+    ShowNonVerified = not ShowVerified
+    Export_Expenses.MakeExpenseReport(
+        window2, database, year, month, ShowNonVerified)
 
 
 def FinancesDisplay(main_window, database):

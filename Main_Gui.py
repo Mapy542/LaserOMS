@@ -164,7 +164,7 @@ def PrintPackingSlips(database, listbox):
     for i in values:  # for each selected order
         trimmed = i.split(',')[0]  # get order number
         if trimmed.isdigit():
-            PackingSlip.GeneratePackingSlip(app, database, trimmed)
+            PackingSlip.PrintPackingSlip(app, database, trimmed)
 
 
 def MarkFulfilled(database):

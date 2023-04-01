@@ -86,6 +86,7 @@ Version 1.1.3
 - Added expense report generation
 - Finance statistics upgrades
 - Installer bug fixes
+- Fixed Packing slip generation printing method
 
 Version 1.1.2
 

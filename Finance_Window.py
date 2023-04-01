@@ -151,10 +151,11 @@ def ShowFinancialStats(database):
 
 def MakeVerifiedExpenseText(expense, CheckMark, ShowNonImageExpenses):
     # if expense is verified or if show all expenses is true
-    if not ShowNonImageExpenses or expense['expense_image_path'] != '':
+    if not ShowNonImageExpenses or expense['expense_image_path'] == '':
         return ''
     else:
-        return ', ' + CheckMark
+        # return check mark if verified (ensure it is a string and not a unicode character)
+        return '' + CheckMark
 
 
 def ShowExpenses(database):
@@ -169,7 +170,7 @@ def ShowExpenses(database):
     ShowNonImageExpenses = settings.search((tinydb.Query(
     ).setting_name == 'Show_Expenses_Without_Image_Verification') & (tinydb.Query().process_status == 'UTILIZE'))[0]['setting_value']
 
-    CheckMark = ', ' + u'\u2611'
+    CheckMark = ', ' + u'\u2611'  # check mark unicode character
 
     if ShowNonImageExpenses == 'True':  # if show all expenses
         ActiveExpenses = expenses.search(

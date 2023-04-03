@@ -67,13 +67,18 @@ The password can be changed by selecting the password setting. The user must ent
 
 ## Projects:
 
-- Etsy integration
 - Amazon integration
 - Shipping integration
 - Customizable product data synchronization
 - Multiple Instance support or database locking
+- Make each window look more modern
 
 ## Changes:
+
+Version 1.2.0
+
+- Added Etsy integration
+- Added ability to view orders from Etsy in the details page
 
 Version 1.1.1
 

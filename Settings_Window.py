@@ -24,18 +24,24 @@ def VerifySettings(database):
         settings.insert({'setting_name': 'LaserOMS_Version', 'setting_value': '1.0.0',
                         'setting_type': 'STATIC', 'setting_rank': 1, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 1},
+                    tinydb.Query().setting_name == 'LaserOMS_Version')
 
     # Product Sync Settings
     if not settings.contains((tinydb.Query().setting_name == 'Google_Sheet_Link')):
         settings.insert({'setting_name': 'Google_Sheet_Link', 'setting_value': '',
                         'setting_type': 'TEXT', 'setting_rank': 2, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 2},
+                    tinydb.Query().setting_name == 'Google_Sheet_Link')
 
     # Main Visual Settings
     if not settings.contains((tinydb.Query().setting_name == 'Show_Task_Priority')):
         settings.insert({'setting_name': 'Show_Task_Priority', 'setting_value': 'True',
                         'setting_type': 'BOOLEAN', 'setting_rank': 3, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 3}, tinydb.Query(
+    ).setting_name == 'Show_Task_Priority')
 
     # Images
     if not settings.contains((tinydb.Query().setting_name == 'Images_Folder_Path')):
@@ -43,52 +49,113 @@ def VerifySettings(database):
                                                                                              '../LaserOMS_Images'),
                         'setting_type': 'FOLDER', 'setting_rank': 4, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 4}, tinydb.Query(
+    ).setting_name == 'Images_Folder_Path')
 
     # Settings Password
     if not settings.contains((tinydb.Query().setting_name == 'Settings_Password')):
         settings.insert({'setting_name': 'Settings_Password', 'setting_value': PasswordHash(
             'admin'), 'setting_type': 'PASSWORD', 'setting_rank': 5, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 5},
+                    tinydb.Query().setting_name == 'Settings_Password')
 
     # Easy Cart Settings
     if not settings.contains((tinydb.Query().setting_name == 'Synchronize_Easy_Cart')):
         settings.insert({'setting_name': 'Synchronize_Easy_Cart', 'setting_value': 'False',
                         'setting_type': 'BOOLEAN', 'setting_rank': 6, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 6}, tinydb.Query(
+    ).setting_name == 'Synchronize_Easy_Cart')
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Is_MariaDB')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Is_MariaDB', 'setting_value': 'True',
                         'setting_type': 'BOOLEAN', 'setting_rank': 7, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 7}, tinydb.Query(
+    ).setting_name == 'Easy_Cart_Database_Is_MariaDB')
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Address')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Address', 'setting_value': '',
                         'setting_type': 'TEXT', 'setting_rank': 8, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 8}, tinydb.Query(
+    ).setting_name == 'Easy_Cart_Database_Address')
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Username')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Username', 'setting_value': '',
                         'setting_type': 'TEXT', 'setting_rank': 9, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 9}, tinydb.Query(
+    ).setting_name == 'Easy_Cart_Database_Username')
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Password')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Password', 'setting_value': '',
                         'setting_type': 'TEXT', 'setting_rank': 10, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 10}, tinydb.Query(
+    ).setting_name == 'Easy_Cart_Database_Password')
     if not settings.contains((tinydb.Query().setting_name == 'Easy_Cart_Database_Name')):
         settings.insert({'setting_name': 'Easy_Cart_Database_Name', 'setting_value': '',
                         'setting_type': 'TEXT', 'setting_rank': 11, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 11}, tinydb.Query(
+    ).setting_name == 'Easy_Cart_Database_Name')
+
+    # Etsy Settings
+    if not settings.contains((tinydb.Query().setting_name == 'Synchronize_Etsy')):
+        settings.insert({'setting_name': 'Synchronize_Etsy', 'setting_value': 'False',
+                        'setting_type': 'BOOLEAN', 'setting_rank': 12, 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    settings.update({'setting_rank': 12},
+                    tinydb.Query().setting_name == 'Synchronize_Etsy')
+    if not settings.contains((tinydb.Query().setting_name == 'Etsy_API_Client_Key')):
+        settings.insert({'setting_name': 'Etsy_API_Client_Key', 'setting_value': '',
+                        'setting_type': 'TEXT', 'setting_rank': 13, 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    settings.update({'setting_rank': 13}, tinydb.Query(
+    ).setting_name == 'Etsy_API_Client_Key')
+    if not settings.contains((tinydb.Query().setting_name == 'Etsy_API_Client_Secret')):
+        settings.insert({'setting_name': 'Etsy_API_Client_Secret', 'setting_value': '',
+                        'setting_type': 'TEXT', 'setting_rank': 14, 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    settings.update({'setting_rank': 14}, tinydb.Query(
+    ).setting_name == 'Etsy_API_Client_Secret')
+    if not settings.contains((tinydb.Query().setting_name == 'Etsy_API_OAuth_Token')):
+        settings.insert({'setting_name': 'Etsy_API_OAuth_Token', 'setting_value': '',
+                        'setting_type': 'TEXT', 'setting_rank': 15, 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    settings.update({'setting_rank': 15}, tinydb.Query(
+    ).setting_name == 'Etsy_API_OAuth_Token')
+    if not settings.contains((tinydb.Query().setting_name == 'Etsy_API_OAuth_Token_Secret')):
+        settings.insert({'setting_name': 'Etsy_API_OAuth_Token_Secret', 'setting_value': '',
+                        'setting_type': 'TEXT', 'setting_rank': 16, 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    settings.update({'setting_rank': 16}, tinydb.Query(
+    ).setting_name == 'Etsy_API_OAuth_Token_Secret')
+    if not settings.contains((tinydb.Query().setting_name == 'Etsy_Shop_ID')):
+        settings.insert({'setting_name': 'Etsy_Shop_ID', 'setting_value': '',
+                        'setting_type': 'TEXT', 'setting_rank': 17, 'process_status': "UTILIZE"})
+        MadeUpdate = True
+    settings.update({'setting_rank': 17}, tinydb.Query(
+    ).setting_name == 'Etsy_Shop_ID')
 
     # Packing Slip Settings
     if not settings.contains((tinydb.Query().setting_name == 'Packing_Slip_Text_Color')):
         settings.insert({'setting_name': 'Packing_Slip_Text_Color', 'setting_value': '#000000',
-                        'setting_type': 'COLOR', 'setting_rank': 12, 'process_status': "UTILIZE"})
+                        'setting_type': 'COLOR', 'setting_rank': 18, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 18}, tinydb.Query(
+    ).setting_name == 'Packing_Slip_Text_Color')
     if not settings.contains((tinydb.Query().setting_name == 'Packing_Slip_Background_Path')):
         settings.insert({'setting_name': 'Packing_Slip_Background_Path', 'setting_value': '',
-                        'setting_type': 'PATH', 'setting_rank': 13, 'process_status': "UTILIZE"})
+                        'setting_type': 'PATH', 'setting_rank': 19, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 19}, tinydb.Query(
+    ).setting_name == 'Packing_Slip_Background_Path')
     if not settings.contains((tinydb.Query().setting_name == 'Packing_Slip_Include_Prices')):
         settings.insert({'setting_name': 'Packing_Slip_Include_Prices', 'setting_value': 'True',
-                        'setting_type': 'BOOLEAN', 'setting_rank': 14, 'process_status': "UTILIZE"})
+                        'setting_type': 'BOOLEAN', 'setting_rank': 20, 'process_status': "UTILIZE"})
         MadeUpdate = True
+    settings.update({'setting_rank': 20}, tinydb.Query(
+    ).setting_name == 'Packing_Slip_Include_Prices')
+
     return MadeUpdate
 
 

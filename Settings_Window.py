@@ -105,30 +105,18 @@ def VerifySettings(database):
         MadeUpdate = True
     settings.update({'setting_rank': 12},
                     tinydb.Query().setting_name == 'Synchronize_Etsy')
-    if not settings.contains((tinydb.Query().setting_name == 'Etsy_API_Client_Key')):
-        settings.insert({'setting_name': 'Etsy_API_Client_Key', 'setting_value': '',
+    if not settings.contains((tinydb.Query().setting_name == 'Etsy_Request_Server_Address')):
+        settings.insert({'setting_name': 'Etsy_Request_Server_Address', 'setting_value': '',
                         'setting_type': 'TEXT', 'setting_rank': 13, 'process_status': "UTILIZE"})
         MadeUpdate = True
     settings.update({'setting_rank': 13}, tinydb.Query(
-    ).setting_name == 'Etsy_API_Client_Key')
-    if not settings.contains((tinydb.Query().setting_name == 'Etsy_API_Client_Secret')):
-        settings.insert({'setting_name': 'Etsy_API_Client_Secret', 'setting_value': '',
-                        'setting_type': 'TEXT', 'setting_rank': 14, 'process_status': "UTILIZE"})
+    ).setting_name == 'Etsy_Request_Server_Address')
+    if not settings.contains((tinydb.Query().setting_name == 'Etsy_Request_Server_Token')):
+        settings.insert({'setting_name': 'Etsy_Request_Server_Token', 'setting_value': '',
+                        'setting_type': 'STATIC', 'setting_rank': 14, 'process_status': "UTILIZE"})
         MadeUpdate = True
     settings.update({'setting_rank': 14}, tinydb.Query(
-    ).setting_name == 'Etsy_API_Client_Secret')
-    if not settings.contains((tinydb.Query().setting_name == 'Etsy_API_OAuth_Token')):
-        settings.insert({'setting_name': 'Etsy_API_OAuth_Token', 'setting_value': '',
-                        'setting_type': 'TEXT', 'setting_rank': 15, 'process_status': "UTILIZE"})
-        MadeUpdate = True
-    settings.update({'setting_rank': 15}, tinydb.Query(
-    ).setting_name == 'Etsy_API_OAuth_Token')
-    if not settings.contains((tinydb.Query().setting_name == 'Etsy_API_OAuth_Token_Secret')):
-        settings.insert({'setting_name': 'Etsy_API_OAuth_Token_Secret', 'setting_value': '',
-                        'setting_type': 'TEXT', 'setting_rank': 16, 'process_status': "UTILIZE"})
-        MadeUpdate = True
-    settings.update({'setting_rank': 16}, tinydb.Query(
-    ).setting_name == 'Etsy_API_OAuth_Token_Secret')
+    ).setting_name == 'Etsy_Request_Server_Token')
     if not settings.contains((tinydb.Query().setting_name == 'Etsy_Shop_ID')):
         settings.insert({'setting_name': 'Etsy_Shop_ID', 'setting_value': '',
                         'setting_type': 'TEXT', 'setting_rank': 17, 'process_status': "UTILIZE"})

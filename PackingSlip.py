@@ -2,10 +2,11 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 import tinydb
 import traceback
+import platform
+import subprocess
 
 
-def GeneratePackingSlip(app, database, OrderNumber):
-    print(OrderNumber)
+def PrintPackingSlip(app, database, OrderNumber):
     try:
         settings = database.table('Settings')
         orders = database.table('Orders')
@@ -75,8 +76,10 @@ def GeneratePackingSlip(app, database, OrderNumber):
             return
 
         # Fonts
-        SmallFont = ImageFont.truetype('Bright.TTF', 15)
-        NormalFont = ImageFont.truetype('Bright.TTF', 30)
+        SmallFont = ImageFont.truetype(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                                                    'Bright.TTF'), 15)
+        NormalFont = ImageFont.truetype(os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                                                     'Bright.TTF'), 30)
 
         # Dividing Line
         Canvas.line((400, 600, 400, 1800), fill=(TextColor))
@@ -217,20 +220,15 @@ def GeneratePackingSlip(app, database, OrderNumber):
 
         im.save(os.path.join(ImagesFolderPath, str(
             order['order_number']) + '.png'), "PNG")
+
+        path = os.path.join(ImagesFolderPath, str(
+            order['order_number']) + '.png')
+        # open the file in the default browser
+        if platform.system() == 'Darwin':       # macOS
+            subprocess.call(('open', path))
+        elif platform.system() == 'Windows':    # Windows
+            os.startfile(path)
+        else:                                   # linux variants
+            subprocess.call(('xdg-open', path))
     except:
         app.warn('Packing Slip Error', traceback.format_exc())
-
-
-# send packing slip  to be more general use soon. Set for my print lol
-def PrintPackingSlip(order):
-    try:
-        os.system("lp -d Envy-5000 ../Orders/" +
-                  str(order.getOrderNumber()) + '.png ')
-
-    except OSError:
-        try:
-            GeneratePackingSlip(order)
-            os.system("lp -d Envy-5000 ../Orders/" +
-                      str(order.getOrderNumber()) + '.png ')
-        except OSError:
-            print("Error Printing")

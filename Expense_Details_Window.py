@@ -12,32 +12,45 @@ def price_update():
 
 
 def export(database):
-    global Item1, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton
+    global Item1, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton, OriginalName, OriginalImage
     expenses = database.table('Expenses')  # Get expenses table
-
-    # Check if expense name is already in database
-    if len(expenses.search(tinydb.Query().expense_name == Item1.value)) > 0:
-        Item1.value = Item1.value + '_Copy'  # If it is, add _Copy to the end of the name
 
     # Replace the / with a - to clean up the date
     DateField.value = DateField.value.replace("/", "-")
-    expenses.insert({'expense_name': Item1.value, 'expense_quantity': ItemQuantity.value, 'expense_unit_price': ItemPrice.value, 'expense_notes': Description.value,
-                     'expense_date': DateField.value, 'expense_image_path': '', 'process_status': "UTILIZE"})
+
+    if Item1.value == OriginalName:  # If the name has not changed
+        expenses.update({'expense_quantity': ItemQuantity.value, 'expense_unit_price': ItemPrice.value, 'expense_notes': Description.value,
+                         'expense_date': DateField.value}, tinydb.Query().expense_name == Item1.value)
+    else:  # If the name has changed
+        expenses.remove(tinydb.Query().expense_name ==
+                        OriginalName)  # Remove old entry
+        expenses.insert({'expense_name': Item1.value, 'expense_quantity': ItemQuantity.value, 'expense_unit_price': ItemPrice.value, 'expense_notes': Description.value,
+                         'expense_date': DateField.value, 'expense_image_path': '', 'process_status': "UTILIZE"})
     # Add expense to database
 
-    # copy image to
-    if ImageButton.text != '':
-        settings = database.table('Settings')
-        ImageFolderPath = settings.search((tinydb.Query().setting_name == 'Images_Folder_Path') & (
-            tinydb.Query().process_status == 'UTILIZE'))[0]['setting_value']
-        FileEnding = os.path.splitext(ImageButton.text)
+    # see if image has changed
+    if ImageButton.text == OriginalImage:  # If the image has not changed
+        pass
+    else:  # If the image has changed
+        if ImageButton.text != '':
+            settings = database.table('Settings')
+            ImageFolderPath = settings.search((tinydb.Query().setting_name == 'Images_Folder_Path') & (
+                tinydb.Query().process_status == 'UTILIZE'))[0]['setting_value']
+            FileEnding = os.path.splitext(ImageButton.text)
 
-        # copy file to new path based on defined image folder path. file name is expense name. file type is preserved.
-        shutil.copy(ImageButton.text, os.path.join(
-            os.path.realpath(ImageFolderPath), Item1.value + FileEnding[1]))
+            # copy file to new path based on defined image folder path. file name is expense name. file type is preserved.
+            shutil.copy(ImageButton.text, os.path.join(
+                os.path.realpath(ImageFolderPath), Item1.value + FileEnding[1]))
 
-        expenses.update({'expense_image_path': os.path.join(  # update image path in database
-            os.path.realpath(ImageFolderPath), Item1.value + FileEnding[1])}, tinydb.Query().expense_name == Item1.value)
+            expenses.update({'expense_image_path': os.path.join(  # update image path in database
+                os.path.realpath(ImageFolderPath), Item1.value + FileEnding[1])}, tinydb.Query().expense_name == Item1.value)
+
+            # Delete old image
+            if OriginalImage != '':
+                os.remove(OriginalImage)
+        else:
+            expenses.update({'expense_image_path': ''},
+                            tinydb.Query().expense_name == Item1.value)
 
     Window2.destroy()  # Close window
 
@@ -62,13 +75,13 @@ def AttachImage(window2):  # select image and show the path on the button
     ImageButton.text = path
 
 
-def RemoveImage():  # remove image and clear the button
+def RemoveImage():
     global ImageButton
     ImageButton.text = ''
 
 
-def NewExpense(main_window, database):
-    global Item1, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton
+def ExpenseEdit(main_window, database, ExpenseName):
+    global Item1, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton, OriginalName, OriginalImage
     global Window2
 
     Window2 = Window(main_window, title="New Expense",
@@ -111,3 +124,14 @@ def NewExpense(main_window, database):
         0, 19], args=[database])  # Create button
     CancelButton = PushButton(Window2, command=close, text='Cancel',
                               grid=[1, 19])  # Create button
+
+    expenses = database.table('Expenses')
+    expense = expenses.search(tinydb.Query().expense_name == ExpenseName)[0]
+    Item1.value = expense['expense_name']
+    OriginalName = expense['expense_name']
+    ItemQuantity.value = expense['expense_quantity']
+    ItemPrice.value = expense['expense_unit_price']
+    Description.value = expense['expense_notes']
+    DateField.value = expense['expense_date']
+    ImageButton.text = expense['expense_image_path']
+    OriginalImage = expense['expense_image_path']

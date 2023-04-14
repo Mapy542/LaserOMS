@@ -1,6 +1,4 @@
-from guizero import Text, TextBox, CheckBox, Combo, PushButton, ListBox, Window
-from datetime import datetime
-import difflib as dl
+from guizero import Text, PushButton, ListBox, Window
 import tinydb
 import hashlib
 import os
@@ -143,6 +141,16 @@ def VerifySettings(database):
         MadeUpdate = True
     settings.update({'setting_rank': 20}, tinydb.Query(
     ).setting_name == 'Packing_Slip_Include_Prices')
+
+
+    # Expense and Financial Settings
+    if not settings.contains((tinydb.Query().setting_name == 'Show_Expenses_Without_Image_Verification')):
+        settings.insert({'setting_name': 'Show_Expenses_Without_Image_Verification', 'setting_value': 'True',
+                        'setting_type': 'BOOLEAN', 'setting_rank': 21, 'process_status': "UTILIZE"})
+    settings.update({'setting_rank': 20}, tinydb.Query(
+    ).setting_name == 'Show_Expenses_Without_Image_Verification')
+        MadeUpdate = True
+
 
     return MadeUpdate
 

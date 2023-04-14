@@ -77,7 +77,6 @@ def UpdateSoftware(app, database):
     for file in files:
         file_name = os.path.join(source, file)
         shutil.move(file_name, destination)
-    print("Files Moved")
 
     # delete zip folder
     os.rmdir(source)
@@ -88,7 +87,6 @@ def UpdateSoftware(app, database):
         with open(os.path.join(os.path.realpath(os.path.dirname(__file__)),
                                "Packages.txt"), "r") as f:
             recs = f.read()
-            print(recs)
             f.close()
             packages = recs.split(',')
             for i in range(len(packages)):

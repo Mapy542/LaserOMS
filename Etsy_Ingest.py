@@ -36,6 +36,13 @@ def ImportEtsyOrders(app, database):
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))  # connect to server
+
+        data = s.recv(1024)  # receive handshake request
+        if data == b'ConnectionDenied':  # if handshake request is not received
+            app.warn('Request Server Connection Failed',
+                     'Request Server denied connection. Ingest cancelled.')
+            return 0
+
         Success, ServerKey = Asymmetric_Encryption.ClientHandshake(
             s, PublicKey, PrivateKey)  # handshake with server
 

@@ -35,6 +35,19 @@ class RequestHandler(socketserver.BaseRequestHandler):
         table = database.table(TableName)  # get table
         table.update(Data, Query)  # update data
 
+    def LogConnectIP(self, IP):  # log ip address of connected client
+        self.InsertDataBase(
+            'IPs', {'ip': IP, 'date': datetime.now().timestamp()})
+        self.RemoveDataBase('IPs', tinydb.Query().date < datetime.now(
+        ).timestamp() - 86400)  # remove ips older than 1 day
+
+    def AllowConnection(self, IP):  # check if ip is allowed to connect
+        instances = self.AccessDataBase(
+            'IPs', tinydb.Query().ip == IP)  # check if ip is in database
+        if len(instances) > 10:  # ip is in database
+            return False  # ip is not allowed to connect
+        return True  # ip is allowed to connect
+
     # Hashes token using sha256 into a 64 character string
     def IDTokenHash(self, ShopID, token):
         salt = str(ShopID) + token  # salt is shop id and token
@@ -375,6 +388,20 @@ class RequestHandler(socketserver.BaseRequestHandler):
         return True, OauthTokenSet
 
     def handle(self):
+        # stop brute force attacks by limiting connections to 10x per day.
+        # also acts as a simple rate limiter
+        self.LogConnectIP(self.client_address[0])  # log connection ip
+        Allow = self.CheckIP(self.client_address[0])  # check if ip is allowed
+        if not Allow:
+            self.AppendLog('Connection Denied', str(  # log failure
+                self.client_address[0]) + ' was denied connection to server.')
+            # send connection denied message
+            self.request.sendall(b'Connection Denied')
+            return
+        else:
+            # send connection allowed message
+            self.request.sendall(b'Connection Allowed')
+
         # generate new keys for each handshake
         self.PrivateKey, self.PublicKey = Asymmetric_Encryption.GenerateKeyPair()
 

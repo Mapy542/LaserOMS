@@ -69,9 +69,19 @@ def ExpenseToHTML(expenses):
         code += '<p>Expense Description: ' + \
             expense['expense_notes'] + '</p> <br> \n'
         if expense['expense_image_path'] != '':  # If there is an image, add it to the report
-            code += '<p>Expense Image: <img src="file:' + \
-                expense['expense_image_path'] + \
+            filetype = expense['expense_image_path'].split('.')[-1]
+            if filetype == 'pdf':
+                code += '<p>Expense Image: <embed src="file:' + \
+                    expense['expense_image_path'] + \
+                        '''" type="application/pdf" width="500" height="500"></p> <br> \n'''
+            elif filetype == 'jpg' or filetype == 'jpeg' or filetype == 'png':
+                code += '<p>Expense Image: <img src="file:' + \
+                    expense['expense_image_path'] + \
                     '''" alt="Expense Image" width="500"></p> <br> \n'''
+            else:
+                code += '<p>Expense Image: <a href="file:' + \
+                    expense['expense_image_path'] + \
+                    '''">Expense Image</a></p> <br> \n'''
         code += '<hr> \n'
         total += float(expense['expense_quantity']) * \
             float(expense['expense_unit_price'])

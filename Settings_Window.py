@@ -142,15 +142,13 @@ def VerifySettings(database):
     settings.update({'setting_rank': 20}, tinydb.Query(
     ).setting_name == 'Packing_Slip_Include_Prices')
 
-
     # Expense and Financial Settings
     if not settings.contains((tinydb.Query().setting_name == 'Show_Expenses_Without_Image_Verification')):
         settings.insert({'setting_name': 'Show_Expenses_Without_Image_Verification', 'setting_value': 'True',
                         'setting_type': 'BOOLEAN', 'setting_rank': 21, 'process_status': "UTILIZE"})
+        MadeUpdate = True
     settings.update({'setting_rank': 20}, tinydb.Query(
     ).setting_name == 'Show_Expenses_Without_Image_Verification')
-        MadeUpdate = True
-
 
     return MadeUpdate
 

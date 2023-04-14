@@ -80,9 +80,14 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.2.1
+
+- Fixed Export Expense to handle multiple image file types
+- Fixed other small bugs.
+
 Version 1.2.0
 
--Added Etsy integration
+- Added Etsy integration
 - Added ability to view orders from Etsy in the details page
 
 Version 1.1.3
@@ -97,7 +102,6 @@ Version 1.1.3
 Version 1.1.2
 
 - Finance statistics and packing slip generation bug fixes
-
 
 Version 1.1.1
 

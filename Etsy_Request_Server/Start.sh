@@ -1,3 +1,3 @@
 #usr/bin/bash
 
-python3 Etsy_Request_Server.py &
+python3 Request_Server.py &

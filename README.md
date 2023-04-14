@@ -8,7 +8,7 @@ Lightweight python based local order/business management system with Etsy integr
 - Task management
 - Expense tracking
 - Wordpress plugin Easy Cart integration
-- Etsy integration (WIP)
+- Etsy integration (Via Remote Server)
 - Amazon integration (WIP)
 - Product spreadsheet connection
 - Packing slip generation
@@ -64,6 +64,7 @@ The settings page can be accessed by selecting the settings button in the main w
 The user will be prompted to enter the password to access the settings page. The default password is 'admin' but it is recommended the user change this.\
 The settings page contains a large list of settings. Double clicking a setting will allow the user to change the value of the setting. A pop-up will ask the user to: select yes or no, enter text, select a file, select a folder, or pick a color.
 The password can be changed by selecting the password setting. The user must enter the same password twice to confirm the change. The password settings will display an obfuscated version of the password for security.\
+The Etsy request server is the address of the running request server. This is used to connect to the Etsy API. The default is 'leboeuflasing.ddns.net'. And is hosted by me. You may run your own server if needed. The system requires a Shop ID for the Etsy shop. Find it by using this guide: https://support.sellbrite.com/en/articles/4793390-locating-your-sales-channel-ids
 
 ### Statistics:
 
@@ -71,13 +72,18 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Projects:
 
-- Etsy integration
 - Amazon integration
 - Shipping integration
 - Customizable product data synchronization
 - Multiple Instance support or database locking
+- Make each window look more modern
 
 ## Changes:
+
+Version 1.2.0
+
+-Added Etsy integration
+- Added ability to view orders from Etsy in the details page
 
 Version 1.1.3
 
@@ -91,6 +97,7 @@ Version 1.1.3
 Version 1.1.2
 
 - Finance statistics and packing slip generation bug fixes
+
 
 Version 1.1.1
 

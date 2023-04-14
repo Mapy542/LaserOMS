@@ -1,20 +1,18 @@
 import os
-import tinydb
 import tkinter
-from guizero import App, Text, TextBox, CheckBox, Combo, PushButton, ListBox, TitleBox
+from guizero import App, Text, Combo, PushButton, ListBox, TitleBox
 from datetime import datetime
 from New_Order_Window import NewOrder
 from New_Expense_Window import NewExpense
 from Google_Sheets_Sync import RebuildProductsFromSheets
 from Settings_Window import Settings, VerifySettings
 from Easy_Cart_Ingest import ImportEasyCartOrders
+from Etsy_Ingest import ImportEtsyOrders
 import Auto_Update
 import PackingSlip
-# import ShippingHandler
 import Finance_Window
 import Details
 import New_Task_Window
-# import New_Expense_Window
 import Listing_Database_Window
 import tinydb
 from tinydb.middlewares import CachingMiddleware
@@ -232,10 +230,14 @@ def SyncOrders(database):  # sync orders from sheets
     settings = database.table('Settings')
     EasyCart = settings.search(
         tinydb.Query().setting_name == 'Synchronize_Easy_Cart')[0]['setting_value']
+    Etsy = settings.search(
+        tinydb.Query().setting_name == 'Synchronize_Etsy')[0]['setting_value']
 
     orders = 0
     if EasyCart == 'True':
         orders += ImportEasyCartOrders(app, database)
+    if Etsy == 'True':
+        orders += ImportEtsyOrders(app, database)
 
     UpdateScreen(database)  # update screen
     app.info('Orders Synchronized', str(orders) +

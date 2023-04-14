@@ -31,7 +31,7 @@ def EncryptData(data, public_key):  # encrypt data with public key
 def DecryptData(data, private_key):  # decrypt data with private key
     if data == b'':  # if data is empty (no data to decrypt)
         return b''  # returns blank for other code to handle rather than error
-        # chucksendcheckhandles this, but regular recv does not
+        # chucksendcheck handles this, but regular recv does not
     return private_key.decrypt(  # return decrypted
         data,  # data to decrypt
         padding.OAEP(  # use OAEP padding
@@ -42,7 +42,7 @@ def DecryptData(data, private_key):  # decrypt data with private key
     )
 
 
-def SendablePublicKey(public_key):
+def SendablePublicKey(public_key):  # return public key in bytes for transmission
     return public_key.public_bytes(  # return public key in bytes
         encoding=serialization.Encoding.PEM,  # use PEM encoding
         # use SubjectPublicKeyInfo format
@@ -50,7 +50,7 @@ def SendablePublicKey(public_key):
     )
 
 
-def LoadPublicKey(public_key):
+def LoadPublicKey(public_key):  # load public key from bytes into a public key object
     return serialization.load_pem_public_key(  # return public key
         public_key,  # public key in bytes
         backend=None  # use default backend
@@ -61,45 +61,46 @@ def ClientHandshake(socket, PublicKey, PrivateKey):
     try:
         socket.sendall(b"InitiateHandshake")  # send handshake request
         data = socket.recv(1024)  # receive public key
-        print('Received public key from server')
+
         ServerKey = LoadPublicKey(data)  # load public key from received bytes
         socket.sendall(SendablePublicKey(PublicKey))  # send public key
-        print('Sent public key to server')
+
         test = socket.recv(1024)  # receive handshake complete
         if not DecryptData(test, PrivateKey) == b'HandshakeComplete':
-          # if handshake failed
-            print('Handshake test failed')
+          # if handshake failed or server is not listening
             socket.sendall(EncryptData(b'CANCEL', ServerKey))
             return False, None
         else:
-            print('Handshake test passed')
             socket.sendall(EncryptData(
                 b'HandshakeCompleteAcknowledged', ServerKey))
-        time.sleep(0.1)
+
         data = socket.recv(1024)  # receive data
         # if handshake failed or server is not listening
         if not DecryptData(data, PrivateKey) == b'Listening':
             socket.sendall(EncryptData(b'CANCEL', ServerKey))
             print('Server not listening')
             return False, None
+
         else:
             return True, ServerKey
+
     except:
         return False, None
 
 
-def StringToBytes(string):
+def StringToBytes(string):  # convert string to bytes for transmission
     return string.encode('utf-8')
 
 
-def BytesToString(bytes):
+def BytesToString(bytes):  # convert bytes to string for use
     return bytes.decode('utf-8')
 
 
 def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for client side
-    # chop string into 100 byte chunks and send to client
+    # chop string into 50 byte chunks and send to client (86 is the theoretical max length of a tcp packet with encryption and padding)
     chunks = [string[i:i+50] for i in range(0, len(string), 50)]
-    socket.sendall(EncryptData(
+
+    socket.sendall(EncryptData(  # send chop send check start
         b'ChopSendCheckStart', ClientKey))
 
     # receive chop send check start
@@ -144,7 +145,7 @@ def ChopReceiveCheck(socket, ClientKey, PrivateKey):
     while True:  # receive chunks
         RawData = socket.recv(1024)
         data = DecryptData(RawData, PrivateKey)
-        print(data)
+
         if data == b'ChopSendCheckComplete':  # check if chop send check complete was received correctly
             socket.sendall(EncryptData(  # send chop send check complete acknowledged
                 b'ChopSendCheckCompleteAcknowledged', ClientKey))

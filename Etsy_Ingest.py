@@ -4,11 +4,13 @@ import socket
 import datetime
 import webbrowser
 from Etsy_Request_Server import Asymmetric_Encryption
+import New_Order_Window
 
 
 def ImportEtsyOrders(app, database):
     # get etsy keys and info
     settings = database.table('Settings')
+
     ShopID = settings.get(tinydb.where('setting_name') ==
                           'Etsy_Shop_ID')['setting_value']
     Token = settings.get(tinydb.where('setting_name') ==
@@ -36,21 +38,26 @@ def ImportEtsyOrders(app, database):
         s.connect((HOST, PORT))  # connect to server
         Success, ServerKey = Asymmetric_Encryption.ClientHandshake(
             s, PublicKey, PrivateKey)  # handshake with server
+
         if not Success:
             app.warn('Request Server Connection Failed',
                      'Handshake failed, unable to communicate to server.')
             return 0
+
         # authentication loop. if token is not set, set it up, then log in
         while True:
-            if Token == '':
+            if Token == '':  # if token is not set then set it up with the server
                 app.info('Etsy Oauth Initialization',
                          'Request Server needs to access to Etsy Shop.')
                 app.info('User Actionable Steps', '1. A web browser will open to the Etsy Oauth page. 2. Click "Allow" to allow access to your shop. 3. The Oauth page will redirect to leboeuflasing.ddns.net. User must copy the URL from the address bar and paste it into the dialog box that will appear.')
+
                 s.sendall(Asymmetric_Encryption.EncryptData(
-                    b'CreateOauthToken', ServerKey))
+                    b'CreateOauthToken', ServerKey))  # send request to server to create token
+
                 data = Asymmetric_Encryption.DecryptData(
-                    s.recv(1024), PrivateKey)
-                if data == b'PrepareOauth':
+                    s.recv(1024), PrivateKey)  # receive response from server
+
+                if data == b'PrepareOauth':  # if server is ready to receive shop id
                     s.sendall(Asymmetric_Encryption.EncryptData(
                         b'PrepareOauthAcknowledged', ServerKey))
                 else:
@@ -59,10 +66,10 @@ def ImportEtsyOrders(app, database):
                     return 0
 
                 data = Asymmetric_Encryption.DecryptData(
-                    s.recv(1024), PrivateKey)
-                if data == b'SendShopID':
+                    s.recv(1024), PrivateKey)  # receive response from server
+                if data == b'SendShopID':  # if server is ready to receive shop id
                     s.sendall(Asymmetric_Encryption.EncryptData(
-                        Asymmetric_Encryption.StringToBytes(ShopID), ServerKey))
+                        Asymmetric_Encryption.StringToBytes(ShopID), ServerKey))  # send shop id to server
                 else:
                     app.warn('Request Server Connection Failed',
                              'Request Server failed to receive Shop ID.')
@@ -74,11 +81,13 @@ def ImportEtsyOrders(app, database):
                     app.warn('Request Server Connection Failed',
                              'Request Server failed to receive URL.')
                     return 0
+
                 webbrowser.open(UserURL)  # open URL in web browser
+
                 UserURI = app.question(
                     'User Actionable Steps', 'Enter the URL from the address bar of the web browser that was opened.').strip()
 
-                if UserURI == '':
+                if UserURI == '':  # if user did not enter URL
                     app.warn('Request Server Connection Failed',
                              'User did not enter URL.')
                     return 0
@@ -91,12 +100,13 @@ def ImportEtsyOrders(app, database):
                     return 0
 
                 data = Asymmetric_Encryption.DecryptData(
-                    s.recv(1024), PrivateKey)
-                if data == b'AuthenticationSuccess':
-                    s.sendall(Asymmetric_Encryption.EncryptData(
+                    s.recv(1024), PrivateKey)  # receive response from server
+                if data == b'AuthenticationSuccess':  # if server had a successful authentication
+                    s.sendall(Asymmetric_Encryption.EncryptData(  # send acknowledgement to server
                         b'AuthenticationSuccessAcknowledged', ServerKey))
+
                 else:
-                    app.warn('Request Server Connection Failed',
+                    app.warn('Request Server Connection Failed',  # if server did not have a successful authentication
                              'Request Server failed to authenticate.')
                     return 0
 
@@ -106,51 +116,136 @@ def ImportEtsyOrders(app, database):
                     app.warn('Request Server Connection Failed',
                              'Request Server failed to receive token.')
                     return 0
+
                 settings.upsert({'setting_value': Token}, tinydb.where(
-                    'setting_name') == 'Etsy_Request_Server_Token')
-            else:  # token exists
+                    'setting_name') == 'Etsy_Request_Server_Token')  # save token to database
+
+            else:  # token exists so log in with it
+
                 s.sendall(Asymmetric_Encryption.EncryptData(
-                    b'AuthenticateSession', ServerKey))
+                    b'AuthenticateSession', ServerKey))  # send request to server to authenticate
+
                 data = Asymmetric_Encryption.DecryptData(
-                    s.recv(1024), PrivateKey)
+                    s.recv(1024), PrivateKey)  # receive response from server
                 if not data == b'SendShopID':
                     app.warn('Request Server Connection Failed',
                              'Request Server failed to prepare for authentication.')
                     return 0
+
                 s.sendall(Asymmetric_Encryption.EncryptData(
-                    Asymmetric_Encryption.StringToBytes(ShopID), ServerKey))
-                data = Asymmetric_Encryption.DecryptData(
+                    Asymmetric_Encryption.StringToBytes(ShopID), ServerKey))  # send shop id to server
+                data = Asymmetric_Encryption.DecryptData(  # receive response from server
                     s.recv(1024), PrivateKey)
+
                 if not data == b'ShopIDReceived':
                     app.warn('Request Server Connection Failed',
                              'Request Server failed to receive Shop ID.')
                     return 0
+
                 Success = Asymmetric_Encryption.ChopSendCheck(
-                    Token, s, ServerKey, PrivateKey)
-                if not Success:
+                    Token, s, ServerKey, PrivateKey)  # send token to server
+                if not Success:  # if token not sent
                     app.warn('Request Server Connection Failed',
                              'Request Server failed to receive token.')
                     return 0
+
                 data = Asymmetric_Encryption.DecryptData(
-                    s.recv(1024), PrivateKey)
-                if not data == b'AuthenticationSuccess':
+                    s.recv(1024), PrivateKey)  # receive response from server
+                if not data == b'AuthenticationSuccess':  # if server did not have a successful authentication
                     app.warn('Request Server Connection Failed',
                              'Request Server failed to authenticate.')
                     return 0
+
                 break
 
         # query test
         s.sendall(Asymmetric_Encryption.EncryptData(
+            b'QueryShop', ServerKey))
+
+        data = Asymmetric_Encryption.DecryptData(
+            s.recv(1024), PrivateKey)
+
+        if not data == b'PrepareQueryShop':
+            app.warn('Request Server Connection Failed',
+                     'Request Server failed to prepare for query.')
+            return 0
+
+        s.sendall(Asymmetric_Encryption.EncryptData(  # send acknowledgement to server
+            b'PrepareQueryShopAcknowledged', ServerKey))
+
+        data = Asymmetric_Encryption.DecryptData(
+            s.recv(1024), PrivateKey)
+        if not data == b'QueryShopSuccess':
+            app.warn('Request Server Connection Failed',
+                     'Request Server failed to serve requested query.')
+            return 0
+
+        ShopString = Asymmetric_Encryption.ChopReceiveCheck(
+            s, ServerKey, PrivateKey)
+        if ShopString == False:
+            app.warn('Request Server Connection Failed',
+                     'Request Server failed to receive shop.')
+            return 0
+
+        Shop = json.loads(ShopString)
+
+        TransactionCount = Shop['transaction_sold_count']
+
+        s.sendall(Asymmetric_Encryption.EncryptData(
             b'QueryReceipts', ServerKey))
+
         data = Asymmetric_Encryption.DecryptData(
             s.recv(1024), PrivateKey)
         if not data == b'QueryCount':
             app.warn('Request Server Connection Failed',
                      'Request Server failed to prepare for query.')
             return 0
+
         s.sendall(Asymmetric_Encryption.EncryptData(
-            Asymmetric_Encryption.StringToBytes('39'), ServerKey))
+            Asymmetric_Encryption.StringToBytes(str(TransactionCount)), ServerKey))
         Receipts = Asymmetric_Encryption.ChopReceiveCheck(
             s, ServerKey, PrivateKey)
-        print(Receipts)
-    return 1
+
+        orders = database.table('Orders')
+        order_items = database.table('Order_Items')
+
+        # delete items and orders
+        orders.remove((tinydb.where('etsy_order') == 'TRUE') &
+                      (tinydb.where('process_status') == 'UTILIZE'))
+        order_items.remove((tinydb.where('etsy_item') == 'TRUE') & (
+            tinydb.where('process_status') == 'UTILIZE'))
+
+        # parse receipts
+        Receipts = json.loads(Receipts)
+        for Receipt in Receipts:
+            # get receipt data
+            Name = Receipt['name']
+            AddressLine1 = Receipt['first_line']
+            AddressLine2 = Receipt['second_line']
+            city = Receipt['city']
+            state = Receipt['state']
+            zip = Receipt['zip']
+            if Receipt['status'] == 'paid':
+                Status = 'OPEN'
+            else:
+                Status = 'FULFILLED'
+            OrderID = New_Order_Window.MakeOrderID(orders)
+            Date = datetime.datetime.fromtimestamp(
+                Receipt['create_timestamp']).strftime('%d-%m-%Y')
+
+            ItemUIDs = New_Order_Window.MakeUIDs(
+                order_items, len(Receipt['transactions']))
+            count = 0
+            for action in Receipt['transactions']:
+                Name = action['title']
+                Quantity = action['quantity']
+                UnitPrice = int(action['price']['amount']) / \
+                    int(action['price']['divisor'])
+                order_items.insert({'item_UID': ItemUIDs[count], 'item_name': Name, 'item_quantity': Quantity,
+                                   'item_unit_price': UnitPrice, 'process_status': 'UTILIZE', 'etsy_item': 'TRUE', 'product_snapshot': action})
+                count += 1
+
+            orders.insert({'etsy_order': 'TRUE', 'process_status': 'UTILIZE', 'order_number': str(OrderID), 'order_date': Date, 'order_status': Status, 'order_name': Name,
+                          'order_address1': AddressLine1, 'order_address2': AddressLine2, 'order_city': city, 'order_state': state, 'order_zip': zip, 'order_items_UID': ItemUIDs, 'etsy_snapshot': Receipt})
+
+    return len(Receipts)

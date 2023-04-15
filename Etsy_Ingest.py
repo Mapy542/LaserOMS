@@ -238,7 +238,7 @@ def ImportEtsyOrders(app, database):
                 Status = 'FULFILLED'
             OrderID = New_Order_Window.MakeOrderID(orders)
             Date = datetime.datetime.fromtimestamp(
-                Receipt['create_timestamp']).strftime('%d-%m-%Y')
+                Receipt['create_timestamp']).strftime('%m-%d-%Y')
 
             ItemUIDs = New_Order_Window.MakeUIDs(
                 order_items, len(Receipt['transactions']))

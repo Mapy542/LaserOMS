@@ -336,7 +336,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
         try:
             Shop = EtsyClient.get_shop(shop_id=int(  # get shop from Etsy
                 OauthTokenSet['shop_id']))
-            print(Shop)
+
         except:
             self.AppendLog('Shop Retrieval Failed', str(  # log failure
                 self.client_address[0]) + ' failed to retrieve Shop from Etsy.')

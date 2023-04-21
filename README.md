@@ -80,6 +80,11 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.2.2
+
+- Optimized Etsy request. (Force update all in settings.)
+- Other small bug fixes.
+
 Version 1.2.1
 
 - Fixed Export Expense to handle multiple image file types

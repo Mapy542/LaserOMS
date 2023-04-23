@@ -230,6 +230,11 @@ def ShowDetails(database):
         pass
 
 
+def ShowDetailsWrapper():
+    global database
+    ShowDetails(database)
+
+
 # Statistics and details
 def FinanceStatistics(database):  # display financial stats window
     Finance_Window.FinancesDisplay(app, database)
@@ -302,6 +307,8 @@ try:
         scrollbar=True,
         grid=[0, 1, 4, 5],
     )  # listbox
+
+    listbox.when_double_clicked = ShowDetailsWrapper  # show details when double clicked
 
     # view options
     ViewOptionDropDown = Combo(

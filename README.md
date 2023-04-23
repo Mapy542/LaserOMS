@@ -64,7 +64,17 @@ The settings page can be accessed by selecting the settings button in the main w
 The user will be prompted to enter the password to access the settings page. The default password is 'admin' but it is recommended the user change this.\
 The settings page contains a large list of settings. Double clicking a setting will allow the user to change the value of the setting. A pop-up will ask the user to: select yes or no, enter text, select a file, select a folder, or pick a color.
 The password can be changed by selecting the password setting. The user must enter the same password twice to confirm the change. The password settings will display an obfuscated version of the password for security.\
+
+### Etsy Request Server:
+
+See more about the server [here.](/Etsy_Request_Server/README.md)\
 The Etsy request server is the address of the running request server. This is used to connect to the Etsy API. The default is 'leboeuflasing.ddns.net'. And is hosted by me. You may run your own server if needed. The system requires a Shop ID for the Etsy shop. Find it by using this guide: https://support.sellbrite.com/en/articles/4793390-locating-your-sales-channel-ids
+
+Rate limiting is in effect on the public server. 10 connections can be made per day. This is in an attempt to prevent abuse and stop brute force attacks. If you need more connections, consider running your own server.
+
+#### Optimization
+
+The Request server and etsy ingest attempt to limit ingest time by reducing the number of orders ingested, as a shop with 100 orders or more may take significant time to synchronize. By default only existing open orders and new orders and downloaded by Laser OMS. The idea is that complected orders are generally unchanged. However there is a temporary override in the settings menu if there are inconsistencies.
 
 ### Statistics:
 

@@ -432,7 +432,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     limit=int(MaximumReceiptsPerQuery),
                     offset=int(i),
                 )
-                AllReceipts += Receipts["results"]  # add receipts to list
+                AllReceipts += Receipts["results"].reverse()  # add receipts to list
             except:
                 self.AppendLog(
                     "Receipt Retrieval Failed",
@@ -730,13 +730,20 @@ class RequestHandler(socketserver.BaseRequestHandler):
             ):
                 self.Action = "QueryReceipts"
                 self.request.sendall(
-                    Asymmetric_Encryption.EncryptData(b"QueryCount", self.ClientKey)
+                    Asymmetric_Encryption.EncryptData(b"QueryLow", self.ClientKey)
                 )  # send query count acknowledgement to client to start sending data
                 continue
 
             elif self.Action == "QueryReceipts" and self.LoggedIn:
-                Count = int(self.data.decode("utf-8"))
-                Success, Receipts = self.GetShopReceipts(self.ShopID, 0, Count)
+                LowCount = int(self.data.decode("utf-8"))
+                self.request.sendall(
+                    Asymmetric_Encryption.EncryptData(b"QueryHigh", self.ClientKey)
+                )  # send query count acknowledgement to client to start sending data
+                self.ReceiveAndDecrypt()
+                HighCount = int(self.data.decode("utf-8"))
+                Success, Receipts = self.GetShopReceipts(
+                    self.ShopID, LowCount, HighCount
+                )
                 if not Success:
                     self.Action = "Listening"
                     # send listening acknowledgement to client to start sending data

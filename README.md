@@ -93,6 +93,8 @@ The statistics page can be accessed by selecting the statistics button in the ma
 Version 1.2.2
 
 - Optimized Etsy request. (Force update all in settings.)
+- Added double click to view orders
+- Upgraded settings management
 - Other small bug fixes.
 
 Version 1.2.1

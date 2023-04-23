@@ -230,7 +230,7 @@ def ShowDetails(database):
         pass
 
 
-def ShowDetailsWrapper():
+def ShowDetailsWrapper():  # wrapper for show details to pass because of guizero can't pass arguments
     global database
     ShowDetails(database)
 

@@ -6,7 +6,8 @@ import time
 import webbrowser
 
 import tinydb
-from guizero import App, Box, PushButton, Text, TextBox, Window, error, info, warn
+from guizero import (App, Box, PushButton, Text, TextBox, Window, error, info,
+                     warn)
 
 import New_Order_Window
 from Easy_Cart_Ingest import ImportEasyCartOrders

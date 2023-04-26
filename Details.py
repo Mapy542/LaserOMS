@@ -1,9 +1,11 @@
-from guizero import Text, TextBox, CheckBox, Combo, PushButton, ListBox, Window
-from datetime import datetime
 import difflib as dl
+from datetime import datetime
+
 import tinydb
-import PackingSlip
+from guizero import CheckBox, Combo, ListBox, PushButton, Text, TextBox, Window
+
 import New_Order_Window
+import PackingSlip
 
 
 def PriceUpdate():

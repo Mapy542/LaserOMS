@@ -1,5 +1,6 @@
 import os
 import urllib.request
+
 import tinydb
 
 
@@ -80,9 +81,10 @@ def UpdateSoftware(app, database):
         except Exception as e:
             print("Failed to delete %s. Reason: %s" % (file_path, e))
 
-    import requests
-    import zipfile
     import io
+    import zipfile
+
+    import requests
 
     r = requests.get(  # download latest version
         "https://github.com/Mapy542/LaserOMS/archive/refs/heads/main.zip"

@@ -1,8 +1,8 @@
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-import cryptography.hazmat.primitives.serialization as serialization
 import time
+
+import cryptography.hazmat.primitives.serialization as serialization
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 # USED BY LASER OMS. DO NOT DELETE
 

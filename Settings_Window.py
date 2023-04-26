@@ -1,9 +1,12 @@
-from guizero import Text, PushButton, ListBox, Window
-import tinydb
 import hashlib
 import os
-import Auto_Update
 import traceback
+
+import tinydb
+from guizero import ListBox, PushButton, Text, Window
+
+import Auto_Update
+import Etsy_Ingest
 
 
 def PasswordHash(password):  # Hashes password using sha256 into a 64 character string
@@ -293,4 +296,12 @@ def Settings(main_window, database):  # Settings window
     RefreshPackagesButton = PushButton(
         window, text="Refresh Packages", grid=[0, 8, 1, 1], command=RefreshPackages
     )  # Create refresh packages button
+
+    UpdateAllOrdersButton = PushButton(
+        window,
+        text="Update All Orders",
+        grid=[1, 8, 1, 1],
+        command=Etsy_Ingest.SyncAllOrders,
+        args=[window, database],
+    )
     ShowSettings(database)  # Show settings

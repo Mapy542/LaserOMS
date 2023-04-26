@@ -151,6 +151,7 @@ def ChopReceiveCheck(socket, ClientKey, PrivateKey):
     if (
         not data == b"ChopSendCheckStart"
     ):  # check if chop send check start was received correctly
+        print(data)
         return False
     socket.sendall(
         EncryptData(  # send chop send check acknowledged

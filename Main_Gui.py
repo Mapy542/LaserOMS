@@ -1,23 +1,27 @@
 import os
+import threading
+import time
 import tkinter
-from guizero import App, Text, Combo, PushButton, ListBox, TitleBox
+import traceback
 from datetime import datetime
-from New_Order_Window import NewOrder
-from New_Expense_Window import NewExpense
-from Google_Sheets_Sync import RebuildProductsFromSheets
-from Settings_Window import Settings, VerifySettings
-from Easy_Cart_Ingest import ImportEasyCartOrders
-from Etsy_Ingest import RefreshEtsyOrders, ImportAllEtsyOrders
-import Auto_Update
-import PackingSlip
-import Finance_Window
-import Details
-import New_Task_Window
-import Listing_Database_Window
+
 import tinydb
+from guizero import App, Combo, ListBox, PushButton, Text, TitleBox
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
-import traceback
+
+import Auto_Update
+import Details
+import Finance_Window
+import Listing_Database_Window
+import New_Task_Window
+import PackingSlip
+from Easy_Cart_Ingest import ImportEasyCartOrders
+from Etsy_Ingest import RefreshThreadHandler
+from Google_Sheets_Sync import RebuildProductsFromSheets
+from New_Expense_Window import NewExpense
+from New_Order_Window import NewOrder
+from Settings_Window import Settings, VerifySettings
 
 # Main Visuals
 
@@ -249,7 +253,14 @@ def RebuildProducts():  # rebuild products from sheets
     RebuildProductsFromSheets(app, database)  # rebuild products from sheets
 
 
-def SyncOrders(database):  # sync orders from sheets
+def SyncOrders(app, database):  # sync orders from sheets
+    Synchronizer = threading.Thread(
+        target=SyncOrdersThread, args=(app, database), daemon=True
+    )
+    Synchronizer.start()
+
+
+def SyncOrdersThread(app, database):  # sync orders from sheets
     settings = database.table("Settings")
     EasyCart = settings.search(tinydb.Query().setting_name == "Synchronize_Easy_Cart")[
         0
@@ -262,7 +273,19 @@ def SyncOrders(database):  # sync orders from sheets
     if EasyCart == "True":
         orders += ImportEasyCartOrders(app, database)
     if Etsy == "True":
-        orders += RefreshEtsyOrders(app, database)
+        RefreshThreadHandler(app, database)
+
+    transients = database.table("Transients")  # get transients table
+    while (
+        transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated") == None
+    ):  # while there are no transients about etsy orders
+        time.sleep(1)  # wait for etsy orders to finish importing
+    orders += transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated")[
+        "transient_value"
+    ]  # add etsy orders to total
+    transients.remove(
+        tinydb.where("transient_name") == "Etsy_Orders_Updated"
+    )  # remove transient
 
     UpdateScreen(database)  # update screen
     app.info(
@@ -377,7 +400,7 @@ try:
         text="Synchronize Orders",
         command=SyncOrders,
         grid=[1, 0, 1, 1],
-        args=[database],
+        args=[app, database],
     )
 
     # stats options

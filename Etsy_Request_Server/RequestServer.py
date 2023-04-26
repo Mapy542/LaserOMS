@@ -179,6 +179,51 @@ class RequestHandler(socketserver.BaseRequestHandler):
 
         return True  # chop send check complete
 
+    def ProgressChopSendCheck(self, string):
+        # chop string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client (MAX is 86 theoretically based on Asymmetric_Encryption.BufferSize() bit transmission)
+        chunks = [
+            string[i : i + Asymmetric_Encryption.MaxStringLen()]
+            for i in range(0, len(string), Asymmetric_Encryption.MaxStringLen())
+        ]
+        chunks.insert(0, str(len(chunks)))  # insert number of chunks at start of list
+
+        self.request.sendall(
+            Asymmetric_Encryption.EncryptData(b"ChopSendCheckStart", self.ClientKey)
+        )  # send chop send check start
+        self.ReceiveAndDecrypt()  # receive chop send check start acknowledgement
+        if not self.data == b"ChopSendCheckAcknowledged":
+            return False  # chop send check failed
+
+        i = 0
+        while i < len(chunks):
+            # send chunk
+            self.request.sendall(
+                Asymmetric_Encryption.EncryptData(
+                    Asymmetric_Encryption.StringToBytes(chunks[i]), self.ClientKey
+                )
+            )
+            self.ReceiveAndDecrypt()  # receive chunk
+            # check if chunk was received correctly
+            if self.data == Asymmetric_Encryption.StringToBytes(chunks[i]):
+                i += 1
+            else:
+                # if chunk was not received correctly send chunk resend request
+                self.request.sendall(
+                    Asymmetric_Encryption.EncryptData(b"ChunkResend", self.ClientKey)
+                )
+                self.ReceiveAndDecrypt()  # receive chunk resend request acknowledgement
+                if not self.data == b"ChunkResendAcknowledged":
+                    return False  # chop send check failed
+
+        self.request.sendall(
+            Asymmetric_Encryption.EncryptData(b"ChopSendCheckComplete", self.ClientKey)
+        )  # send chop send check complete
+        self.ReceiveAndDecrypt()  # receive chop send check complete acknowledgement
+        if not self.data == b"ChopSendCheckCompleteAcknowledged":
+            return False  # chop send check failed
+
+        return True  # chop send check complete
+
     def ChopReceiveCheck(self):
         self.ReceiveAndDecrypt()  # receive chop send check start
         if (
@@ -388,14 +433,13 @@ class RequestHandler(socketserver.BaseRequestHandler):
         return True
 
     # get shop receipts from Etsy for a given shop id
-    def GetShopReceipts(self, ShopID, StartNumber, EndNumber):
+    def GetShopReceipts(self, ShopID, StartNumber):
         """
         Etsy API call to get receipts for a given shop id.
 
         Keyword arguments:
         @param ShopID -- the shop id to get receipts for
         @param StartNumber -- the start number of the receipt range
-        @param EndNumber -- the end number of the receipt range
         """
         APIKeyString = self.AccessDataBase(
             "Settings", tinydb.Query().setting_name == "API_Key_String"
@@ -425,20 +469,25 @@ class RequestHandler(socketserver.BaseRequestHandler):
         AllReceipts = []
         # maximum number of receipts per query (Etsy API limit)
         MaximumReceiptsPerQuery = 100
-        for i in range(StartNumber, EndNumber, MaximumReceiptsPerQuery):
+        i = StartNumber  # start at given start number for less data to process
+        while True:  # loop until no more receipts
             try:
                 Receipts = EtsyClient.get_shop_receipts(
                     shop_id=int(OauthTokenSet["shop_id"]),  # get receipts from Etsy
                     limit=int(MaximumReceiptsPerQuery),
                     offset=int(i),
                 )
-                AllReceipts += Receipts["results"].reverse()  # add receipts to list
+                if i >= Receipts["count"]:  # if no more receipts
+                    break
+                i += MaximumReceiptsPerQuery  # increment offset
+                AllReceipts += Receipts["results"]  # add receipts to list
             except:
                 self.AppendLog(
                     "Receipt Retrieval Failed",
                     str(self.client_address[0])  # log failure
                     + " failed to retrieve Receipts from Etsy.",
                 )
+                print(traceback.format_exc())  # debugging
                 return False, None
 
         self.AppendLog(
@@ -567,7 +616,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
         # also acts as a simple rate limiter
         self.LogConnectIP(self.client_address[0])  # log connection ip
         Allow = self.AllowConnection(self.client_address[0])  # check if ip is allowed
-        Allow = True  # remove this line to re-enable ip limiting
+        Allow = True  # remove this line to re-enable ip limiting------
         if not Allow:
             self.AppendLog(
                 "Connection Denied",
@@ -730,20 +779,13 @@ class RequestHandler(socketserver.BaseRequestHandler):
             ):
                 self.Action = "QueryReceipts"
                 self.request.sendall(
-                    Asymmetric_Encryption.EncryptData(b"QueryLow", self.ClientKey)
+                    Asymmetric_Encryption.EncryptData(b"QueryFloor", self.ClientKey)
                 )  # send query count acknowledgement to client to start sending data
                 continue
 
             elif self.Action == "QueryReceipts" and self.LoggedIn:
                 LowCount = int(self.data.decode("utf-8"))
-                self.request.sendall(
-                    Asymmetric_Encryption.EncryptData(b"QueryHigh", self.ClientKey)
-                )  # send query count acknowledgement to client to start sending data
-                self.ReceiveAndDecrypt()
-                HighCount = int(self.data.decode("utf-8"))
-                Success, Receipts = self.GetShopReceipts(
-                    self.ShopID, LowCount, HighCount
-                )
+                Success, Receipts = self.GetShopReceipts(self.ShopID, LowCount)
                 if not Success:
                     self.Action = "Listening"
                     # send listening acknowledgement to client to start sending data
@@ -754,7 +796,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     )
                     continue
                 StringReceipts = json.dumps(Receipts)
-                Success = self.ChopSendCheck(StringReceipts)
+                Success = self.ProgressChopSendCheck(StringReceipts)
                 if not Success:
                     self.AppendLog(
                         "Query Receipts Failed",

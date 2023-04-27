@@ -96,6 +96,7 @@ Version 1.2.2
 - Added double click to view orders
 - Upgraded settings management
 - Changed welcome messages
+- Improved EasyCart and Etsy View Order Window
 - Other small bug fixes
 
 Version 1.2.1

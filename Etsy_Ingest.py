@@ -3,11 +3,11 @@ import json
 import socket
 import threading
 import time
+import traceback
 import webbrowser
 
 import tinydb
-from guizero import (App, Box, PushButton, Text, TextBox, Window, error, info,
-                     warn)
+from guizero import App, Box, PushButton, Text, TextBox, Window, error, info, warn
 
 import New_Order_Window
 from Easy_Cart_Ingest import ImportEasyCartOrders
@@ -346,13 +346,13 @@ def SaveOrders(Receipts, database):  # save orders to database
         ItemUIDs = New_Order_Window.MakeUIDs(order_items, len(Receipt["transactions"]))
         count = 0
         for action in Receipt["transactions"]:
-            Name = action["title"]
+            ItemName = action["title"]
             Quantity = action["quantity"]
             UnitPrice = int(action["price"]["amount"]) / int(action["price"]["divisor"])
             order_items.insert(
                 {
                     "item_UID": ItemUIDs[count],
-                    "item_name": Name,
+                    "item_name": ItemName,
                     "item_quantity": Quantity,
                     "item_unit_price": UnitPrice,
                     "process_status": "UTILIZE",
@@ -370,7 +370,7 @@ def SaveOrders(Receipts, database):  # save orders to database
                 "order_date": Date,
                 "order_status": Status,
                 "order_name": Name,
-                "order_address1": AddressLine1,
+                "order_address": AddressLine1,
                 "order_address2": AddressLine2,
                 "order_city": city,
                 "order_state": state,
@@ -400,7 +400,8 @@ def RefreshEtsyOrders(app, database):
 
     if ShopID == "":  # if shop id is not set
         UserShopID = app.question(
-            "Etsy Ingest Error", "Etsy Shop ID not set. Enter now or cancel to exit."
+            "Etsy Ingest Error",
+            "Etsy Shop ID not set. Enter now or cancel to exit.",
         ).strip()
         if UserShopID == "":
             app.warn("Etsy Ingest Error", "Etsy Shop ID not set. Ingest cancelled.")
@@ -427,7 +428,10 @@ def RefreshEtsyOrders(app, database):
 
     HOST = RequestServerAddress  # The server's hostname or IP address
     PORT = 55555  # The port used by the server
-    PrivateKey, PublicKey = Asymmetric_Encryption.GenerateKeyPair()  # generate key pair
+    (
+        PrivateKey,
+        PublicKey,
+    ) = Asymmetric_Encryption.GenerateKeyPair()  # generate key pair
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))  # connect to server
@@ -491,7 +495,8 @@ def RefreshEtsyOrders(app, database):
 
         s.sendall(
             Asymmetric_Encryption.EncryptData(
-                Asymmetric_Encryption.StringToBytes(str(StartingFloorCount)), ServerKey
+                Asymmetric_Encryption.StringToBytes(str(StartingFloorCount)),
+                ServerKey,
             )
         )
 
@@ -692,19 +697,22 @@ def SyncAllOrdersThread(app, database):  # sync orders from sheets
     if EasyCart == "True":
         orders += ImportEasyCartOrders(app, database)
     if Etsy == "True":
-        RefreshThreadHandler(app, database)
+        ImportAllThreadHandler(app, database)
 
-    transients = database.table("Transients")  # get transients table
-    while (
-        transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated") == None
-    ):  # while there are no transients about etsy orders
-        time.sleep(1)  # wait for etsy orders to finish importing
-    orders += transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated")[
-        "transient_value"
-    ]  # add etsy orders to total
-    transients.remove(
-        tinydb.where("transient_name") == "Etsy_Orders_Updated"
-    )  # remove transient
+        transients = database.table("Transients")  # get transients table
+        while (
+            transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated")
+            == None
+        ):  # while there are no transients about etsy orders
+            time.sleep(1)  # wait for etsy orders to finish importing
+        orders += transients.get(
+            tinydb.where("transient_name") == "Etsy_Orders_Updated"
+        )[
+            "transient_value"
+        ]  # add etsy orders to total
+        transients.remove(
+            tinydb.where("transient_name") == "Etsy_Orders_Updated"
+        )  # remove transient
 
     app.info(
         "Orders Synchronized", str(orders) + " orders have been imported from APIs."

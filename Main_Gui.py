@@ -313,17 +313,20 @@ def SyncOrdersThread(app, database):  # sync orders asynchronously
     if Etsy == "True":
         RefreshThreadHandler(app, database)  # refresh etsy orders via thread handler
 
-    transients = database.table("Transients")  # get transients table
-    while (
-        transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated") == None
-    ):  # while there are no transients about etsy orders
-        time.sleep(1)  # wait for etsy orders to finish importing
-    orders += transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated")[
-        "transient_value"
-    ]  # add etsy orders to total
-    transients.remove(
-        tinydb.where("transient_name") == "Etsy_Orders_Updated"
-    )  # remove transient
+        transients = database.table("Transients")  # get transients table
+        while (
+            transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated")
+            == None
+        ):  # while there are no transients about etsy orders
+            time.sleep(1)  # wait for etsy orders to finish importing
+        orders += transients.get(
+            tinydb.where("transient_name") == "Etsy_Orders_Updated"
+        )[
+            "transient_value"
+        ]  # add etsy orders to total
+        transients.remove(
+            tinydb.where("transient_name") == "Etsy_Orders_Updated"
+        )  # remove transient
 
     UpdateScreen(database)  # update screen
     app.info(

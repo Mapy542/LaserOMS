@@ -3,7 +3,7 @@ import os
 import traceback
 
 import tinydb
-from guizero import ListBox, PushButton, Text, Window
+from guizero import ListBox, PushButton, Text, TitleBox, Window
 
 import Auto_Update
 import Etsy_Ingest
@@ -100,6 +100,37 @@ def VerifySettings(database):
         print(traceback.format_exc())
 
     return MadeUpdate
+
+
+def TrimDatabase(app, database):  # remove excess lines from the database
+    CleaningTotal = 0
+
+    transients = database.table("Transients")  # clean transients table
+    CleaningTotal = len(
+        transients.remove(~(tinydb.Query().transient_name.one_of(["Empty"])))
+    )  # remove all transients except for the empty one
+
+    # clean orders table
+    orders = database.table("Orders")
+    CleaningTotal = len(
+        orders.remove(~(tinydb.Query().process_status == "UTILIZE"))
+    )  # remove all orders except for ones that are to be utilized
+
+    # clean items table
+    AllUtilizedItemUIDs = []
+    for order in orders.all():  # get all utilized item UIDs
+        AllUtilizedItemUIDs += order["order_items_UID"]
+
+    print(AllUtilizedItemUIDs)
+
+    items = database.table("Order_Items")
+    CleaningTotal = len(
+        items.remove(~(tinydb.Query().item_UID.one_of(AllUtilizedItemUIDs)))
+    )  # remove all items except for ones that are utilized
+
+    app.info(
+        "Database Trim", "Removed " + str(CleaningTotal) + " entries from database"
+    )
 
 
 def reset(window, database):  # Resets settings to default values
@@ -282,26 +313,46 @@ def Settings(main_window, database):  # Settings window
     # When setting is double clicked, update setting
     listview.when_double_clicked = UpdateSetting
 
+    SettingsDiv = TitleBox(
+        window, text="Settings", grid=[0, 6, 2, 1], layout="grid"
+    )  # Create title box
+
     ResetButton = PushButton(
-        window,
+        SettingsDiv,
         text="Reset to Defaults",
-        grid=[0, 7, 1, 1],
+        grid=[1, 0, 1, 1],
         command=reset,
         args=[window, database],
     )  # Create reset button
     SaveButton = PushButton(
-        window, text="Exit", grid=[1, 7, 1, 1], command=save
+        SettingsDiv, text="Exit", grid=[0, 0, 1, 1], command=save
     )  # Create save button
 
+    SynchronizeDiv = TitleBox(
+        window, text="Synchronize", grid=[0, 7, 3, 1], layout="grid"
+    )  # Create title box
+
     RefreshPackagesButton = PushButton(
-        window, text="Refresh Packages", grid=[0, 8, 1, 1], command=RefreshPackages
+        SynchronizeDiv,
+        text="Refresh Packages",
+        grid=[1, 0, 1, 1],
+        command=RefreshPackages,
     )  # Create refresh packages button
 
     UpdateAllOrdersButton = PushButton(
-        window,
+        SynchronizeDiv,
         text="Update All Orders",
-        grid=[1, 8, 1, 1],
+        grid=[0, 0, 1, 1],
         command=Etsy_Ingest.SyncAllOrders,
         args=[window, database],
     )
+
+    TrimDatabaseButton = PushButton(
+        SynchronizeDiv,
+        text="Trim Database",
+        grid=[2, 0, 1, 1],
+        command=TrimDatabase,
+        args=[window, database],
+    )
+
     ShowSettings(database)  # Show settings

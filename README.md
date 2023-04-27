@@ -97,6 +97,7 @@ Version 1.2.2
 - Upgraded settings management
 - Changed welcome messages
 - Improved EasyCart and Etsy View Order Window
+- Added Database Trim tool.
 - Other small bug fixes
 
 Version 1.2.1

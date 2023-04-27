@@ -95,12 +95,13 @@ Version 1.2.2
 - Optimized Etsy request. (Force update all in settings.)
 - Added double click to view orders
 - Upgraded settings management
-- Other small bug fixes.
+- Changed welcome messages
+- Other small bug fixes
 
 Version 1.2.1
 
 - Fixed Export Expense to handle multiple image file types
-- Fixed other small bugs.
+- Fixed other small bugs
 
 Version 1.2.0
 
@@ -110,7 +111,7 @@ Version 1.2.0
 Version 1.1.3
 
 - Expense statistics upgrades
-- - Added ability to view expense details and attach expense images.
+- - Added ability to view expense details and attach expense images
 - Added expense report generation
 - Finance statistics upgrades
 - Installer bug fixes
@@ -124,7 +125,7 @@ Version 1.1.1
 
 - Quality of life features
 - - Settings stay in consistent order
-- - Automatic updates of software.
+- - Automatic updates of software
 - - View all details of tasks and orders
 - Bug fixes
 - - Fixed major bug with default path selection in windows

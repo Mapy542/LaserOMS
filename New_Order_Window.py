@@ -265,7 +265,7 @@ def NewOrder(main_window, database):
     )  # Create a new window
     WelcomeMessage = Text(
         window2,
-        text="Generate New Order.",
+        text="Enter New Order Information",
         size=18,
         font="Times New Roman",
         grid=[1, 0],

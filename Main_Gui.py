@@ -23,26 +23,59 @@ from New_Expense_Window import NewExpense
 from New_Order_Window import NewOrder
 from Settings_Window import Settings, VerifySettings
 
+
 # Main Visuals
+def UpdateDropDown(DropDown, ValuesList):
+    keep = DropDown.value
+    # remove everything from dropdown
+    DropDown.clear()
+
+    # add everything to dropdown
+    for i in ValuesList:
+        DropDown.append(i)
+
+    DropDown.value = keep
 
 
 def DisplayAllOrders(database):
     # get all open orders and ignore shell holders
     orders = database.table("Orders")
     AllOrders = orders.search(tinydb.Query().process_status == "UTILIZE")
+
+    FilterOptions = ["All"]  # list of filter options
+    for order in AllOrders:
+        if (
+            order["order_date"].split("-")[2] not in FilterOptions
+        ):  # if year is not in filter options
+            FilterOptions.append(
+                order["order_date"].split("-")[2]
+            )  # add to filter options
+
+    FilterOptions = sorted(FilterOptions)  # sort filter options by year
+    UpdateDropDown(
+        FilterByYearDropDown, FilterOptions
+    )  # update filter by year dropdown
+
+    if FilterByYearDropDown.value != "All":  # if filter by year is not all
+        AllOrders = [
+            order
+            for order in AllOrders
+            if order["order_date"].split("-")[2] == FilterByYearDropDown.value
+        ]  # filter by year
+
     for item in AllOrders:
         item["order_number"] = int(item["order_number"])
+
     AllOrders = sorted(AllOrders, key=lambda k: k["order_number"])
-    VisualData = []  # list of orders to display
+
+    listbox.clear()  # clear listbox
     for i in range(len(AllOrders)):  # for each open order
-        VisualData.append(
+        listbox.append(
             str(AllOrders[i]["order_number"]) + ", " + AllOrders[i]["order_name"]
         )
-    listbox.clear()  # clear listbox
-    for i in VisualData:  # for each order
-        listbox.append(i)  # add to listbox
+
     WelcomeMessage.value = (
-        "Welcome to Laser OMS, " + str(len(AllOrders)) + " unfulfilled orders."
+        "Welcome to Laser OMS, " + str(len(AllOrders)) + " visible orders."
     )  # update message screen
 
 
@@ -152,9 +185,12 @@ def DisplayTasks(database):
 
 def UpdateScreen(database):  # update the screen based on the selected display option
     fulfill_button.enabled = True
+    FilterByYearDropDown.visible = True
     if ViewOptionDropDown.value == "Open Orders":
+        FilterByYearDropDown.visible = False
         ShowOpenOrders(database)
     elif ViewOptionDropDown.value == "Tasks":
+        FilterByYearDropDown.visible = False
         DisplayTasks(database)
     elif ViewOptionDropDown.value == "All Orders":
         DisplayAllOrders(database)
@@ -260,20 +296,22 @@ def SyncOrders(app, database):  # sync orders from sheets
     Synchronizer.start()
 
 
-def SyncOrdersThread(app, database):  # sync orders from sheets
-    settings = database.table("Settings")
+def SyncOrdersThread(app, database):  # sync orders asynchronously
+    settings = database.table("Settings")  # get settings table
     EasyCart = settings.search(tinydb.Query().setting_name == "Synchronize_Easy_Cart")[
         0
-    ]["setting_value"]
+    ][
+        "setting_value"
+    ]  # get easy cart setting
     Etsy = settings.search(tinydb.Query().setting_name == "Synchronize_Etsy")[0][
         "setting_value"
-    ]
+    ]  # get etsy setting
 
     orders = 0
     if EasyCart == "True":
-        orders += ImportEasyCartOrders(app, database)
+        orders += ImportEasyCartOrders(app, database)  # import easy cart orders
     if Etsy == "True":
-        RefreshThreadHandler(app, database)
+        RefreshThreadHandler(app, database)  # refresh etsy orders via thread handler
 
     transients = database.table("Transients")  # get transients table
     while (
@@ -339,6 +377,17 @@ try:
         options=["Tasks", "Open Orders", "All Orders"],
         grid=[5, 3, 1, 1],
         selected="Tasks",
+    )
+    FilterByYearDropDown = Combo(
+        app,
+        options=[
+            "All",
+            datetime.now().strftime("%Y"),
+        ],  # add all years and current year
+        grid=[5, 4, 1, 1],
+        selected=datetime.now().strftime(
+            "%Y"
+        ),  # set current year as default (limit the amount of data loaded)
     )
     reload = PushButton(
         app,

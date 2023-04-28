@@ -58,6 +58,8 @@ New tasks and expenses can be created by selecting the new task or new expense b
 When creating a new task, the user gives the task a name, and can fill it out with an additional description. The priority of the task can be selected from 0 to 100. This will affect the order of the tasks being shown on the home page.\
 When creating a new expense, the user enters a name of the expense, the amount, and a description. The total price of the expense is calculated by multiplying the unit price by the quantity to avoid user calculation errors. The date of the expense can be changed by entering a different date. The date defaults to the current date. For the purposes of taxes, and deduction reporting, the user can attach an image of a receipt or confirmation of purchase to each expense. For multiple images, separate expenses should be created. Images attached are copied to a separate and user definable folder. Original images may be deleted after and expense is created.
 
+Etsy sends shipping labels confirmation receipts as emails. These can be imported into the system by selecting the import shipping label expense button in Financial Statistics. The user downloads the email as a pdf, and selects this in the import window. The system will automatically extract the shipping number, and the total price from the pdf. The user can then confirm the expense and commit it to the database.
+
 ### Settings:
 
 The settings page can be accessed by selecting the settings button in the main window.\
@@ -89,6 +91,10 @@ The statistics page can be accessed by selecting the statistics button in the ma
 - Make each window look more modern
 
 ## Changes:
+
+Version 1.2.3
+
+- Added Etsy Shipping Label Expense Import
 
 Version 1.2.2
 

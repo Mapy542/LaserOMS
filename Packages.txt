@@ -1,1 +1,1 @@
-Pillow,guizero,usps-api,tinydb,mariadb,cryptography
+Pillow,guizero,usps-api,tinydb,mariadb,cryptography,PyPDF2

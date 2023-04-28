@@ -4,6 +4,7 @@ from guizero import Combo, ListBox, PushButton, Text, TitleBox, Window
 import Expense_Details_Window
 import Export_Expenses
 import Google_Sheets_Sync
+import Ingest_Etsy_Shipping_Labels
 import New_Expense_Window
 
 
@@ -290,6 +291,10 @@ def ExportExpenses(database, window2):
     Export_Expenses.MakeExpenseReport(window2, database, year, month, ShowNonVerified)
 
 
+def ImportEtsyShippingExpenses(database, window2):
+    Ingest_Etsy_Shipping_Labels.ImportEtsyShippingExpense(window2, database)
+
+
 def FinancesDisplay(main_window, database):
     global listbox
     global window2
@@ -313,7 +318,7 @@ def FinancesDisplay(main_window, database):
         items=[],
         multiselect=True,
         width=800,
-        height=500,
+        height=400,
         scrollbar=True,
         grid=[0, 1, 4, 5],
     )
@@ -365,6 +370,15 @@ def FinancesDisplay(main_window, database):
         text="Export Expenses",
         command=ExportExpenses,
         grid=[2, 0, 1, 1],
+        args=[database, window2],
+    )
+
+    ImportDiv = TitleBox(window2, text="Import", grid=[0, 10, 3, 1], layout="grid")
+    ImportEtsyShippingExpensesButton = PushButton(
+        ImportDiv,
+        text="Etsy Shipping Expenses PDF",
+        command=ImportEtsyShippingExpenses,
+        grid=[0, 0, 1, 1],
         args=[database, window2],
     )
 

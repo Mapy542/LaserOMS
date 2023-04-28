@@ -5,29 +5,36 @@ import shutil
 import tinydb
 from guizero import PushButton, Text, TextBox, Window
 
+import Common
+
 
 def price_update():
-    global Item1, ItemQuantity, ItemPrice, TotalText
+    global ExpenseName, ItemQuantity, ItemPrice, TotalText
     TotalText.value = "Total: $" + str(
         float(ItemQuantity.value) * float(ItemPrice.value)
     )  # Update total
 
 
 def export(database):
-    global Item1, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton
+    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton
     expenses = database.table("Expenses")  # Get expenses table
 
+    ExpenseName.value = Common.CleanedFileName(
+        ExpenseName.value
+    )  # Clean up expense name
+
     # Check if expense name is already in database
-    if len(expenses.search(tinydb.Query().expense_name == Item1.value)) > 0:
-        Item1.value = (
-            Item1.value + "_Copy"
+    while len(expenses.search(tinydb.Query().expense_name == ExpenseName.value)) > 0:
+        ExpenseName.value = (
+            ExpenseName.value + "_Copy"
         )  # If it is, add _Copy to the end of the name
+        # continue adding _Copy until the name is unique
 
     # Replace the / with a - to clean up the date
     DateField.value = DateField.value.replace("/", "-")
     expenses.insert(
         {
-            "expense_name": Item1.value,
+            "expense_name": ExpenseName.value,
             "expense_quantity": ItemQuantity.value,
             "expense_unit_price": ItemPrice.value,
             "expense_notes": Description.value,
@@ -51,28 +58,28 @@ def export(database):
         shutil.copy(
             ImageButton.text,
             os.path.join(
-                os.path.realpath(ImageFolderPath), Item1.value + FileEnding[1]
+                os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]
             ),
         )
 
         expenses.update(
             {
                 "expense_image_path": os.path.join(  # update image path in database
-                    os.path.realpath(ImageFolderPath), Item1.value + FileEnding[1]
+                    os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]
                 )
             },
-            tinydb.Query().expense_name == Item1.value,
+            tinydb.Query().expense_name == ExpenseName.value,
         )
 
     Window2.destroy()  # Close window
 
 
 def close():
-    global Item1, ItemQuantity, ItemPrice, TotalText, Description, Window2
+    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, Window2
     if (
-        Item1.value == ""
-        and ItemQuantity.value == "0"
-        and ItemPrice.value == "0"
+        ExpenseName.value == ""
+        and ItemQuantity.value == ""
+        and ItemPrice.value == ""
         and Description.value == ""
     ):
         # If all fields are empty, close window
@@ -103,7 +110,7 @@ def RemoveImage():  # remove image and clear the button
 
 
 def NewExpense(main_window, database):
-    global Item1, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton
+    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton
     global Window2
 
     Window2 = Window(
@@ -116,7 +123,7 @@ def NewExpense(main_window, database):
     NameText = Text(
         Window2, text="Item Name", size=15, font="Times New Roman", grid=[0, 1]
     )  # Create text
-    Item1 = TextBox(Window2, width=30, grid=[1, 1], text="")  # Create textbox
+    ExpenseName = TextBox(Window2, width=30, grid=[1, 1], text="")  # Create textbox
     QuantityText = Text(
         Window2, text="Quantity", size=15, font="Times New Roman", grid=[0, 2]
     )  # Create text

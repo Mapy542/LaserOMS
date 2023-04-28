@@ -1,1 +1,1 @@
-Pillow,guizero,usps-api,tinydb,mariadb,pycrypto
+Pillow,guizero,usps-api,tinydb,mariadb,cryptography

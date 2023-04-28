@@ -1,9 +1,10 @@
 import os
-from PIL import Image, ImageDraw, ImageFont
-import tinydb
-import traceback
 import platform
 import subprocess
+import traceback
+
+import tinydb
+from PIL import Image, ImageDraw, ImageFont
 
 
 def PrintPackingSlip(app, database, OrderNumber):

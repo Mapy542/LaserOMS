@@ -1,6 +1,24 @@
 import os
 import urllib.request
+
 import tinydb
+
+
+def UpdatePackages(app):
+    # Find and install all required Packages.
+    os.system("python3 -m pip install --upgrade pip")  # update pip
+    try:
+        with open(
+            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Packages.txt"),
+            "r",
+        ) as f:
+            recs = f.read()
+            f.close()
+            packages = recs.split(",")
+            for i in range(len(packages)):
+                os.system("pip install --upgrade " + str(packages[i]))
+    except:
+        app.warn("Update Error", "Unable to find Packages.txt")
 
 
 def CheckForUpdate(app, database):
@@ -8,17 +26,18 @@ def CheckForUpdate(app, database):
     try:
         response = urllib.request.urlopen(url)
         data = response.read()
-        text = data.decode('utf-8')
-        VersionIdentifier = text.split('.')
+        text = data.decode("utf-8")
+        VersionIdentifier = text.split(".")
         VersionIdentifier = [int(i) for i in VersionIdentifier]
     except:
-        app.warn('Update Error', 'Unable to connect to update server')
+        app.warn("Update Error", "Unable to connect to update server")
         return False
 
-    settings = database.table('Settings')
+    settings = database.table("Settings")
     CurrentVersionString = settings.search(
-        tinydb.Query().setting_name == "LaserOMS_Version")[0]['setting_value']
-    CurrentVersion = CurrentVersionString.split('.')
+        tinydb.Query().setting_name == "LaserOMS_Version"
+    )[0]["setting_value"]
+    CurrentVersion = CurrentVersionString.split(".")
     CurrentVersion = [int(i) for i in CurrentVersion]
 
     MaxCompare = len(VersionIdentifier)
@@ -40,16 +59,18 @@ def UpdateSoftware(app, database):
     url = "https://raw.githubusercontent.com/Mapy542/LaserOMS/main/version.txt"
     response = urllib.request.urlopen(url)
     data = response.read()
-    text = data.decode('utf-8')
-    settings = database.table('Settings')
-    settings.update({'setting_value': text}, tinydb.Query(
-    ).setting_name == "LaserOMS_Version")  # update version number in database
+    text = data.decode("utf-8")
+    settings = database.table("Settings")
+    settings.update(
+        {"setting_value": text}, tinydb.Query().setting_name == "LaserOMS_Version"
+    )  # update version number in database
 
     import shutil
+
     # delete all files in current directory
     folder = os.path.realpath(os.path.dirname(__file__))
     for filename in os.listdir(folder):
-        if filename == '.git':
+        if filename == ".git":
             continue
         file_path = os.path.join(folder, filename)
         try:
@@ -58,13 +79,16 @@ def UpdateSoftware(app, database):
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
+            print("Failed to delete %s. Reason: %s" % (file_path, e))
+
+    import io
+    import zipfile
 
     import requests
-    import zipfile
-    import io
+
     r = requests.get(  # download latest version
-        'https://github.com/Mapy542/LaserOMS/archive/refs/heads/main.zip')
+        "https://github.com/Mapy542/LaserOMS/archive/refs/heads/main.zip"
+    )
     z = zipfile.ZipFile(io.BytesIO(r.content))
     z.extractall(folder)
 
@@ -81,19 +105,10 @@ def UpdateSoftware(app, database):
     # delete zip folder
     os.rmdir(source)
 
-    # Find and install all required Packages.
-    os.system("python3 -m pip install --upgrade pip")  # update pip
-    try:
-        with open(os.path.join(os.path.realpath(os.path.dirname(__file__)),
-                               "Packages.txt"), "r") as f:
-            recs = f.read()
-            f.close()
-            packages = recs.split(',')
-            for i in range(len(packages)):
-                os.system("pip install --upgrade " + str(packages[i]))
-    except:
-        app.warn('Update Error', 'Unable to find Packages.txt')
+    UpdatePackages(app)
 
-    app.info('Update Complete',
-             'LaserOMS has been updated to the latest version Restarting...')
+    app.info(
+        "Update Complete",
+        "LaserOMS has been updated to the latest version Restarting...",
+    )
     exit()

@@ -92,6 +92,10 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.2.4
+
+- Fixed Etsy Ingest bug
+
 Version 1.2.3
 
 - Added Etsy Shipping Label Expense Import

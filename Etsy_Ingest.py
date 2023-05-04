@@ -334,7 +334,11 @@ def SaveOrders(Receipts, database):  # save orders to database
         city = Receipt["city"]
         state = Receipt["state"]
         zip = Receipt["zip"]
-        if Receipt["status"] == "paid":
+        if (
+            Receipt["status"] == "paid"
+            or Receipt["status"] == "Paid"
+            or Receipt["status"] == "Unpaid"
+        ):
             Status = "OPEN"
         else:
             Status = "FULFILLED"

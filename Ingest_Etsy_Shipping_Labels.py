@@ -126,7 +126,7 @@ def ImportEtsyShippingExpense(main_window, database):
         save=False,
         filename="",
     )
-    if PDFPath == None:
+    if PDFPath == "":  # if the user cancels, close the window
         Window2.destroy()
         return
 

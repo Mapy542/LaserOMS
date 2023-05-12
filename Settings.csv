@@ -26,6 +26,6 @@ Etsy_Shop_ID,,TEXT,UTILIZE
 ~ Packing Slip Generator Settings
 Packing_Slip_Text_Color,#000000,COLOR,UTILIZE
 Packing_Slip_Background_Path,,PATH,UTILIZE
-Packing_Slip_Include_Prices,True,BOOLEAN,
+Packing_Slip_Include_Prices,True,BOOLEAN,UTILIZE
 ~ Expense View Settings
 Show_Expenses_Without_Image_Verification,True,BOOLEAN,UTILIZE

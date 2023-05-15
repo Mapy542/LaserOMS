@@ -94,7 +94,8 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 Version 1.2.4
 
-- Fixed Etsy Ingest bug
+- Fixed Etsy Ingest
+- Fixed Etsy Shipping Expense Import bug
 
 Version 1.2.3
 

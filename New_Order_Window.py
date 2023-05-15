@@ -200,7 +200,6 @@ def export():
             ItemIncrement += 1
 
     if ChooseExportCheckBox.value == 1:  # If the user wants to export the order
-        PackingSlip.GeneratePackingSlip(ForwardDataBase, OrderNumber)
         PackingSlip.PrintPackingSlip(ForwardDataBase, OrderNumber)
 
     if ChooseShippingCheckBox.value == 1:  # If the user wants to ship the order

@@ -488,7 +488,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     str(self.client_address[0])  # log failure
                     + " failed to retrieve Receipts from Etsy.",
                 )
-                print(traceback.format_exc())  # debugging
                 return False, None
 
         self.AppendLog(
@@ -574,7 +573,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
             str(self.client_address[0])  # log success
             + " successfully retrieved Receipts from Etsy.",
         )
-        print(AllReceipts)
         return True, AllReceipts
 
     def GetShop(self, ShopID):

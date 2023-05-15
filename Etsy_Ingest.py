@@ -55,7 +55,6 @@ def ProgressChopReceiveCheck(socket, ClientKey, PrivateKey):
                     b"ChunkResendAcknowledged", ClientKey
                 )
             )
-            print("Chunk resend acknowledged")
             # remove last chunk from list
             chunks.pop()
             continue
@@ -342,7 +341,7 @@ def SaveOrders(Receipts, database):  # save orders to database
             Status = "OPEN"
         else:
             Status = "FULFILLED"
-        OrderID = New_Order_Window.MakeOrderID(orders)
+        OrderID = Receipt["receipt_id"]
         Date = datetime.datetime.fromtimestamp(Receipt["create_timestamp"]).strftime(
             "%m-%d-%Y"
         )
@@ -554,8 +553,6 @@ def RefreshEtsyOrders(app, database):
                     OpenOrder["order_date"], "%m-%d-%Y"
                 ).timestamp()
 
-        print(EarliestOpenOrderDate)
-
         LatestClosedOrderDate = 0
         BestClosedOrderID = ""
         for i in range(len(TotalEtsyOrders)):  # find the latest closed order id
@@ -574,8 +571,6 @@ def RefreshEtsyOrders(app, database):
                 ).timestamp()
                 BestClosedOrderID = TotalEtsyOrders[i]["etsy_snapshot"]["receipt_id"]
 
-        print(BestClosedOrderID)
-
         s.sendall(Asymmetric_Encryption.EncryptData(b"QueryReceipts", ServerKey))
 
         data = Asymmetric_Encryption.DecryptData(
@@ -587,7 +582,6 @@ def RefreshEtsyOrders(app, database):
                 "Request Server Connection Failed",
                 "Request Server failed to prepare for query.",
             )
-            print("endid issues")
             ProgressList[3] = 1  # completed so delete progress bar
             return
 
@@ -607,8 +601,6 @@ def RefreshEtsyOrders(app, database):
             )
             ProgressList[3] = 1  # completed so delete progress bar
             return
-
-        print(Receipts)
 
         orders = database.table("Orders")
         order_items = database.table("Order_Items")

@@ -96,6 +96,7 @@ Version 1.2.4
 
 - Fixed Etsy Ingest
 - Fixed Etsy Shipping Expense Import bug
+- Handle New Order Autofill Exceptions
 - Other small bug fixes
 
 Version 1.2.3

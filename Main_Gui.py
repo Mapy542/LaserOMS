@@ -290,6 +290,7 @@ def DeleteOrder(database, app):
         return
 
     orders = database.table("Orders")  # get orders table
+    items = database.table("Order_Items")  # get items table
 
     # sort between orders and tasks
     SelectedData = listbox.value
@@ -301,7 +302,11 @@ def DeleteOrder(database, app):
     # deal with orders
     for SingleOrder in SelectedOrders:  # for each selected order
         trimmed = SingleOrder.split(",")[0]  # get order number
+        ItemUIDs = orders.get(tinydb.Query()["order_number"] == str(trimmed))[
+            "order_items_UID"
+        ]  # get item UIDs
         orders.remove(tinydb.Query()["order_number"] == str(trimmed))  # remove order
+        items.remove(tinydb.Query()["item_UID"].one_of(ItemUIDs))  # remove items
 
     UpdateScreen(database)  # update screen
 

@@ -4,6 +4,7 @@ from datetime import datetime
 import tinydb
 from guizero import CheckBox, Combo, ListBox, PushButton, Text, TextBox, Window
 
+import Common
 import New_Order_Window
 import PackingSlip
 
@@ -16,73 +17,108 @@ def PriceUpdate():
     global window2, product_names, styles, products
 
     # Get the closest match to the item name
-    autofill1 = dl.get_close_matches(item1.value, product_names)
-    item1.value = autofill1[0]  # Set the item name to the closest match
-    item1_data = products.search(
-        (tinydb.Query().product_name == item1.value)
-        & (tinydb.Query().process_status == "UTILIZE")
-    )  # Get the data for the item
-    # Set the price to the price of the item times the quantity
-    ItemPrice1.value = "$" + str(
-        int(item1_data[0][PricingOptionButton.value.replace(" ", "_")])
-        * int(ItemQuantity1.value)
-    )
+    try:
+        autofill1 = dl.get_close_matches(item1.value, product_names)
+        item1.value = autofill1[0]  # Set the item name to the closest match
 
-    autofill2 = dl.get_close_matches(item2.value, product_names)
-    item2.value = autofill2[0]
-    item2_data = products.search(
-        (tinydb.Query().product_name == item2.value)
-        & (tinydb.Query().process_status == "UTILIZE")
-    )
-    ItemPrice2.value = "$" + str(
-        int(item2_data[0][PricingOptionButton.value.replace(" ", "_")])
-        * int(ItemQuantity2.value)
-    )
+        item1_data = products.search(
+            (tinydb.Query().product_name == item1.value)
+            & (tinydb.Query().process_status == "UTILIZE")
+        )  # Get the data for the item
+        # Set the price to the price of the item times the quantity
+        ItemPrice1.value = "$" + str(
+            Common.MonetaryMultiply(
+                item1_data[0][PricingOptionButton.value.replace(" ", "_")],
+                ItemQuantity1.value,
+            )
+        )
+    except:
+        ItemPrice1.value = "NA"
 
-    autofill3 = dl.get_close_matches(item3.value, product_names)
-    item3.value = autofill3[0]
-    item3_data = products.search(
-        (tinydb.Query().product_name == item3.value)
-        & (tinydb.Query().process_status == "UTILIZE")
-    )
-    ItemPrice3.value = "$" + str(
-        int(item3_data[0][PricingOptionButton.value.replace(" ", "_")])
-        * int(ItemQuantity3.value)
-    )
+    try:
+        autofill2 = dl.get_close_matches(item2.value, product_names)
+        item2.value = autofill2[0]  # Set the item name to the closest match
 
-    autofill4 = dl.get_close_matches(item4.value, product_names)
-    item4.value = autofill4[0]
-    item4_data = products.search(
-        (tinydb.Query().product_name == item4.value)
-        & (tinydb.Query().process_status == "UTILIZE")
-    )
-    ItemPrice4.value = "$" + str(
-        int(item4_data[0][PricingOptionButton.value.replace(" ", "_")])
-        * int(ItemQuantity4.value)
-    )
+        item2_data = products.search(
+            (tinydb.Query().product_name == item2.value)
+            & (tinydb.Query().process_status == "UTILIZE")
+        )  # Get the data for the item
+        # Set the price to the price of the item times the quantity
+        ItemPrice2.value = "$" + str(
+            Common.MonetaryMultiply(
+                item2_data[0][PricingOptionButton.value.replace(" ", "_")],
+                ItemQuantity2.value,
+            )
+        )
+    except:
+        ItemPrice2.value = "NA"
 
-    autofill5 = dl.get_close_matches(item5.value, product_names)
-    item5.value = autofill5[0]
-    item5_data = products.search(
-        (tinydb.Query().product_name == item5.value)
-        & (tinydb.Query().process_status == "UTILIZE")
-    )
-    ItemPrice5.value = "$" + str(
-        int(item5_data[0][PricingOptionButton.value.replace(" ", "_")])
-        * int(ItemQuantity5.value)
-    )
+    try:
+        autofill3 = dl.get_close_matches(item3.value, product_names)
+        item3.value = autofill3[0]  # Set the item name to the closest match
 
-    TotalNumber = 0
-    for item in [
-        ItemPrice1,
-        ItemPrice2,
-        ItemPrice3,
-        ItemPrice4,
-        ItemPrice5,
-    ]:  # Add up all the prices
-        TotalNumber += int(item.value.replace("$", ""))  # Add up all the prices
-    # Set the Total to the sum of all the prices
-    Total.value = "Total: $" + str(TotalNumber)
+        item3_data = products.search(
+            (tinydb.Query().product_name == item3.value)
+            & (tinydb.Query().process_status == "UTILIZE")
+        )  # Get the data for the item
+        # Set the price to the price of the item times the quantity
+        ItemPrice3.value = "$" + str(
+            Common.MonetaryMultiply(
+                item3_data[0][PricingOptionButton.value.replace(" ", "_")],
+                ItemQuantity3.value,
+            )
+        )
+    except:
+        ItemPrice3.value = "NA"
+
+    try:
+        autofill4 = dl.get_close_matches(item4.value, product_names)
+        item4.value = autofill4[0]  # Set the item name to the closest match
+
+        item4_data = products.search(
+            (tinydb.Query().product_name == item4.value)
+            & (tinydb.Query().process_status == "UTILIZE")
+        )  # Get the data for the item
+        # Set the price to the price of the item times the quantity
+        ItemPrice4.value = "$" + str(
+            Common.MonetaryMultiply(
+                item4_data[0][PricingOptionButton.value.replace(" ", "_")],
+                ItemQuantity4.value,
+            )
+        )
+    except:
+        ItemPrice4.value = "NA"
+
+    try:
+        autofill5 = dl.get_close_matches(item5.value, product_names)
+        item5.value = autofill5[0]  # Set the item name to the closest match
+
+        item5_data = products.search(
+            (tinydb.Query().product_name == item5.value)
+            & (tinydb.Query().process_status == "UTILIZE")
+        )  # Get the data for the item
+        # Set the price to the price of the item times the quantity
+        ItemPrice5.value = "$" + str(
+            Common.MonetaryMultiply(
+                item5_data[0][PricingOptionButton.value.replace(" ", "_")],
+                ItemQuantity5.value,
+            )
+        )
+    except:
+        ItemPrice5.value = "NA"
+
+    # Calculate the total
+    Total.value = "Total: $" + str(
+        Common.MonetarySummation(
+            [
+                ItemPrice1.value,
+                ItemPrice2.value,
+                ItemPrice3.value,
+                ItemPrice4.value,
+                ItemPrice5.value,
+            ]
+        )
+    )
 
 
 def OrderExport():
@@ -99,11 +135,12 @@ def OrderExport():
     # Replace the / with a - to clean up the date
     DateField.value = DateField.value.replace("/", "-")
 
-    for uid in OriginalItemUIDs:  # Delete the original order items
-        order_items.remove(tinydb.Query().item_UID == uid)
+    order_items.remove(
+        tinydb.Query().item_UID.one_of(OriginalItemUIDs)
+    )  # Remove the old items from the database
 
     # Make a list of UIDs for the order items
-    itemsUIDs = New_Order_Window.MakeUIDs(order_items, ItemCount)
+    itemsUIDs = Common.MakeUIDs(order_items, ItemCount)
 
     orders.update(
         {
@@ -154,7 +191,6 @@ def OrderExport():
             ItemIncrement += 1
 
     if ChooseExportCheckBox.value == 1:  # If the user wants to export the order
-        PackingSlip.GeneratePackingSlip(window2, ForwardDataBase, OriginalOrderNumber)
         PackingSlip.PrintPackingSlip(window2, ForwardDataBase, OriginalOrderNumber)
 
     if ChooseShippingCheckBox.value == 1:  # If the user wants to ship the order

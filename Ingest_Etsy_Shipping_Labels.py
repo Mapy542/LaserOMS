@@ -12,7 +12,7 @@ import Common
 def price_update():
     global ExpenseName, ItemQuantity, ItemPrice, TotalText
     TotalText.value = "Total: $" + str(
-        float(ItemQuantity.value) * float(ItemPrice.value)
+        Common.MonetaryMultiply(ItemQuantity.value, ItemPrice.value)
     )  # Update total
 
 
@@ -126,7 +126,7 @@ def ImportEtsyShippingExpense(main_window, database):
         save=False,
         filename="",
     )
-    if PDFPath == None:
+    if PDFPath == "":  # if the user cancels, close the window
         Window2.destroy()
         return
 

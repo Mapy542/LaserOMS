@@ -17,11 +17,11 @@ import Listing_Database_Window
 import New_Task_Window
 import PackingSlip
 from Easy_Cart_Ingest import ImportEasyCartOrders
-from Etsy_Ingest import RefreshThreadHandler
+from Etsy_Ingest import ImportAllThreadHandler
 from Google_Sheets_Sync import RebuildProductsFromSheets
 from New_Expense_Window import NewExpense
 from New_Order_Window import NewOrder
-from Settings_Window import Settings, VerifySettings
+from Settings_Window import PasswordHash, Settings, VerifySettings
 
 
 # Main Visuals
@@ -275,6 +275,42 @@ def ShowDetailsWrapper():  # wrapper for show details to pass because of guizero
     ShowDetails(database)
 
 
+def DeleteOrder(database, app):
+    settings = database.table("Settings")  # get settings table
+    password = app.question(
+        "Settings Password", "Enter Password to Delete Order"
+    )  # ask for password confirmation
+    if (
+        not PasswordHash(password)
+        == settings.get(tinydb.Query().setting_name == "Settings_Password")[
+            "setting_value"
+        ]
+    ):
+        app.error("Incorrect Password", "Incorrect Password, order not deleted")
+        return
+
+    orders = database.table("Orders")  # get orders table
+    items = database.table("Order_Items")  # get items table
+
+    # sort between orders and tasks
+    SelectedData = listbox.value
+    SelectedOrders = []
+    for order in SelectedData:
+        if order[0].isdigit():  # if order number is selected
+            SelectedOrders.append(order)
+
+    # deal with orders
+    for SingleOrder in SelectedOrders:  # for each selected order
+        trimmed = SingleOrder.split(",")[0]  # get order number
+        ItemUIDs = orders.get(tinydb.Query()["order_number"] == str(trimmed))[
+            "order_items_UID"
+        ]  # get item UIDs
+        orders.remove(tinydb.Query()["order_number"] == str(trimmed))  # remove order
+        items.remove(tinydb.Query()["item_UID"].one_of(ItemUIDs))  # remove items
+
+    UpdateScreen(database)  # update screen
+
+
 # Statistics and details
 def FinanceStatistics(database):  # display financial stats window
     Finance_Window.FinancesDisplay(app, database)
@@ -311,7 +347,7 @@ def SyncOrdersThread(app, database):  # sync orders asynchronously
     if EasyCart == "True":
         orders += ImportEasyCartOrders(app, database)  # import easy cart orders
     if Etsy == "True":
-        RefreshThreadHandler(app, database)  # refresh etsy orders via thread handler
+        ImportAllThreadHandler(app, database)  # refresh etsy orders via thread handler
 
         transients = database.table("Transients")  # get transients table
         while (
@@ -436,6 +472,13 @@ try:
         args=[database, listbox],
     )
     # ship_button = PushButton(app,text='Ship Order',command=ship_orders,grid=[2,8,1,1])
+    delete_button = PushButton(
+        app,
+        text="Delete Order",
+        command=DeleteOrder,
+        grid=[3, 10, 1, 1],
+        args=[database, app],
+    )
 
     # sync options
     sync_options_div = TitleBox(
@@ -467,7 +510,7 @@ try:
         args=[database],
     )
 
-    FinanceStatistics = PushButton(
+    FinanceStatisticsButton = PushButton(
         stats_options_div,
         text="Financial Statistics",
         command=FinanceStatistics,

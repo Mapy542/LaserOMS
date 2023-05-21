@@ -1,10 +1,7 @@
-import json
-import sys
-
 import mariadb
 import tinydb
 
-import New_Order_Window
+import Common
 
 
 def ImportEasyCartOrders(app, database0):
@@ -118,7 +115,7 @@ def ImportEasyCartOrders(app, database0):
             OrderToItemUID[order["order_id"]] = []
 
         for OrderItem in OrderItemData:
-            ItemUID = New_Order_Window.MakeUIDs(order_items, 1)[0]
+            ItemUID = Common.MakeUIDs(order_items, 1)[0]
             OrderToItemUID[OrderItem["order_id"]].append(ItemUID)
             DBOrderItem = {}
             DBOrderItem["item_UID"] = ItemUID
@@ -138,7 +135,7 @@ def ImportEasyCartOrders(app, database0):
 
             exists = orders.contains(tinydb.where("order_id") == order["order_id"])
             if exists:
-                DBOrder["order_number"] = order["order_id"] + "_Copy"
+                DBOrder["order_number"] = order["order_id"] + " (DUPLICATE)"
             else:
                 DBOrder["order_number"] = order["order_id"]
 

@@ -434,7 +434,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
         return True
 
     # get shop receipts from Etsy for a given shop id
-    def GetShopReceipts(self, ShopID, StartNumber):
+    def GetAllShopReceipts(self, ShopID, StartNumber):
         """
         Etsy API call to get receipts for a given shop id.
 
@@ -479,6 +479,83 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     offset=int(i),
                 )
                 if i >= Receipts["count"]:  # if no more receipts
+                    break
+                i += MaximumReceiptsPerQuery  # increment offset
+                AllReceipts += Receipts["results"]  # add receipts to list
+            except:
+                self.AppendLog(
+                    "Receipt Retrieval Failed",
+                    str(self.client_address[0])  # log failure
+                    + " failed to retrieve Receipts from Etsy.",
+                )
+                return False, None
+
+        self.AppendLog(
+            "Receipt Retrieval Success",
+            str(self.client_address[0])  # log success
+            + " successfully retrieved Receipts from Etsy.",
+        )
+        return True, AllReceipts
+
+    def GetPartialShopReceipts(self, ShopID, EndingReceiptID):
+        """
+        Etsy API call to get receipts for a given shop id.
+
+        Keyword arguments:
+        @param ShopID -- the shop id to get receipts for
+        @param EndingReceiptID -- the receipt id to end at (non-inclusive)
+        """
+        APIKeyString = self.AccessDataBase(
+            "Settings", tinydb.Query().setting_name == "API_Key_String"
+        )[0][
+            "setting_value"
+        ]  # get API key string
+        OauthTokenSet = self.AccessDataBase(
+            "OauthTokens", tinydb.Query().shop_id == ShopID
+        )[
+            0
+        ]  # get oauth token set from database
+
+        self.AppendLog(
+            "Begin Receipt Retrieval",
+            str(self.client_address[0])  # log receipt retrieval start
+            + " started a new Receipt Retrieval.",
+        )
+
+        EtsyClient = EtsyAPI(
+            keystring=APIKeyString,
+            token=OauthTokenSet["token"],
+            refresh_token=OauthTokenSet["refresh_token"],
+            expiry=datetime.fromtimestamp(OauthTokenSet["expires_at"]),
+            refresh_save=self.UpdateOauthToken,
+        )  # create Etsy API client
+
+        AllReceipts = []
+        # maximum number of receipts per query (Etsy API limit)
+        MaximumReceiptsPerQuery = 100
+        i = 0  # start at given start number for less data to process
+        while True:  # loop until no more receipts
+            try:
+                Receipts = EtsyClient.get_shop_receipts(
+                    shop_id=int(OauthTokenSet["shop_id"]),  # get receipts from Etsy
+                    limit=int(MaximumReceiptsPerQuery),
+                    offset=int(i),
+                )
+                if any(
+                    R["receipt_id"] == EndingReceiptID for R in Receipts["results"]
+                ):  # if ending receipt id reached
+                    # remove all receipts after ending receipt id and the ending receipt id
+                    print("match found")
+                    for i in range(len(Receipts["results"])):
+                        if Receipts["results"][i]["receipt_id"] == EndingReceiptID:
+                            Receipts["results"] = Receipts["results"][
+                                :i
+                            ]  # remove all receipts after ending receipt id
+                            Receipts["results"] = Receipts["results"][
+                                :-1
+                            ]  # remove ending receipt id
+                            break
+                    AllReceipts += Receipts["results"]  # add receipts to list
                     break
                 i += MaximumReceiptsPerQuery  # increment offset
                 AllReceipts += Receipts["results"]  # add receipts to list
@@ -775,18 +852,59 @@ class RequestHandler(socketserver.BaseRequestHandler):
 
             elif (
                 self.Action == "Listening"
-                and self.data == b"QueryReceipts"
+                and self.data == b"QueryAllReceipts"
                 and self.LoggedIn
             ):
-                self.Action = "QueryReceipts"
+                self.Action = "QueryAllReceipts"
                 self.request.sendall(
                     Asymmetric_Encryption.EncryptData(b"QueryFloor", self.ClientKey)
                 )  # send query count acknowledgement to client to start sending data
                 continue
 
-            elif self.Action == "QueryReceipts" and self.LoggedIn:
+            elif self.Action == "QueryAllReceipts" and self.LoggedIn:
                 LowCount = int(self.data.decode("utf-8"))
-                Success, Receipts = self.GetShopReceipts(self.ShopID, LowCount)
+                Success, Receipts = self.GetAllShopReceipts(self.ShopID, LowCount)
+                if not Success:
+                    self.Action = "Listening"
+                    # send listening acknowledgement to client to start sending data
+                    self.request.sendall(
+                        Asymmetric_Encryption.EncryptData(
+                            b"QueryReceiptsFailed", self.ClientKey
+                        )
+                    )
+                    continue
+                StringReceipts = json.dumps(Receipts)
+                Success = self.ProgressChopSendCheck(StringReceipts)
+                if not Success:
+                    self.AppendLog(
+                        "Query Receipts Failed",
+                        str(self.client_address[0])
+                        + " failed to send receipt data to server.",
+                    )
+                else:
+                    self.AppendLog(
+                        "Query Receipts Success",
+                        str(self.client_address[0])
+                        + " successfully queried receipts for shop ID:"
+                        + str(self.ShopID)
+                        + ".",
+                    )  # log success
+                self.Action = "Listening"
+
+            elif (
+                self.Action == "Listening"
+                and self.data == b"QueryReceipts"
+                and self.LoggedIn
+            ):
+                self.Action = "QueryReceipts"
+                self.request.sendall(
+                    Asymmetric_Encryption.EncryptData(b"EndID", self.ClientKey)
+                )  # send query count acknowledgement to client to start sending data
+                continue
+
+            elif self.Action == "QueryReceipts" and self.LoggedIn:
+                EndID = int(self.data.decode("utf-8"))
+                Success, Receipts = self.GetPartialShopReceipts(self.ShopID, EndID)
                 if not Success:
                     self.Action = "Listening"
                     # send listening acknowledgement to client to start sending data
@@ -898,7 +1016,7 @@ def VerifySettings(database):
                 "setting_value": "1.0.0",
                 "setting_type": "STATIC",
                 "setting_rank": 1,
-                "process_status": "UTILIZE",
+                "process_status": "IGNORE",
             }
         )
         MadeUpdate = True

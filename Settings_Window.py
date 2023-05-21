@@ -121,8 +121,6 @@ def TrimDatabase(app, database):  # remove excess lines from the database
     for order in orders.all():  # get all utilized item UIDs
         AllUtilizedItemUIDs += order["order_items_UID"]
 
-    print(AllUtilizedItemUIDs)
-
     items = database.table("Order_Items")
     CleaningTotal = len(
         items.remove(~(tinydb.Query().item_UID.one_of(AllUtilizedItemUIDs)))

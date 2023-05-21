@@ -1,6 +1,7 @@
 import tinydb
 from guizero import Combo, ListBox, PushButton, Text, TitleBox, Window
 
+import Common
 import Expense_Details_Window
 import Export_Expenses
 import Google_Sheets_Sync
@@ -27,21 +28,28 @@ def GetRevenueStats(database):
         month = int(order["order_date"].split("-")[0])
 
         if year not in YearlyRevenue:  # add year to year dictionary if not in it
-            YearlyRevenue[year] = 0
+            YearlyRevenue[year] = Common.Decimal("0")
             MonthlyRevenue[year] = {}
         # add month to year in monthly revenue if not in it.
         if month not in MonthlyRevenue[year]:
-            MonthlyRevenue[year][month] = 0
+            MonthlyRevenue[year][month] = Common.Decimal("0")
 
         ItemUIDs = order["order_items_UID"]  # find order items
 
         for uid in ItemUIDs:  # for each order item
             Item = order_items.search(tinydb.where("item_UID") == uid)[0]  # lookup item
-            total = float(Item["item_quantity"]) * float(
+            total = Common.Decimal(Item["item_quantity"]).multiply(
                 Item["item_unit_price"]
             )  # calculate total
-            YearlyRevenue[year] += total  # apply total where applicable.
-            MonthlyRevenue[year][month] += total
+            YearlyRevenue[year].add(total)  # apply total where applicable.
+            MonthlyRevenue[year][month].add(total)
+
+    for year in YearlyRevenue.keys():
+        YearlyRevenue[year] = str(YearlyRevenue[year])
+
+    for year in MonthlyRevenue.keys():
+        for month in MonthlyRevenue[year].keys():
+            MonthlyRevenue[year][month] = str(MonthlyRevenue[year][month])
 
     return YearlyRevenue, MonthlyRevenue
 
@@ -85,17 +93,25 @@ def GetExpenseStats(database):
         month = int(expense["expense_date"].split("-")[0])  # get month
 
         if year not in YearlyExpenses:  # add year if not in years
-            YearlyExpenses[year] = 0
+            YearlyExpenses[year] = Common.Decimal("0")
             MonthlyExpenses[year] = {}
         # add month to months if not in months
         if month not in MonthlyExpenses[year]:
-            MonthlyExpenses[year][month] = 0
+            MonthlyExpenses[year][month] = Common.Decimal("0")
 
-        total = float(expense["expense_quantity"]) * float(
+        total = Common.Decimal(expense["expense_quantity"]).multiply(
             expense["expense_unit_price"]
         )  # calculate total
-        YearlyExpenses[year] += total  # add total to applicable
-        MonthlyExpenses[year][month] += total
+        YearlyExpenses[year].add(total)  # add total to applicable
+        MonthlyExpenses[year][month].add(total)
+
+    # convert decimals to strings in dictionary for guizero
+    for year in YearlyExpenses.keys():
+        YearlyExpenses[year] = str(YearlyExpenses[year])
+
+    for year in MonthlyExpenses.keys():
+        for month in MonthlyExpenses[year].keys():
+            MonthlyExpenses[year][month] = str(MonthlyExpenses[year][month])
 
     return YearlyExpenses, MonthlyExpenses
 
@@ -117,6 +133,8 @@ def ShowFinancialStats(database):
     )  # returns 2 lists of dictionaries
     YearlyExpenses, MonthlyExpenses = GetExpenseStats(database)
 
+    print(YearlyRevenue)
+    print(MonthlyRevenue)
     # sort yearly revenue by year descending. Most recent on top
     YearlyRevenue = dict(sorted(YearlyRevenue.items(), reverse=True))
 
@@ -132,7 +150,10 @@ def ShowFinancialStats(database):
             # add expenses to listbox
             listbox.append("  Expenses: " + str(YearlyExpenses[year]))
             listbox.append(
-                "  Profit: " + str(YearlyRevenue[year] - YearlyExpenses[year])
+                "  Profit: "
+                + str(
+                    Common.MonetarySubtract(YearlyRevenue[year], YearlyExpenses[year])
+                )
             )  # calculate and display difference in revenue and expenses
         else:  # if there are no expenses
             listbox.append("  Expenses: 0")  # display no expenses
@@ -151,7 +172,11 @@ def ShowFinancialStats(database):
                 listbox.append("      Expenses: " + str(MonthlyExpenses[year][month]))
                 listbox.append(
                     "      Profit: "
-                    + str(MonthlyRevenue[year][month] - MonthlyExpenses[year][month])
+                    + str(
+                        Common.MonetarySubtract(
+                            MonthlyRevenue[year][month], MonthlyExpenses[year][month]
+                        )
+                    )
                 )
             else:
                 listbox.append("      Expenses: 0")
@@ -217,10 +242,11 @@ def ShowExpenses(database):
                 expense["expense_name"]
                 + ": "
                 + expense["expense_date"]
-                + ", "
+                + ", $"
                 + str(
-                    float(expense["expense_quantity"])
-                    * float(expense["expense_unit_price"])
+                    Common.MonetaryMultiply(
+                        expense["expense_quantity"], expense["expense_unit_price"]
+                    )
                 )
                 + VerifiedExpenseText
             )  # add expense to listbox
@@ -232,10 +258,11 @@ def ShowExpenses(database):
                 expense["expense_name"]
                 + ": "
                 + expense["expense_date"]
-                + ", "
+                + ", $"
                 + str(
-                    float(expense["expense_quantity"])
-                    * float(expense["expense_unit_price"])
+                    Common.MonetaryMultiply(
+                        expense["expense_quantity"], expense["expense_unit_price"]
+                    )
                 )
                 + VerifiedExpenseText
             )  # add expense to listbox

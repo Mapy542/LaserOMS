@@ -3,13 +3,12 @@ import json
 import socket
 import threading
 import time
-import traceback
 import webbrowser
 
 import tinydb
-from guizero import App, Box, PushButton, Text, TextBox, Window, error, info, warn
+from guizero import Text, Window
 
-import New_Order_Window
+import Common
 from Easy_Cart_Ingest import ImportEasyCartOrders
 from Etsy_Request_Server import Asymmetric_Encryption
 
@@ -56,7 +55,6 @@ def ProgressChopReceiveCheck(socket, ClientKey, PrivateKey):
                     b"ChunkResendAcknowledged", ClientKey
                 )
             )
-            print("Chunk resend acknowledged")
             # remove last chunk from list
             chunks.pop()
             continue
@@ -326,6 +324,7 @@ def SaveOrders(Receipts, database):  # save orders to database
 
     # parse receipts
     Receipts = json.loads(Receipts)
+    Receipts.reverse()  # reverse receipts so that oldest is first
     for Receipt in Receipts:
         # get receipt data
         Name = Receipt["name"]
@@ -334,21 +333,100 @@ def SaveOrders(Receipts, database):  # save orders to database
         city = Receipt["city"]
         state = Receipt["state"]
         zip = Receipt["zip"]
-        if Receipt["status"] == "paid":
+        if (
+            Receipt["status"].lower() == "paid"
+            or Receipt["status"].lower()
+            == "unpaid"  # not sure if this is a valid status because the Etsy API documentation is not clear on what values are possible
+        ):
             Status = "OPEN"
         else:
             Status = "FULFILLED"
-        OrderID = New_Order_Window.MakeOrderID(orders)
+        OrderID = Receipt["receipt_id"]
         Date = datetime.datetime.fromtimestamp(Receipt["create_timestamp"]).strftime(
             "%m-%d-%Y"
         )
 
-        ItemUIDs = New_Order_Window.MakeUIDs(order_items, len(Receipt["transactions"]))
+        ItemUIDs = Common.MakeUIDs(order_items, len(Receipt["transactions"]))
         count = 0
         for action in Receipt["transactions"]:
             ItemName = action["title"]
             Quantity = action["quantity"]
             UnitPrice = int(action["price"]["amount"]) / int(action["price"]["divisor"])
+            order_items.insert(
+                {
+                    "item_UID": ItemUIDs[count],
+                    "item_name": ItemName,
+                    "item_quantity": Quantity,
+                    "item_unit_price": UnitPrice,
+                    "process_status": "UTILIZE",
+                    "etsy_item": "TRUE",
+                    "product_snapshot": action,
+                }
+            )
+            count += 1
+
+        orders.insert(
+            {
+                "etsy_order": "TRUE",
+                "process_status": "UTILIZE",
+                "order_number": str(OrderID),
+                "order_date": Date,
+                "order_status": Status,
+                "order_name": Name,
+                "order_address": AddressLine1,
+                "order_address2": AddressLine2,
+                "order_city": city,
+                "order_state": state,
+                "order_zip": zip,
+                "order_items_UID": ItemUIDs,
+                "etsy_snapshot": Receipt,
+            }
+        )
+
+    return len(Receipts)
+
+
+def SaveOrdersNoOverwrite(Receipts, database):  # save orders to database
+    orders = database.table("Orders")
+    order_items = database.table("Order_Items")
+
+    # parse receipts
+    Receipts = json.loads(Receipts)
+    Receipts.reverse()  # reverse receipts so that oldest is first
+    for Receipt in Receipts:
+        # get receipt data
+        Name = Receipt["name"]
+        AddressLine1 = Receipt["first_line"]
+        AddressLine2 = Receipt["second_line"]
+        city = Receipt["city"]
+        state = Receipt["state"]
+        zip = Receipt["zip"]
+        if (
+            Receipt["status"].lower() == "paid"
+            or Receipt["status"].lower()
+            == "unpaid"  # not sure if this is a valid status because the Etsy API documentation is not clear on what values are possible
+        ):
+            Status = "OPEN"
+        else:
+            Status = "FULFILLED"
+        OrderID = Common.MakeOrderID(orders)
+        Date = datetime.datetime.fromtimestamp(Receipt["create_timestamp"]).strftime(
+            "%m-%d-%Y"
+        )
+
+        # Check if order already exists
+        if len(orders.search(tinydb.where("etsy_snapshot") == Receipt)) > 0:
+            break  # will ignore this order
+            # however a closed order that already exists but has changed will be added again
+
+        ItemUIDs = Common.MakeUIDs(order_items, len(Receipt["transactions"]))
+        count = 0
+        for action in Receipt["transactions"]:
+            ItemName = action["title"]
+            Quantity = action["quantity"]
+            UnitPrice = Common.MonetaryDivide(
+                action["price"]["amount"], action["price"]["divisor"]
+            )
             order_items.insert(
                 {
                     "item_UID": ItemUIDs[count],
@@ -465,19 +543,35 @@ def RefreshEtsyOrders(app, database):
             ProgressList[3] = 1  # completed so delete progress bar
             return
 
-        # query for shop
-        TransactionCount = QueryTransactionCount(s, ServerKey, PrivateKey, app)
-        if not TransactionCount:  # if query failed
-            ProgressList[3] = 1  # completed so delete progress bar
-            return
+        EarliestOpenOrderDate = datetime.datetime.now().timestamp()
+        for OpenOrder in OpenEtsyOrders:  # find the earliest open order date
+            if (
+                datetime.datetime.strptime(
+                    OpenOrder["order_date"], "%m-%d-%Y"
+                ).timestamp()
+                < EarliestOpenOrderDate
+            ):
+                EarliestOpenOrderDate = datetime.datetime.strptime(
+                    OpenOrder["order_date"], "%m-%d-%Y"
+                ).timestamp()
 
-        TotalOrdersEstimate = TransactionCount  # set total orders estimate
-
-        StartingFloorCount = len(TotalEtsyOrders) - len(
-            OpenEtsyOrders
-        )  # update only open orders
-        if StartingFloorCount < 0:
-            StartingFloorCount = 0
+        LatestClosedOrderDate = 0
+        BestClosedOrderID = ""
+        for i in range(len(TotalEtsyOrders)):  # find the latest closed order id
+            if (
+                datetime.datetime.strptime(
+                    TotalEtsyOrders[i]["order_date"], "%m-%d-%Y"
+                ).timestamp()
+                < EarliestOpenOrderDate
+                and datetime.datetime.strptime(
+                    TotalEtsyOrders[i]["order_date"], "%m-%d-%Y"
+                ).timestamp()
+                > LatestClosedOrderDate
+            ):
+                LatestClosedOrderDate = datetime.datetime.strptime(
+                    TotalEtsyOrders[i]["order_date"], "%m-%d-%Y"
+                ).timestamp()
+                BestClosedOrderID = TotalEtsyOrders[i]["etsy_snapshot"]["receipt_id"]
 
         s.sendall(Asymmetric_Encryption.EncryptData(b"QueryReceipts", ServerKey))
 
@@ -485,7 +579,7 @@ def RefreshEtsyOrders(app, database):
             s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
         )
 
-        if not data == b"QueryFloor":
+        if not data == b"EndID":
             app.warn(
                 "Request Server Connection Failed",
                 "Request Server failed to prepare for query.",
@@ -495,7 +589,7 @@ def RefreshEtsyOrders(app, database):
 
         s.sendall(
             Asymmetric_Encryption.EncryptData(
-                Asymmetric_Encryption.StringToBytes(str(StartingFloorCount)),
+                Asymmetric_Encryption.StringToBytes(str(BestClosedOrderID)),
                 ServerKey,
             )
         )
@@ -527,7 +621,7 @@ def RefreshEtsyOrders(app, database):
             tinydb.where("order_items_UID").one_of(ItemUIDsToRemove)
         )  # remove order items
 
-        OrderCount = SaveOrders(Receipts, database)  # save orders
+        OrderCount = SaveOrdersNoOverwrite(Receipts, database)  # save orders
 
         ProgressList[3] = 1  # completed so delete progress bar
         transients = database.table("Transients")  # make a place to log updated orders
@@ -627,7 +721,7 @@ def ImportAllEtsyOrders(app, database):
             ProgressList[3] = 1  # completed so delete progress bar
             return
 
-        s.sendall(Asymmetric_Encryption.EncryptData(b"QueryReceipts", ServerKey))
+        s.sendall(Asymmetric_Encryption.EncryptData(b"QueryAllReceipts", ServerKey))
 
         data = Asymmetric_Encryption.DecryptData(
             s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey

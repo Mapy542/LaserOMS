@@ -11,8 +11,8 @@ import Common
 def price_update():
     global ExpenseName, ItemQuantity, ItemPrice, TotalText
     TotalText.value = "Total: $" + str(
-        float(ItemQuantity.value) * float(ItemPrice.value)
-    )  # Update total
+        Common.MonetaryMultiply(ItemQuantity.value, ItemPrice.value)
+    )
 
 
 def export(database):

@@ -5,11 +5,13 @@ import shutil
 import tinydb
 from guizero import PushButton, Text, TextBox, Window
 
+import Common
+
 
 def price_update():
     global Item1, ItemQuantity, ItemPrice, TotalText
     TotalText.value = "Total: $" + str(
-        float(ItemQuantity.value) * float(ItemPrice.value)
+        Common.MonetaryMultiply(ItemQuantity.value, ItemPrice.value)
     )  # Update total
 
 

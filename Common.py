@@ -1,3 +1,7 @@
+import random
+
+import tinydb
+
 # Common functions to be used throughout the project
 
 
@@ -69,6 +73,11 @@ class Decimal:  # Replacement for a float that has no floating point error
         Returns:
             Decimal: Simplified decimal
         """
+
+        if self.value == 0:  # If the value is 0 the power is 0
+            self.power = 0
+            return self
+
         while self.value % 10 == 0:
             self.value /= 10
             self.power += 1
@@ -78,7 +87,12 @@ class Decimal:  # Replacement for a float that has no floating point error
         return self
 
     def __str__(self) -> str:  # Returns the decimal as a string
-        return str(self.value * 10**self.power)
+        Digits = [
+            str(self.get_digit(self.value, i)) for i in range(len(str(self.value)))
+        ]
+        if self.power < 0:
+            Digits.insert(len(Digits) + self.power, ".")
+        return "".join(Digits)
 
     def __float__(self) -> float:  # Returns the decimal as a float
         return float(self.value * 10**self.power)
@@ -120,11 +134,11 @@ class Decimal:  # Replacement for a float that has no floating point error
             not self.power == Number2.power
         ):  # If the powers are not equal make them equal by multiplying by 10^difference
             if self.power > Number2.power:
-                Number2.value *= 10 ** (self.power - Number2.power)
-                Number2.power = self.power
+                self.value *= 10 ** (self.power - Number2.power)
+                self.power -= self.power - Number2.power
             else:
-                self.value *= 10 ** (Number2.power - self.power)
-                self.power = Number2.power
+                Number2.value *= 10 ** (Number2.power - self.power)
+                self.power = Number2.power - (Number2.power - self.power)
 
         self.value += Number2.value  # Add the values
         self.Simplify()  # Simplify the decimal
@@ -147,11 +161,11 @@ class Decimal:  # Replacement for a float that has no floating point error
             not self.power == Number2.power
         ):  # If the powers are not equal make them equal by multiplying by 10^difference
             if self.power > Number2.power:
-                Number2.value *= 10 ** (self.power - Number2.power)
-                Number2.power = self.power
+                self.value *= 10 ** (self.power - Number2.power)
+                self.power -= self.power - Number2.power
             else:
-                self.value *= 10 ** (Number2.power - self.power)
-                self.power = Number2.power
+                Number2.value *= 10 ** (Number2.power - self.power)
+                self.power = Number2.power - (Number2.power - self.power)
 
         self.value -= Number2.value  # Subtract the values
         self.Simplify()  # Simplify the decimal
@@ -335,14 +349,21 @@ def MonetarySummation(List):
     """Sums a list of monetary values together with correct rounding for USD. (2 decimal places)
 
     Args:
-        List (List[Int, String, Decimal(Common/Class)]): List of numbers to be summed
+        List (List[Int, String(May Include a $, Skipped if "NA"), Decimal(Common/Class)]): List of numbers to be summed
 
     Returns:
         Float: Sum of the numbers in the list
     """
-    Sum = Decimal(0)
+
+    Sum = Decimal()
     for Number in List:
+        if Number == "NA":
+            continue
         if not type(Number) == Decimal:
+            if type(Number) == str:  # If the number is a string
+                Number = Decimal(
+                    Number.replace("$", "")
+                )  # Remove the dollar sign if it is present
             Number = Decimal(Number)
         Sum = Sum.add(Number)
     return round(Sum.__float__(), 2)
@@ -363,3 +384,66 @@ def MonetaryAverage(List):
             Number = Decimal(Number)
         Sum = Sum.add(Number)
     return round(Sum.divide(len(List)).__float__(), 2)
+
+
+# UID Functions
+def MakeUIDs(order_items, ItemCount):
+    """Makes a list of random and UNIQUE UIDs
+
+    Args:
+        order_items (TinyDB/Table/OrderItems): Table of order items to check for UIDs
+        ItemCount (Int): Number of UIDs to make
+
+    Returns:
+        List[Int]: List of random and unique UIDs
+    """
+    allUIDs = []
+    order_items = order_items.search(
+        tinydb.Query().process_status == "UTILIZE"
+    )  # Get all items
+    if (
+        order_items == []
+    ):  # If there are no items in the database, return a list of random UIDs
+        returnUIDs = []
+        returnUIDs.append(random.randint(1000000, 9999999))
+        for i in range(ItemCount):
+            UID = random.randint(1000000, 9999999)
+            while UID in returnUIDs:
+                UID = random.randint(1000000, 9999999)
+            returnUIDs.append(UID)
+        return returnUIDs
+    for item in order_items:
+        allUIDs.append(item["item_UID"])  # Add all UIDs to a list
+    returnUIDs = []
+    for i in range(ItemCount):
+        UID = random.randint(1000000, 9999999)  # Generate a random UID
+        while (
+            UID in allUIDs
+        ):  # If the UID is already in the database, generate a new one
+            UID = random.randint(1000000, 9999999)  # Generate a random UID
+        returnUIDs.append(UID)
+    return returnUIDs  # Return the list of UIDs
+
+
+def MakeOrderID(orders):
+    """Makes a random and UNIQUE order ID
+
+    Args:
+        orders (TinyDB/Table/Orders): Table of orders to check for order IDs
+
+    Returns:
+        Int: Random and unique order ID
+    """
+    allIDs = []
+    AvailableOrders = orders.search(
+        tinydb.Query().process_status == "UTILIZE"
+    )  # Get all orders
+    for order in AvailableOrders:
+        # Add all order IDs to a list
+        allIDs.append(int(order["order_number"]))
+    order_ID = 112
+    while (
+        order_ID in allIDs
+    ):  # If the order ID is already in the database, generate a new one
+        order_ID += 1
+    return order_ID

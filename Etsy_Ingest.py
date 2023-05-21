@@ -8,7 +8,7 @@ import webbrowser
 import tinydb
 from guizero import Text, Window
 
-import New_Order_Window
+import Common
 from Easy_Cart_Ingest import ImportEasyCartOrders
 from Etsy_Request_Server import Asymmetric_Encryption
 
@@ -346,7 +346,7 @@ def SaveOrders(Receipts, database):  # save orders to database
             "%m-%d-%Y"
         )
 
-        ItemUIDs = New_Order_Window.MakeUIDs(order_items, len(Receipt["transactions"]))
+        ItemUIDs = Common.MakeUIDs(order_items, len(Receipt["transactions"]))
         count = 0
         for action in Receipt["transactions"]:
             ItemName = action["title"]
@@ -409,7 +409,7 @@ def SaveOrdersNoOverwrite(Receipts, database):  # save orders to database
             Status = "OPEN"
         else:
             Status = "FULFILLED"
-        OrderID = New_Order_Window.MakeOrderID(orders)
+        OrderID = Common.MakeOrderID(orders)
         Date = datetime.datetime.fromtimestamp(Receipt["create_timestamp"]).strftime(
             "%m-%d-%Y"
         )
@@ -419,12 +419,14 @@ def SaveOrdersNoOverwrite(Receipts, database):  # save orders to database
             break  # will ignore this order
             # however a closed order that already exists but has changed will be added again
 
-        ItemUIDs = New_Order_Window.MakeUIDs(order_items, len(Receipt["transactions"]))
+        ItemUIDs = Common.MakeUIDs(order_items, len(Receipt["transactions"]))
         count = 0
         for action in Receipt["transactions"]:
             ItemName = action["title"]
             Quantity = action["quantity"]
-            UnitPrice = int(action["price"]["amount"]) / int(action["price"]["divisor"])
+            UnitPrice = Common.MonetaryDivide(
+                action["price"]["amount"], action["price"]["divisor"]
+            )
             order_items.insert(
                 {
                     "item_UID": ItemUIDs[count],

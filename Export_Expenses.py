@@ -5,6 +5,8 @@ import subprocess
 
 import tinydb
 
+import Common
+
 
 def HeaderHTML():
     return (
@@ -65,15 +67,16 @@ def BodyFootHTML():
 def ExpenseToHTML(expenses):
     code = ""
 
-    total = 0
+    total = Common.Decimal(0)
     for expense in expenses:
         code += "<h2>" + expense["expense_name"] + "</h2> \n"
         code += "<p>Expense Date: " + expense["expense_date"] + "</p> <br>\n"
         code += (
             "<p>Expense Total: $"
             + str(
-                float(expense["expense_quantity"])
-                * float(expense["expense_unit_price"])
+                Common.MonetaryMultiply(
+                    expense["expense_quantity"], expense["expense_unit_price"]
+                )
             )
             + "</p> <br> \n"
         )
@@ -108,8 +111,10 @@ def ExpenseToHTML(expenses):
                     + """">Expense Image</a></p> <br> \n"""
                 )
         code += "<hr> \n"
-        total += float(expense["expense_quantity"]) * float(
-            expense["expense_unit_price"]
+        total.add(
+            Common.MonetaryMultiply(
+                expense["expense_quantity"], expense["expense_unit_price"]
+            )
         )
 
     code += "<h2>Total Expenses: $" + str(total) + "</h2> \n"

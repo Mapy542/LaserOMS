@@ -97,6 +97,7 @@ Version 1.2.4
 - Fixed Etsy Ingest
 - Fixed Etsy Shipping Expense Import bug
 - Handle New Order Autofill Exceptions
+- Added float-less arithmetic for monetary calculations
 - Other small bug fixes
 
 Version 1.2.3

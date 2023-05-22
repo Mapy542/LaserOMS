@@ -92,6 +92,10 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.2.5
+
+- Negative number arithmetic bug fixes.
+
 Version 1.2.4
 
 - Fixed Etsy Ingest

@@ -87,9 +87,7 @@ class Decimal:  # Replacement for a float that has no floating point error
         return self
 
     def __str__(self) -> str:  # Returns the decimal as a string
-        Digits = [
-            str(self.get_digit(self.value, i)) for i in range(len(str(self.value)))
-        ]
+        Digits = [str(self.value)[i] for i in range(len(str(self.value)))]
         if self.power < 0:
             Digits.insert(len(Digits) + self.power, ".")
         return "".join(Digits)
@@ -115,6 +113,10 @@ class Decimal:  # Replacement for a float that has no floating point error
 
         if n >= len(str(number)):
             raise IndexError  # If n is greater than the number of digits in number raise an error
+
+        number = abs(
+            number
+        )  # Make the number positive so that the index does not include a negative sign
 
         return int(str(number)[n])
 
@@ -263,9 +265,17 @@ class Decimal:  # Replacement for a float that has no floating point error
                 )
                 Dividend *= 10  # Multiply the dividend by 10 to add a 0 to the dividend
 
+        OriginalValue = self.value  # Store the original value of the decimal
+
         self.value = int(
             "".join(map(str, ResultantDigits))
         )  # Set the value of the decimal to the resultant decimal
+
+        if (
+            OriginalValue < 0 ^ Number2.value < 0
+        ):  # If the original value of the decimal was negative or the divisor was negative
+            self.value *= -1  # Make the resultant decimal negative
+
         self.power -= (
             Number2.power + ExtraPower
         )  # Set the power of the decimal to the resultant decimal

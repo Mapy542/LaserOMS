@@ -87,7 +87,11 @@ class Decimal:  # Replacement for a float that has no floating point error
         return self
 
     def __str__(self) -> str:  # Returns the decimal as a string
-        Digits = [str(self.value)[i] for i in range(len(str(self.value)))]
+        Digits = []
+        for i in range(len(str(abs(self.value)))):
+            Digits.append(str(self.get_digit(self.value, i)))
+        if self.value < 0:
+            Digits.insert(0, "-")
         if self.power < 0:
             Digits.insert(len(Digits) + self.power, ".")
         return "".join(Digits)
@@ -352,7 +356,7 @@ def MonetaryDivide(Number1, Number2):
     if not type(Number2) == Decimal:
         Number2 = Decimal(Number2)
 
-    return round(Number1.divide(Number2).__float__(), 2)
+    return round(Number1.divide(Number2, 10).__float__(), 2)
 
 
 def MonetarySummation(List):
@@ -457,3 +461,6 @@ def MakeOrderID(orders):
     ):  # If the order ID is already in the database, generate a new one
         order_ID += 1
     return order_ID
+
+
+print(Decimal("1").multiply("7.00").value)

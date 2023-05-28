@@ -135,6 +135,8 @@ def ShowFinancialStats(database):
 
     print(YearlyRevenue)
     print(MonthlyRevenue)
+    print(YearlyExpenses)
+    print(MonthlyExpenses)
     # sort yearly revenue by year descending. Most recent on top
     YearlyRevenue = dict(sorted(YearlyRevenue.items(), reverse=True))
 

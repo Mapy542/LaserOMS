@@ -146,13 +146,21 @@ class Decimal:  # Replacement for a float that has no floating point error
             not self.power == Number2.power
         ):  # If the powers are not equal make them equal by multiplying by 10^difference
             if self.power > Number2.power:
-                self.value *= 10 ** (self.power - Number2.power)
-                self.power -= self.power - Number2.power
+                Copy1 = Decimal(self)
+                Copy1.value *= 10 ** (self.power - Number2.power)
+                Copy1.power = Number2.power
+                Copy2 = Decimal(Number2)
             else:
-                Number2.value *= 10 ** (Number2.power - self.power)
-                self.power = Number2.power - (Number2.power - self.power)
+                Copy2 = Decimal(Number2)
+                Copy2.value *= 10 ** (Number2.power - self.power)
+                Copy2.power = self.power
+                Copy1 = Decimal(self)
+        else:
+            Copy1 = Decimal(self)
+            Copy2 = Decimal(Number2)
 
-        self.value += Number2.value  # Add the values
+        self.value = Copy1.value + Copy2.value
+        self.power = Copy1.power
         self.Simplify()  # Simplify the decimal
 
         # return self
@@ -173,13 +181,21 @@ class Decimal:  # Replacement for a float that has no floating point error
             not self.power == Number2.power
         ):  # If the powers are not equal make them equal by multiplying by 10^difference
             if self.power > Number2.power:
-                self.value *= 10 ** (self.power - Number2.power)
-                self.power -= self.power - Number2.power
+                Copy1 = Decimal(self)
+                Copy1.value *= 10 ** (self.power - Number2.power)
+                Copy1.power = Number2.power
+                Copy2 = Decimal(Number2)
             else:
-                Number2.value *= 10 ** (Number2.power - self.power)
-                self.power = Number2.power - (Number2.power - self.power)
+                Copy2 = Decimal(Number2)
+                Copy2.value *= 10 ** (Number2.power - self.power)
+                Copy2.power = self.power
+                Copy1 = Decimal(self)
+        else:
+            Copy1 = Decimal(self)
+            Copy2 = Decimal(Number2)
 
-        self.value -= Number2.value  # Subtract the values
+        self.value = Copy1.value - Copy2.value
+        self.power = Copy1.power
         self.Simplify()  # Simplify the decimal
 
         # return self

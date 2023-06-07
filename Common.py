@@ -53,7 +53,6 @@ class Decimal:  # Replacement for a float that has no floating point error
 
             else:
                 self.value = int(Number)
-            print(self.value, self.power)
 
         elif type(Number) == Decimal:
             self.value = Number.value
@@ -214,8 +213,6 @@ class Decimal:  # Replacement for a float that has no floating point error
 
         self.value *= Number2.value  # Multiply the values
         self.power += Number2.power  # Add the powers
-
-        print(self.value, self.power)
 
         self.Simplify()  # Simplify the decimal
 

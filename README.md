@@ -96,6 +96,8 @@ Version 1.2.5
 
 - Fixed Addition Arithmetic Bug
 - Added Full Negative Decimal Support
+- Added Delete Expense Button
+- Other Bug Fixes
 
 Version 1.2.4
 

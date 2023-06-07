@@ -1,32 +1,158 @@
-import random
-
 import tinydb
+from tinydb.storages import MemoryStorage
 
-# Common functions to be used throughout the project
-
-
-def CleanedFileName(FileName):
-    """Takes Path String and returns a cleaned version of the string that can be used as a file name
-
-    Args:
-        FileName (str): file name to be cleaned NOT WHOLE PATH NOR EXTENSION
-
-    Returns:
-        str: Cleaned file name
-    """
-    FileName = FileName.replace(" ", "_")
-    FileName = FileName.replace("/", "-")
-    FileName = FileName.replace("\\", "-")
-    FileName = FileName.replace(":", "-")
-    FileName = FileName.replace("*", "-")
-    FileName = FileName.replace("?", "-")
-    FileName = FileName.replace('"', "-")
-    FileName = FileName.replace("<", "-")
-    FileName = FileName.replace(">", "-")
-    FileName = FileName.replace("|", "-")
-    FileName = FileName.replace(".", "-")  # Remove false file extension
-
-    return FileName
+db = [
+    {
+        "expense_ID": 111,
+        "expense_name": "LAST_EXPENSE",
+        "process_status": "IGNORE",
+        "expense_image_path": "",
+    },
+    {
+        "expense_name": "Hammer Stock",
+        "expense_quantity": "1",
+        "expense_unit_price": "8",
+        "expense_notes": "\n",
+        "expense_date": "12-12-2021",
+        "process_status": "UTILIZE",
+        "expense_image_path": "",
+    },
+    {
+        "expense_name": "Wood Resupply",
+        "expense_quantity": "1",
+        "expense_unit_price": "95",
+        "expense_notes": "\n",
+        "expense_date": "12-12-2021",
+        "process_status": "UTILIZE",
+        "expense_image_path": "",
+    },
+    {
+        "expense_name": "Resin Pan",
+        "expense_quantity": "1",
+        "expense_unit_price": "20",
+        "expense_notes": "\n",
+        "expense_date": "12-12-2021",
+        "process_status": "UTILIZE",
+        "expense_image_path": "",
+    },
+    {
+        "expense_name": "Wood Resupply",
+        "expense_quantity": "1",
+        "expense_unit_price": "350",
+        "expense_notes": "\n",
+        "expense_date": "12-12-2021",
+        "process_status": "UTILIZE",
+        "expense_image_path": "",
+    },
+    {
+        "expense_name": "Bandsaw",
+        "expense_quantity": "1",
+        "expense_unit_price": "250",
+        "expense_notes": "\n",
+        "expense_date": "12-12-2021",
+        "process_status": "UTILIZE",
+        "expense_image_path": "",
+    },
+    {
+        "expense_name": "Bandsaw Blades",
+        "expense_quantity": "1",
+        "expense_unit_price": "50",
+        "expense_notes": "\n",
+        "expense_date": "12-12-2021",
+        "process_status": "UTILIZE",
+        "expense_image_path": "",
+    },
+    {
+        "expense_name": "Word Clock Supplies",
+        "expense_quantity": "1",
+        "expense_unit_price": "80",
+        "expense_notes": "\n",
+        "expense_date": "12-12-2021",
+        "process_status": "UTILIZE",
+        "expense_image_path": "",
+    },
+    {
+        "expense_name": "1/4 Spiral Endmill",
+        "expense_quantity": "1",
+        "expense_unit_price": "20",
+        "expense_notes": "\n",
+        "expense_date": "2-12-2022",
+        "process_status": "UTILIZE",
+        "expense_image_path": "",
+    },
+    {
+        "expense_name": "Shipping_Label-_2878292147",
+        "expense_quantity": "1",
+        "expense_unit_price": "7.20",
+        "expense_notes": "\n",
+        "expense_date": "05-07-2023",
+        "expense_image_path": "\\\\10.0.0.104\\LeboeufLasing\\09-LaserOMS\\LaserOMS-Images\\Shipping_Label-_2878292147.pdf",
+        "process_status": "UTILIZE",
+    },
+    {
+        "expense_name": "Shipping_Label-_2876623213",
+        "expense_quantity": "1",
+        "expense_unit_price": "7.20",
+        "expense_notes": "\n",
+        "expense_date": "05-07-2023",
+        "expense_image_path": "\\\\10.0.0.104\\LeboeufLasing\\09-LaserOMS\\LaserOMS-Images\\Shipping_Label-_2876623213.pdf",
+        "process_status": "UTILIZE",
+    },
+    {
+        "expense_name": "Shipping_Label-_2882817955",
+        "expense_quantity": "1",
+        "expense_unit_price": "13.74",
+        "expense_notes": "\n",
+        "expense_date": "05-16-2023",
+        "expense_image_path": "\\\\10.0.0.104\\LeboeufLasing\\09-LaserOMS\\LaserOMS-Images\\Shipping_Label-_2882817955.pdf",
+        "process_status": "UTILIZE",
+    },
+    {
+        "expense_name": "Shipping_Label-_2883954451",
+        "expense_quantity": "1",
+        "expense_unit_price": "9.59",
+        "expense_notes": "\n",
+        "expense_date": "05-16-2023",
+        "expense_image_path": "\\\\10.0.0.104\\LeboeufLasing\\09-LaserOMS\\LaserOMS-Images\\Shipping_Label-_2883954451.pdf",
+        "process_status": "UTILIZE",
+    },
+    {
+        "expense_name": "Lowes_more_wood_and_paint",
+        "expense_quantity": "1",
+        "expense_unit_price": "165.11",
+        "expense_notes": "\n\n",
+        "expense_date": "05-18-2023",
+        "expense_image_path": "\\\\10.0.0.104\\LeboeufLasing\\09-LaserOMS\\LaserOMS-Images\\Lowes_more_wood_and_paint.JPG",
+        "process_status": "UTILIZE",
+    },
+    {
+        "expense_name": "Shipping_Label-_2900550648",
+        "expense_quantity": "1",
+        "expense_unit_price": "7.00",
+        "expense_notes": "\n",
+        "expense_date": "05-26-2023",
+        "expense_image_path": "\\\\10.0.0.104\\LeboeufLasing\\09-LaserOMS\\LaserOMS-Images\\Shipping_Label-_2900550648.pdf",
+        "process_status": "UTILIZE",
+    },
+    {
+        "expense_name": "Shipping_Label-_2908328576",
+        "expense_quantity": "1",
+        "expense_unit_price": "7.00",
+        "expense_notes": "\n",
+        "expense_date": "05-31-2023",
+        "expense_image_path": "\\\\10.0.0.104\\LeboeufLasing\\09-LaserOMS\\LaserOMS-Images\\Shipping_Label-_2908328576.pdf",
+        "process_status": "UTILIZE",
+    },
+    {
+        "expense_name": "Shipping_Label-_2909910334",
+        "expense_quantity": "1",
+        "expense_unit_price": "7.00",
+        "expense_notes": "\n",
+        "expense_date": "05-31-2023",
+        "expense_image_path": "\\\\10.0.0.104\\LeboeufLasing\\09-LaserOMS\\LaserOMS-Images\\Shipping_Label-_2909910334.pdf",
+        "process_status": "UTILIZE",
+    },
+]
 
 
 class Decimal:  # Replacement for a float that has no floating point error
@@ -222,7 +348,7 @@ class Decimal:  # Replacement for a float that has no floating point error
         if Number2.value == 0:
             raise ZeroDivisionError  # If Number2 is 0 raise an error
 
-        if self.value % Number2.value == 0:  # If the value is evenly divisible
+        if self.value / Number2.value is int:  # If the value is evenly divisible
             self.value /= Number2.value
             self.power -= Number2.power
             self.Simplify()
@@ -295,25 +421,6 @@ class Decimal:  # Replacement for a float that has no floating point error
         # return self
 
 
-def MonetaryAdd(Number1, Number2):
-    """Adds two monetary values together with correct rounding for USD. (2 decimal places)
-
-    Args:
-        Number1 (Int, String, Decimal(Common/Class)): First Number to be added
-        Number2 (Int, String, Decimal(Common/Class)): Second Number to be added
-
-    Returns:
-        Float: Sum of the two numbers
-    """
-    if not type(Number1) == Decimal:
-        Number1 = Decimal(Number1)
-    if not type(Number2) == Decimal:
-        Number2 = Decimal(Number2)
-
-    Number1.add(Number2)
-    return round(Number1.__float__(), 2)
-
-
 def MonetarySubtract(Number1, Number2):
     """Subtracts two monetary values together with correct rounding for USD. (2 decimal places)
 
@@ -333,143 +440,49 @@ def MonetarySubtract(Number1, Number2):
     return round(Number1.__float__(), 2)
 
 
-def MonetaryMultiply(Number1, Number2):
-    """Multiplies two monetary values together with correct rounding for USD. (2 decimal places)
+def GetExpenseStats(database):
+    expenses = database.table("Expenses")  # load all expenses
 
-    Args:
-        Number1 (Int, String, Decimal(Common/Class)): First Number to be multiplied
-        Number2 (Int, String, Decimal(Common/Class)): Second Number to be multiplied
+    ActiveExpenses = expenses.search((tinydb.where("process_status") == "UTILIZE"))
 
-    Returns:
-        Float: Product of the two numbers
-    """
-    if not type(Number1) == Decimal:
-        Number1 = Decimal(Number1)
-    if not type(Number2) == Decimal:
-        Number2 = Decimal(Number2)
+    YearlyExpenses = {}
+    MonthlyExpenses = {}
 
-    Number1.multiply(Number2)
-    return round(Number1.__float__(), 2)
+    for expense in ActiveExpenses:  # for each expense
+        year = expense["expense_date"].split("-")[2]  # get year
+        if len(year) > 4:
+            # cut off the time or other data included after year
+            year = year[: len(year) - 4]
+        year = int(year)
+        month = int(expense["expense_date"].split("-")[0])  # get month
 
+        if year not in YearlyExpenses:  # add year if not in years
+            YearlyExpenses[year] = Decimal("0")
+            MonthlyExpenses[year] = {}
+        # add month to months if not in months
+        if month not in MonthlyExpenses[year]:
+            MonthlyExpenses[year][month] = Decimal("0")
 
-def MonetaryDivide(Number1, Number2):
-    """Divides two monetary values together with correct rounding for USD. (2 decimal places)
+        total = Decimal(expense["expense_quantity"])
+        total.multiply(expense["expense_unit_price"])  # calculate total
+        YearlyExpenses[year].add(total)  # add total to applicable
+        MonthlyExpenses[year][month].add(total)
+        print(
+            MonthlyExpenses[year][month],
+            expense["expense_name"],
+            month,
+            total.value,
+            total.power,
+        )
 
-    Args:
-        Number1 (Int, String, Decimal(Common/Class)): First Number to be divided
-        Number2 (Int, String, Decimal(Common/Class)): Second Number to be divided
-
-    Returns:
-        Float: Quotient of the two numbers
-    """
-    if not type(Number1) == Decimal:
-        Number1 = Decimal(Number1)
-    if not type(Number2) == Decimal:
-        Number2 = Decimal(Number2)
-
-    Number1.divide(Number2, 10)
-    return round(Number1.__float__(), 2)
-
-
-def MonetarySummation(List):
-    """Sums a list of monetary values together with correct rounding for USD. (2 decimal places)
-
-    Args:
-        List (List[Int, String(May Include a $, Skipped if "NA"), Decimal(Common/Class)]): List of numbers to be summed
-
-    Returns:
-        Float: Sum of the numbers in the list
-    """
-
-    Sum = Decimal()
-    for Number in List:
-        if Number == "NA":
-            continue
-        if not type(Number) == Decimal:
-            if type(Number) == str:  # If the number is a string
-                Number = Decimal(
-                    Number.replace("$", "")
-                )  # Remove the dollar sign if it is present
-            Number = Decimal(Number)
-        Sum = Sum.add(Number)
-    return round(Sum.__float__(), 2)
+    return YearlyExpenses, MonthlyExpenses
 
 
-def MonetaryAverage(List):
-    """Finds the average of a list of monetary values together with correct rounding for USD. (2 decimal places)
+database = tinydb.TinyDB(storage=MemoryStorage)
+database.table("Expenses").insert_multiple(db)
 
-    Args:
-        List (List[Int, String, Decimal(Common/Class)]): List of numbers to be averaged
+YearlyExpenses, MonthlyExpenses = GetExpenseStats(database)
 
-    Returns:
-        Float: Average of the numbers in the list
-    """
-    Sum = Decimal(0)
-    for Number in List:
-        if not type(Number) == Decimal:
-            Number = Decimal(Number)
-        Sum = Sum.add(Number)
-    return round(Sum.divide(len(List)).__float__(), 2)
-
-
-# UID Functions
-def MakeUIDs(order_items, ItemCount):
-    """Makes a list of random and UNIQUE UIDs
-
-    Args:
-        order_items (TinyDB/Table/OrderItems): Table of order items to check for UIDs
-        ItemCount (Int): Number of UIDs to make
-
-    Returns:
-        List[Int]: List of random and unique UIDs
-    """
-    allUIDs = []
-    order_items = order_items.search(
-        tinydb.Query().process_status == "UTILIZE"
-    )  # Get all items
-    if (
-        order_items == []
-    ):  # If there are no items in the database, return a list of random UIDs
-        returnUIDs = []
-        returnUIDs.append(random.randint(1000000, 9999999))
-        for i in range(ItemCount):
-            UID = random.randint(1000000, 9999999)
-            while UID in returnUIDs:
-                UID = random.randint(1000000, 9999999)
-            returnUIDs.append(UID)
-        return returnUIDs
-    for item in order_items:
-        allUIDs.append(item["item_UID"])  # Add all UIDs to a list
-    returnUIDs = []
-    for i in range(ItemCount):
-        UID = random.randint(1000000, 9999999)  # Generate a random UID
-        while (
-            UID in allUIDs
-        ):  # If the UID is already in the database, generate a new one
-            UID = random.randint(1000000, 9999999)  # Generate a random UID
-        returnUIDs.append(UID)
-    return returnUIDs  # Return the list of UIDs
-
-
-def MakeOrderID(orders):
-    """Makes a random and UNIQUE order ID
-
-    Args:
-        orders (TinyDB/Table/Orders): Table of orders to check for order IDs
-
-    Returns:
-        Int: Random and unique order ID
-    """
-    allIDs = []
-    AvailableOrders = orders.search(
-        tinydb.Query().process_status == "UTILIZE"
-    )  # Get all orders
-    for order in AvailableOrders:
-        # Add all order IDs to a list
-        allIDs.append(int(order["order_number"]))
-    order_ID = 112
-    while (
-        order_ID in allIDs
-    ):  # If the order ID is already in the database, generate a new one
-        order_ID += 1
-    return order_ID
+for year in MonthlyExpenses:
+    for month in MonthlyExpenses[year]:
+        print(year, month, MonthlyExpenses[year][month])

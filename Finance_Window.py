@@ -38,18 +38,10 @@ def GetRevenueStats(database):
 
         for uid in ItemUIDs:  # for each order item
             Item = order_items.search(tinydb.where("item_UID") == uid)[0]  # lookup item
-            total = Common.Decimal(Item["item_quantity"]).multiply(
-                Item["item_unit_price"]
-            )  # calculate total
+            total = Common.Decimal(Item["item_quantity"])
+            total.multiply(Item["item_unit_price"])  # calculate total
             YearlyRevenue[year].add(total)  # apply total where applicable.
             MonthlyRevenue[year][month].add(total)
-
-    for year in YearlyRevenue.keys():
-        YearlyRevenue[year] = str(YearlyRevenue[year])
-
-    for year in MonthlyRevenue.keys():
-        for month in MonthlyRevenue[year].keys():
-            MonthlyRevenue[year][month] = str(MonthlyRevenue[year][month])
 
     return YearlyRevenue, MonthlyRevenue
 
@@ -99,19 +91,17 @@ def GetExpenseStats(database):
         if month not in MonthlyExpenses[year]:
             MonthlyExpenses[year][month] = Common.Decimal("0")
 
-        total = Common.Decimal(expense["expense_quantity"]).multiply(
-            expense["expense_unit_price"]
-        )  # calculate total
+        total = Common.Decimal(expense["expense_quantity"])
+        total.multiply(expense["expense_unit_price"])  # calculate total
         YearlyExpenses[year].add(total)  # add total to applicable
         MonthlyExpenses[year][month].add(total)
-
-    # convert decimals to strings in dictionary for guizero
-    for year in YearlyExpenses.keys():
-        YearlyExpenses[year] = str(YearlyExpenses[year])
-
-    for year in MonthlyExpenses.keys():
-        for month in MonthlyExpenses[year].keys():
-            MonthlyExpenses[year][month] = str(MonthlyExpenses[year][month])
+        print(
+            MonthlyExpenses[year][month],
+            expense["expense_name"],
+            month,
+            total.value,
+            total.power,
+        )
 
     return YearlyExpenses, MonthlyExpenses
 
@@ -133,10 +123,6 @@ def ShowFinancialStats(database):
     )  # returns 2 lists of dictionaries
     YearlyExpenses, MonthlyExpenses = GetExpenseStats(database)
 
-    print(YearlyRevenue)
-    print(MonthlyRevenue)
-    print(YearlyExpenses)
-    print(MonthlyExpenses)
     # sort yearly revenue by year descending. Most recent on top
     YearlyRevenue = dict(sorted(YearlyRevenue.items(), reverse=True))
 

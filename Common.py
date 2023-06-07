@@ -43,10 +43,14 @@ class Decimal:  # Replacement for a float that has no floating point error
 
         elif type(Number) == str:
             if "." in Number:
-                self.value = int(Number.replace(".", ""))
+                while Number[-1] == "0":  # Remove trailing zeros
+                    Number = Number[:-1]  # Remove last digit
+
                 self.power = (
                     Number.index(".") - len(Number) + 1
                 )  # Negative power as decimal is less than 1
+                self.value = int(Number.replace(".", ""))
+
             else:
                 self.value = int(Number)
 
@@ -63,6 +67,7 @@ class Decimal:  # Replacement for a float that has no floating point error
                 self.value = int(StringFloat)
 
         else:
+            print(Number)
             raise TypeError  # If the type is not supported raise an error
 
         self.Simplify()  # Simplify the decimal
@@ -87,7 +92,11 @@ class Decimal:  # Replacement for a float that has no floating point error
         return self
 
     def __str__(self) -> str:  # Returns the decimal as a string
-        Digits = [str(self.value)[i] for i in range(len(str(self.value)))]
+        Digits = []
+        for i in range(len(str(abs(self.value)))):
+            Digits.append(str(self.get_digit(self.value, i)))
+        if self.value < 0:
+            Digits.insert(0, "-")
         if self.power < 0:
             Digits.insert(len(Digits) + self.power, ".")
         return "".join(Digits)
@@ -111,7 +120,7 @@ class Decimal:  # Replacement for a float that has no floating point error
         if n < 0:
             raise IndexError  # If n is negative raise an error
 
-        if n >= len(str(number)):
+        if n >= len(str(abs(number))):
             raise IndexError  # If n is greater than the number of digits in number raise an error
 
         number = abs(
@@ -136,16 +145,24 @@ class Decimal:  # Replacement for a float that has no floating point error
             not self.power == Number2.power
         ):  # If the powers are not equal make them equal by multiplying by 10^difference
             if self.power > Number2.power:
-                self.value *= 10 ** (self.power - Number2.power)
-                self.power -= self.power - Number2.power
+                Copy1 = Decimal(self)
+                Copy1.value *= 10 ** (self.power - Number2.power)
+                Copy1.power = Number2.power
+                Copy2 = Decimal(Number2)
             else:
-                Number2.value *= 10 ** (Number2.power - self.power)
-                self.power = Number2.power - (Number2.power - self.power)
+                Copy2 = Decimal(Number2)
+                Copy2.value *= 10 ** (Number2.power - self.power)
+                Copy2.power = self.power
+                Copy1 = Decimal(self)
+        else:
+            Copy1 = Decimal(self)
+            Copy2 = Decimal(Number2)
 
-        self.value += Number2.value  # Add the values
+        self.value = Copy1.value + Copy2.value
+        self.power = Copy1.power
         self.Simplify()  # Simplify the decimal
 
-        return self
+        # return self
 
     def subtract(self, Number2=0):
         """Subtracts the value of Number2 from the value of the decimal
@@ -163,16 +180,24 @@ class Decimal:  # Replacement for a float that has no floating point error
             not self.power == Number2.power
         ):  # If the powers are not equal make them equal by multiplying by 10^difference
             if self.power > Number2.power:
-                self.value *= 10 ** (self.power - Number2.power)
-                self.power -= self.power - Number2.power
+                Copy1 = Decimal(self)
+                Copy1.value *= 10 ** (self.power - Number2.power)
+                Copy1.power = Number2.power
+                Copy2 = Decimal(Number2)
             else:
-                Number2.value *= 10 ** (Number2.power - self.power)
-                self.power = Number2.power - (Number2.power - self.power)
+                Copy2 = Decimal(Number2)
+                Copy2.value *= 10 ** (Number2.power - self.power)
+                Copy2.power = self.power
+                Copy1 = Decimal(self)
+        else:
+            Copy1 = Decimal(self)
+            Copy2 = Decimal(Number2)
 
-        self.value -= Number2.value  # Subtract the values
+        self.value = Copy1.value - Copy2.value
+        self.power = Copy1.power
         self.Simplify()  # Simplify the decimal
 
-        return self
+        # return self
 
     def multiply(self, Number2=0):
         """Multiplies the value of the decimal by the value of Number2
@@ -191,7 +216,7 @@ class Decimal:  # Replacement for a float that has no floating point error
 
         self.Simplify()  # Simplify the decimal
 
-        return self
+        # return self
 
     def divide(self, Number2=1, Accuracy=2):
         """Divides the value of the decimal by the value of Number2
@@ -210,7 +235,7 @@ class Decimal:  # Replacement for a float that has no floating point error
         if Number2.value == 0:
             raise ZeroDivisionError  # If Number2 is 0 raise an error
 
-        if self.value / Number2.value is int:  # If the value is evenly divisible
+        if self.value % Number2.value == 0:  # If the value is evenly divisible
             self.value /= Number2.value
             self.power -= Number2.power
             self.Simplify()
@@ -280,7 +305,7 @@ class Decimal:  # Replacement for a float that has no floating point error
             Number2.power + ExtraPower
         )  # Set the power of the decimal to the resultant decimal
 
-        return self
+        # return self
 
 
 def MonetaryAdd(Number1, Number2):
@@ -298,7 +323,8 @@ def MonetaryAdd(Number1, Number2):
     if not type(Number2) == Decimal:
         Number2 = Decimal(Number2)
 
-    return round(Number1.add(Number2).__float__(), 2)
+    Number1.add(Number2)
+    return round(Number1.__float__(), 2)
 
 
 def MonetarySubtract(Number1, Number2):
@@ -316,7 +342,8 @@ def MonetarySubtract(Number1, Number2):
     if not type(Number2) == Decimal:
         Number2 = Decimal(Number2)
 
-    return round(Number1.subtract(Number2).__float__(), 2)
+    Number1.subtract(Number2)
+    return round(Number1.__float__(), 2)
 
 
 def MonetaryMultiply(Number1, Number2):
@@ -334,7 +361,8 @@ def MonetaryMultiply(Number1, Number2):
     if not type(Number2) == Decimal:
         Number2 = Decimal(Number2)
 
-    return round(Number1.multiply(Number2).__float__(), 2)
+    Number1.multiply(Number2)
+    return round(Number1.__float__(), 2)
 
 
 def MonetaryDivide(Number1, Number2):
@@ -352,7 +380,8 @@ def MonetaryDivide(Number1, Number2):
     if not type(Number2) == Decimal:
         Number2 = Decimal(Number2)
 
-    return round(Number1.divide(Number2).__float__(), 2)
+    Number1.divide(Number2, 10)
+    return round(Number1.__float__(), 2)
 
 
 def MonetarySummation(List):

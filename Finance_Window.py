@@ -7,6 +7,7 @@ import Export_Expenses
 import Google_Sheets_Sync
 import Ingest_Etsy_Shipping_Labels
 import New_Expense_Window
+import Settings_Window
 
 
 def GetRevenueStats(database):
@@ -38,18 +39,10 @@ def GetRevenueStats(database):
 
         for uid in ItemUIDs:  # for each order item
             Item = order_items.search(tinydb.where("item_UID") == uid)[0]  # lookup item
-            total = Common.Decimal(Item["item_quantity"]).multiply(
-                Item["item_unit_price"]
-            )  # calculate total
+            total = Common.Decimal(Item["item_quantity"])
+            total.multiply(Item["item_unit_price"])  # calculate total
             YearlyRevenue[year].add(total)  # apply total where applicable.
             MonthlyRevenue[year][month].add(total)
-
-    for year in YearlyRevenue.keys():
-        YearlyRevenue[year] = str(YearlyRevenue[year])
-
-    for year in MonthlyRevenue.keys():
-        for month in MonthlyRevenue[year].keys():
-            MonthlyRevenue[year][month] = str(MonthlyRevenue[year][month])
 
     return YearlyRevenue, MonthlyRevenue
 
@@ -99,31 +92,24 @@ def GetExpenseStats(database):
         if month not in MonthlyExpenses[year]:
             MonthlyExpenses[year][month] = Common.Decimal("0")
 
-        total = Common.Decimal(expense["expense_quantity"]).multiply(
-            expense["expense_unit_price"]
-        )  # calculate total
+        total = Common.Decimal(expense["expense_quantity"])
+        total.multiply(expense["expense_unit_price"])  # calculate total
         YearlyExpenses[year].add(total)  # add total to applicable
         MonthlyExpenses[year][month].add(total)
-
-    # convert decimals to strings in dictionary for guizero
-    for year in YearlyExpenses.keys():
-        YearlyExpenses[year] = str(YearlyExpenses[year])
-
-    for year in MonthlyExpenses.keys():
-        for month in MonthlyExpenses[year].keys():
-            MonthlyExpenses[year][month] = str(MonthlyExpenses[year][month])
 
     return YearlyExpenses, MonthlyExpenses
 
 
-def UpdateListbox(database, ShowCombo, ExpenseSortDiv):
+def UpdateListbox(database, ShowCombo, ExpenseSortDiv, DeleteButton):
     if ShowCombo.value == "Statistics":
         ShowFinancialStats(database)
         ExpenseSort.visible = False
+        DeleteButton.visible = False
         ExpenseSortDiv.hide()
     elif ShowCombo.value == "Expenses":
         ShowExpenses(database)
         ExpenseSort.visible = True
+        DeleteButton.visible = True
         ExpenseSortDiv.show()
 
 
@@ -133,8 +119,6 @@ def ShowFinancialStats(database):
     )  # returns 2 lists of dictionaries
     YearlyExpenses, MonthlyExpenses = GetExpenseStats(database)
 
-    print(YearlyRevenue)
-    print(MonthlyRevenue)
     # sort yearly revenue by year descending. Most recent on top
     YearlyRevenue = dict(sorted(YearlyRevenue.items(), reverse=True))
 
@@ -322,6 +306,29 @@ def ImportEtsyShippingExpenses(database, window2):
     Ingest_Etsy_Shipping_Labels.ImportEtsyShippingExpense(window2, database)
 
 
+def DeleteExpense(database, listbox, window2):
+    if listbox.value == None:  # if no expense selected
+        return
+
+    password = window2.question(
+        "Delete Expense", "Enter password to delete expense"
+    )  # get password
+    settings = database.table("Settings")  # find settings
+    hash = settings.get(tinydb.where("setting_name") == "Settings_Password")[
+        "setting_value"
+    ]
+    if (
+        password == None or Settings_Window.PasswordHash(password) != hash
+    ):  # if password incorrect
+        window2.error("Delete Expense", "Incorrect password")
+        return
+
+    expense = listbox.value[0].split(":")[0]  # get expense name from listbox
+    expenses = database.table("Expenses")  # load all expenses
+    expenses.remove(tinydb.where("expense_name") == expense)  # remove expense
+    ShowExpenses(database)  # refresh expenses
+
+
 def FinancesDisplay(main_window, database):
     global listbox
     global window2
@@ -351,6 +358,14 @@ def FinancesDisplay(main_window, database):
     )
     listbox.when_double_clicked = EditExpense
 
+    DeleteButton = PushButton(
+        window2,
+        text="Delete Expense",
+        command=DeleteExpense,
+        grid=[3, 10, 1, 1],
+        args=[database, listbox, window2],
+    )
+
     # sort expenses
     ExpenseSortDiv = TitleBox(
         window2, text="Sort Expenses by", grid=[5, 4, 1, 1], layout="grid"
@@ -369,7 +384,7 @@ def FinancesDisplay(main_window, database):
         text="Reload",
         command=UpdateListbox,
         grid=[0, 1, 1, 1],
-        args=[database, ShowCombo, ExpenseSortDiv],
+        args=[database, ShowCombo, ExpenseSortDiv, DeleteButton],
     )
 
     SyncDiv = TitleBox(window2, text="Sync", grid=[0, 8, 3, 1], layout="grid")
@@ -409,4 +424,4 @@ def FinancesDisplay(main_window, database):
         args=[database, window2],
     )
 
-    UpdateListbox(database, ShowCombo, ExpenseSortDiv)
+    UpdateListbox(database, ShowCombo, ExpenseSortDiv, DeleteButton)

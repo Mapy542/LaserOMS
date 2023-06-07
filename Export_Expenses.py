@@ -92,13 +92,17 @@ def ExpenseToHTML(expenses):
             expense["expense_image_path"] != ""
         ):  # If there is an image, add it to the report
             filetype = expense["expense_image_path"].split(".")[-1]
-            if filetype == "pdf":
+            if filetype.lower() == "pdf":
                 code += (
                     '<p>Expense Image: <embed src="file:'
                     + expense["expense_image_path"]
                     + """" type="application/pdf" width="500" height="500"></p> <br> \n"""
                 )
-            elif filetype == "jpg" or filetype == "jpeg" or filetype == "png":
+            elif (
+                filetype.lower() == "jpg"
+                or filetype.lower() == "jpeg"
+                or filetype.lower() == "png"
+            ):
                 code += (
                     '<p>Expense Image: <img src="file:'
                     + expense["expense_image_path"]
@@ -108,7 +112,7 @@ def ExpenseToHTML(expenses):
                 code += (
                     '<p>Expense Image: <a href="file:'
                     + expense["expense_image_path"]
-                    + """">Expense Image</a></p> <br> \n"""
+                    + """">Expense Image File</a></p> <br> \n"""
                 )
         code += "<hr> \n"
         total.add(
@@ -150,7 +154,7 @@ def MakeExpenseReport(app, database, Year=None, Month=None, ShowNonVerified=Fals
                 expense
                 for expense in ActiveExpenses
                 if (Year in expense["expense_date"].split("-")[2])
-                and (Month in expense["expense_date"].split("-")[1])
+                and (Month in expense["expense_date"].split("-")[0])
             ]
 
     # Generate the HTML for the report

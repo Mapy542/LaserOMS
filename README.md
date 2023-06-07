@@ -94,7 +94,10 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 Version 1.2.5
 
-- Negative number arithmetic bug fixes.
+- Fixed Addition Arithmetic Bug
+- Added Full Negative Decimal Support
+- Added Delete Expense Button
+- Other Bug Fixes
 
 Version 1.2.4
 

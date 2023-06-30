@@ -93,12 +93,24 @@ class Decimal:  # Replacement for a float that has no floating point error
 
     def __str__(self) -> str:  # Returns the decimal as a string
         Digits = []
-        for i in range(len(str(abs(self.value)))):
-            Digits.append(str(self.get_digit(self.value, i)))
-        if self.value < 0:
-            Digits.insert(0, "-")
-        if self.power < 0:
+
+        if self.value == 0:  # If the value is 0 return 0
+            return "0"
+
+        if self.power > 0:  # If the power is positive multiply the value by 10^power
+            MutatedValue = self.value * (10**self.power)
+        else:
+            MutatedValue = self.value
+
+        for i in range(len(str(abs(MutatedValue)))):  # Add each digit to the list
+            Digits.append(str(self.get_digit(MutatedValue, i)))
+
+        if self.power < 0:  # If the power is negative add a decimal point
             Digits.insert(len(Digits) + self.power, ".")
+
+        if self.value < 0:  # If the value is negative add a negative sign
+            Digits.insert(0, "-")
+
         return "".join(Digits)
 
     def __float__(self) -> float:  # Returns the decimal as a float

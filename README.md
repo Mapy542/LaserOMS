@@ -92,6 +92,10 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.2.6
+
+- Fixed Decimal To String Bug
+
 Version 1.2.5
 
 - Fixed Addition Arithmetic Bug

@@ -248,14 +248,11 @@ def PrintPackingSlip(app, database, OrderNumber):
                     font=NormalFont,
                     fill=(TextColor),
                 )
+                Subtotal = Common.Decimal(items[i]["item_quantity"])
+                Subtotal.multiply(items[i]["item_unit_price"])
                 Canvas.text(
                     (1200, 720 + (i + 1) * 50),
-                    "$"
-                    + str(
-                        Common.Decimal(items[i]["item_quantity"]).multiply(
-                            items[i]["item_unit_price"]
-                        )
-                    ),
+                    "$" + str(Subtotal),
                     font=NormalFont,
                     fill=(TextColor),
                 )
@@ -273,11 +270,10 @@ def PrintPackingSlip(app, database, OrderNumber):
         if IncludePrices:
             Total = Common.Decimal(0)
             for item in items:
-                Total.add(
-                    Common.Decimal(item["item_quantity"]).multiply(
-                        item["item_unit_price"]
-                    )
-                )
+                Subtotal = Common.Decimal(item["item_quantity"])
+                Subtotal.multiply(item["item_unit_price"])
+                Total.add(Subtotal)
+
             Canvas.text(
                 (520, 1600), "Total: $" + str(Total), font=NormalFont, fill=(TextColor)
             )

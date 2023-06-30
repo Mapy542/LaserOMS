@@ -416,7 +416,7 @@ def MonetarySummation(List):
                     Number.replace("$", "")
                 )  # Remove the dollar sign if it is present
             Number = Decimal(Number)
-        Sum = Sum.add(Number)
+        Sum.add(Number)
     return round(Sum.__float__(), 2)
 
 

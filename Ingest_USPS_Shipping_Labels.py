@@ -110,7 +110,7 @@ def RemoveImage():  # remove image and clear the button
     ImageButton.text = ""
 
 
-def ImportEtsyShippingExpense(main_window, database):
+def ImportUSPSShippingExpense(main_window, database):
     global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton
     global Window2
 
@@ -136,12 +136,10 @@ def ImportEtsyShippingExpense(main_window, database):
     for page in range(len(PDFReader.pages)):
         PDFText += PDFReader.pages[page].extract_text()
 
-    Cost = PDFText.split("Total Cost $")[1].split(" ")[
+    Cost = PDFText.split("Total $")[1].split("\n")[
         0
     ]  # get the cost of the shipping label
-    ShippingNumber = PDFText.split("Shipping Label was created for your order # ")[
-        1
-    ].split(" . ")[0]
+    ShippingNumber = PDFText.split("Order #: ")[1].split(" ")[0]
     ShippingNumber.replace(" ", "")  # get the shipping number
 
     welcome_message = Text(

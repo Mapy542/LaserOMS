@@ -92,6 +92,11 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.2.7
+
+- Added USPS Shipping Label Expense Import
+- Fixed Details Window Changing Pricing Option Bug
+
 Version 1.2.6
 
 - Fixed Decimal To String Bug

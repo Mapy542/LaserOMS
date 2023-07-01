@@ -6,6 +6,7 @@ import Expense_Details_Window
 import Export_Expenses
 import Google_Sheets_Sync
 import Ingest_Etsy_Shipping_Labels
+import Ingest_USPS_Shipping_Labels
 import New_Expense_Window
 import Settings_Window
 
@@ -306,6 +307,10 @@ def ImportEtsyShippingExpenses(database, window2):
     Ingest_Etsy_Shipping_Labels.ImportEtsyShippingExpense(window2, database)
 
 
+def ImportUSPSShippingExpenses(database, window2):
+    Ingest_USPS_Shipping_Labels.ImportUSPSShippingExpense(window2, database)
+
+
 def DeleteExpense(database, listbox, window2):
     if listbox.value == None:  # if no expense selected
         return
@@ -418,9 +423,16 @@ def FinancesDisplay(main_window, database):
     ImportDiv = TitleBox(window2, text="Import", grid=[0, 10, 3, 1], layout="grid")
     ImportEtsyShippingExpensesButton = PushButton(
         ImportDiv,
-        text="Etsy Shipping Expenses PDF",
+        text="Import Etsy Shipping Expense Receipt",
         command=ImportEtsyShippingExpenses,
-        grid=[0, 0, 1, 1],
+        grid=[0, 0, 2, 1],
+        args=[database, window2],
+    )
+    ImportUSPSShippingExpensesButton = PushButton(
+        ImportDiv,
+        text="Import USPS Shipping Expense Receipt",
+        command=ImportUSPSShippingExpenses,
+        grid=[2, 0, 2, 1],
         args=[database, window2],
     )
 

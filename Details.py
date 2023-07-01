@@ -5,7 +5,6 @@ import tinydb
 from guizero import CheckBox, Combo, ListBox, PushButton, Text, TextBox, Window
 
 import Common
-import New_Order_Window
 import PackingSlip
 
 
@@ -152,6 +151,7 @@ def OrderExport():
             "order_zip": ZipCode.value,
             "order_items_UID": itemsUIDs,
             "order_date": DateField.value,
+            "order_pricing_style": PricingOptionButton.value.replace(" ", "_"),
             "order_status": "OPEN",
             "process_status": "UTILIZE",
         },
@@ -354,6 +354,16 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     ZipCode.value = EditableOrder["order_zip"]
     DateField.value = EditableOrder["order_date"]
     UIDs = EditableOrder["order_items_UID"]
+
+    try:
+        PricingOptionButton.value = EditableOrder[
+            "order_pricing_style"
+        ]  # Set the pricing option to the one in the database
+    except KeyError:
+        PricingOptionButton.value = styles[
+            0
+        ]  # Set the pricing option to the first one if it is not set
+
     items = []
     for uid in UIDs:
         item = order_items.search(

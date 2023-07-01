@@ -151,6 +151,7 @@ def export():
             "order_zip": ZipCode.value,
             "order_items_UID": itemsUIDs,
             "order_date": DateField.value,
+            "order_pricing_style": PricingOptionButton.value.replace(" ", "_"),
             "order_status": "OPEN",
             "process_status": "UTILIZE",
         }

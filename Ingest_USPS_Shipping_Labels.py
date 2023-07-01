@@ -2,6 +2,7 @@ import datetime
 import os
 import shutil
 
+import PyPDF2
 import tinydb
 from guizero import PushButton, Text, TextBox, Window
 
@@ -12,7 +13,7 @@ def price_update():
     global ExpenseName, ItemQuantity, ItemPrice, TotalText
     TotalText.value = "Total: $" + str(
         Common.MonetaryMultiply(ItemQuantity.value, ItemPrice.value)
-    )
+    )  # Update total
 
 
 def export(database):
@@ -109,13 +110,38 @@ def RemoveImage():  # remove image and clear the button
     ImageButton.text = ""
 
 
-def NewExpense(main_window, database):
+def ImportUSPSShippingExpense(main_window, database):
     global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton
     global Window2
 
     Window2 = Window(
         main_window, title="New Expense", layout="grid", width=800, height=600
     )  # Create window
+
+    # get the path of the pdf file from the user
+    PDFPath = Window2.select_file(
+        title="Select Email PDF",
+        folder=".",
+        filetypes=[["PDF files", "*.pdf"]],
+        save=False,
+        filename="",
+    )
+    if PDFPath == "":  # if the user cancels, close the window
+        Window2.destroy()
+        return
+
+    # get the date from the pdf file
+    PDFReader = PyPDF2.PdfReader(PDFPath)
+    PDFText = ""
+    for page in range(len(PDFReader.pages)):
+        PDFText += PDFReader.pages[page].extract_text()
+
+    Cost = PDFText.split("Total $")[1].split("\n")[
+        0
+    ]  # get the cost of the shipping label
+    ShippingNumber = PDFText.split("Order #: ")[1].split(" ")[0]
+    ShippingNumber.replace(" ", "")  # get the shipping number
+
     welcome_message = Text(
         Window2, text="Add Expense", size=18, font="Times New Roman", grid=[0, 0]
     )  # Create text
@@ -123,22 +149,25 @@ def NewExpense(main_window, database):
     NameText = Text(
         Window2, text="Item Name", size=15, font="Times New Roman", grid=[0, 1]
     )  # Create text
-    ExpenseName = TextBox(Window2, width=30, grid=[1, 1], text="")  # Create textbox
+    ExpenseName = TextBox(
+        Window2, width=30, grid=[1, 1], text="Shipping Label: " + ShippingNumber
+    )  # Create textbox
     QuantityText = Text(
         Window2, text="Quantity", size=15, font="Times New Roman", grid=[0, 2]
     )  # Create text
     ItemQuantity = TextBox(
-        Window2, grid=[1, 2], width=10, command=price_update, text="0"
+        Window2, grid=[1, 2], width=10, command=price_update, text="1"
     )  # Create textbox
     PriceText = Text(
         Window2, text="Price per Sub-Unit", size=15, font="Times New Roman", grid=[0, 3]
     )  # Create text
     ItemPrice = TextBox(
-        Window2, grid=[1, 3], width=10, command=price_update, text="0"
+        Window2, grid=[1, 3], width=10, command=price_update, text=Cost
     )  # Create textbox
     TotalText = Text(
         Window2, text="Total: $0", size=15, font="Times New Roman", grid=[0, 4]
     )  # Create text
+    price_update()  # Update total text
 
     DescriptionText = Text(
         Window2, text="Additional Notes", size=15, font="Times New Roman", grid=[0, 10]
@@ -155,7 +184,7 @@ def NewExpense(main_window, database):
         grid=[0, 17],
     )
     ImageButton = PushButton(
-        Window2, command=AttachImage, args=[Window2], text="", grid=[1, 17]
+        Window2, command=AttachImage, args=[Window2], text=PDFPath, grid=[1, 17]
     )
     ImageCancelButton = PushButton(
         Window2, command=RemoveImage, text="Clear", grid=[2, 17]

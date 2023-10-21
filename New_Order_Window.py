@@ -169,9 +169,7 @@ def export():
     UIDIncrement = 0
     # Insert the order items into the database
     for item in [item1, item2, item3, item4, item5]:
-        if (
-            item.value != "Empty" and item.value != ""
-        ):  # Insert the order items into the database
+        if item.value != "Empty" and item.value != "":  # Insert the order items into the database
             # Get the data for the item
             product = products.search(tinydb.Query().product_name == item.value)
             order_items.insert(
@@ -179,9 +177,7 @@ def export():
                     "item_UID": itemsUIDs[UIDIncrement],
                     "item_name": product[0]["product_name"],
                     "item_quantity": int(ItemQuantities[ItemIncrement]),
-                    "item_unit_price": int(
-                        product[0][PricingOptionButton.value.replace(" ", "_")]
-                    ),
+                    "item_unit_price": int(product[0][PricingOptionButton.value.replace(" ", "_")]),
                     "process_status": "UTILIZE",
                     "product_snapshot": product[0],
                 }
@@ -265,79 +261,51 @@ def NewOrder(main_window, database):
     )  # Buyer name
     PurchaseName = TextBox(window2, grid=[1, 1], width=30)
     # shipping info
-    AddressText = Text(
-        window2, text="Address", size=15, font="Times New Roman", grid=[0, 3]
-    )
+    AddressText = Text(window2, text="Address", size=15, font="Times New Roman", grid=[0, 3])
     address = TextBox(window2, grid=[1, 3], width=60)
-    AddressText2 = Text(
-        window2, text="Line 2", size=15, font="Times New Roman", grid=[0, 4]
-    )
+    AddressText2 = Text(window2, text="Line 2", size=15, font="Times New Roman", grid=[0, 4])
     address2 = TextBox(window2, grid=[1, 4], width=60)
     CityText = Text(window2, text="City", size=15, font="Times New Roman", grid=[0, 5])
     city = TextBox(window2, grid=[1, 5], width=30)
-    StateText = Text(
-        window2, text="State", size=15, font="Times New Roman", grid=[0, 6]
-    )
+    StateText = Text(window2, text="State", size=15, font="Times New Roman", grid=[0, 6])
     state = TextBox(window2, grid=[1, 6], width=10)
-    ZipText = Text(
-        window2, text="Zip Code", size=15, font="Times New Roman", grid=[0, 7]
-    )
+    ZipText = Text(window2, text="Zip Code", size=15, font="Times New Roman", grid=[0, 7])
     ZipCode = TextBox(window2, grid=[1, 7], width=10)
     # items header
-    ItemsMessage = Text(
-        window2, text="Include Items", size=18, font="Times New Roman", grid=[1, 8]
-    )
+    ItemsMessage = Text(window2, text="Include Items", size=18, font="Times New Roman", grid=[1, 8])
 
-    PricingOptionButton = Combo(
-        window2, options=styles, command=PriceUpdate, grid=[2, 7]
-    )
+    PricingOptionButton = Combo(window2, options=styles, command=PriceUpdate, grid=[2, 7])
     # items
     item1 = TextBox(window2, width=30, grid=[0, 9], text="Empty")
     item1.when_double_clicked = DropDownSelection
-    ItemQuantity1 = TextBox(
-        window2, grid=[1, 9], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity1 = TextBox(window2, grid=[1, 9], width=10, command=PriceUpdate, text="0")
     ItemPrice1 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 9])
 
     item2 = TextBox(window2, width=30, grid=[0, 10], text="Empty")
     item2.when_double_clicked = DropDownSelection
-    ItemQuantity2 = TextBox(
-        window2, grid=[1, 10], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity2 = TextBox(window2, grid=[1, 10], width=10, command=PriceUpdate, text="0")
     ItemPrice2 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 10])
 
     item3 = TextBox(window2, width=30, grid=[0, 11], text="Empty")
     item3.when_double_clicked = DropDownSelection
-    ItemQuantity3 = TextBox(
-        window2, grid=[1, 11], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity3 = TextBox(window2, grid=[1, 11], width=10, command=PriceUpdate, text="0")
     ItemPrice3 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 11])
 
     item4 = TextBox(window2, width=30, grid=[0, 12], text="Empty")
     item4.when_double_clicked = DropDownSelection
-    ItemQuantity4 = TextBox(
-        window2, grid=[1, 12], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity4 = TextBox(window2, grid=[1, 12], width=10, command=PriceUpdate, text="0")
     ItemPrice4 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 12])
 
     item5 = TextBox(window2, width=30, grid=[0, 13], text="Empty")
     item5.when_double_clicked = DropDownSelection
-    ItemQuantity5 = TextBox(
-        window2, grid=[1, 13], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity5 = TextBox(window2, grid=[1, 13], width=10, command=PriceUpdate, text="0")
     ItemPrice5 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 13])
 
     # Total
-    Total = Text(
-        window2, text="Total: $0", size=18, font="Times New Roman", grid=[2, 19]
-    )
+    Total = Text(window2, text="Total: $0", size=18, font="Times New Roman", grid=[2, 19])
 
-    DateText = Text(
-        window2, text="Order Date: ", size=15, font="Times New Roman", grid=[0, 18]
-    )
-    DateField = TextBox(
-        window2, grid=[1, 18], width=15, text=datetime.today().strftime("%m-%d-%Y")
-    )
+    DateText = Text(window2, text="Order Date: ", size=15, font="Times New Roman", grid=[0, 18])
+    DateField = TextBox(window2, grid=[1, 18], width=15, text=datetime.today().strftime("%m-%d-%Y"))
 
     # Export Options
     ChooseExportCheckBox = CheckBox(window2, text="Export Order", grid=[1, 19])

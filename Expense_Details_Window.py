@@ -62,9 +62,7 @@ def export(database):
             # copy file to new path based on defined image folder path. file name is expense name. file type is preserved.
             shutil.copy(
                 ImageButton.text,
-                os.path.join(
-                    os.path.realpath(ImageFolderPath), Item1.value + FileEnding[1]
-                ),
+                os.path.join(os.path.realpath(ImageFolderPath), Item1.value + FileEnding[1]),
             )
 
             expenses.update(
@@ -80,9 +78,7 @@ def export(database):
             if OriginalImage != "":
                 os.remove(OriginalImage)
         else:
-            expenses.update(
-                {"expense_image_path": ""}, tinydb.Query().expense_name == Item1.value
-            )
+            expenses.update({"expense_image_path": ""}, tinydb.Query().expense_name == Item1.value)
 
     Window2.destroy()  # Close window
 
@@ -167,12 +163,8 @@ def ExpenseEdit(main_window, database, ExpenseName):
         font="Times New Roman",
         grid=[0, 17],
     )
-    ImageButton = PushButton(
-        Window2, command=AttachImage, args=[Window2], text="", grid=[1, 17]
-    )
-    ImageCancelButton = PushButton(
-        Window2, command=RemoveImage, text="Clear", grid=[2, 17]
-    )
+    ImageButton = PushButton(Window2, command=AttachImage, args=[Window2], text="", grid=[1, 17])
+    ImageCancelButton = PushButton(Window2, command=RemoveImage, text="Clear", grid=[2, 17])
 
     DateText = Text(Window2, text="Date", size=15, font="Times New Roman", grid=[0, 18])
     DateField = TextBox(
@@ -185,9 +177,7 @@ def ExpenseEdit(main_window, database, ExpenseName):
     FinishButton = PushButton(
         Window2, command=export, text="Save", grid=[0, 19], args=[database]
     )  # Create button
-    CancelButton = PushButton(
-        Window2, command=close, text="Cancel", grid=[1, 19]
-    )  # Create button
+    CancelButton = PushButton(Window2, command=close, text="Cancel", grid=[1, 19])  # Create button
 
     expenses = database.table("Expenses")
     expense = expenses.search(tinydb.Query().expense_name == ExpenseName)[0]

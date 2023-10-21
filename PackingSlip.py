@@ -21,9 +21,7 @@ def PrintPackingSlip(app, database, OrderNumber):
             & (tinydb.Query()["process_status"] == "UTILIZE")
         )[0]["setting_value"]
         if Path == "":
-            Path = os.path.join(
-                os.path.realpath(os.path.dirname(__file__)), "Order_Slip.png"
-            )
+            Path = os.path.join(os.path.realpath(os.path.dirname(__file__)), "Order_Slip.png")
 
         TextColor = settings.search(
             (tinydb.Query().setting_name == "Packing_Slip_Text_Color")
@@ -138,9 +136,7 @@ def PrintPackingSlip(app, database, OrderNumber):
                         fill=(TextColor),
                     )
                 elif State != "" and Zip != "":
-                    Canvas.text(
-                        (20, 810), State + " " + Zip, font=NormalFont, fill=(TextColor)
-                    )
+                    Canvas.text((20, 810), State + " " + Zip, font=NormalFont, fill=(TextColor))
             # if address2 not available but city, state, or zip is
             elif Address2 == "" and (City != "" or State != "" or Zip != ""):
                 if City != "" and State != "" and Zip != "":
@@ -158,17 +154,13 @@ def PrintPackingSlip(app, database, OrderNumber):
                         fill=(TextColor),
                     )
                 elif State != "" and Zip != "":
-                    Canvas.text(
-                        (20, 770), State + " " + Zip, font=NormalFont, fill=(TextColor)
-                    )
+                    Canvas.text((20, 770), State + " " + Zip, font=NormalFont, fill=(TextColor))
 
         # From (100 between)
         Canvas.text((20, 870), "Ship From:", font=NormalFont, fill=(TextColor))
         Canvas.text((20, 920), "LeBoeuf Lasing", font=NormalFont, fill=(TextColor))
         Canvas.text((20, 960), "2255 Quance Road", font=NormalFont, fill=(TextColor))
-        Canvas.text(
-            (20, 1000), "Waterford, Pa 16441", font=NormalFont, fill=(TextColor)
-        )
+        Canvas.text((20, 1000), "Waterford, Pa 16441", font=NormalFont, fill=(TextColor))
 
         # Order Number (100 between)
         OrderNumber = order["order_number"]
@@ -192,9 +184,7 @@ def PrintPackingSlip(app, database, OrderNumber):
         Quantity = 0
         for item in items:
             Quantity += int(item["item_quantity"])
-        Canvas.text(
-            (500, 650), str(Quantity) + " Items", font=NormalFont, fill=(TextColor)
-        )
+        Canvas.text((500, 650), str(Quantity) + " Items", font=NormalFont, fill=(TextColor))
 
         # Grid Top
         if IncludePrices:
@@ -274,13 +264,9 @@ def PrintPackingSlip(app, database, OrderNumber):
                 Subtotal.multiply(item["item_unit_price"])
                 Total.add(Subtotal)
 
-            Canvas.text(
-                (520, 1600), "Total: $" + str(Total), font=NormalFont, fill=(TextColor)
-            )
+            Canvas.text((520, 1600), "Total: $" + str(Total), font=NormalFont, fill=(TextColor))
 
-        im.save(
-            os.path.join(ImagesFolderPath, str(order["order_number"]) + ".png"), "PNG"
-        )
+        im.save(os.path.join(ImagesFolderPath, str(order["order_number"]) + ".png"), "PNG")
 
         path = os.path.join(ImagesFolderPath, str(order["order_number"]) + ".png")
         # open the file in the default browser

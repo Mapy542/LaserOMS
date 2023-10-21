@@ -34,9 +34,9 @@ def CheckForUpdate(app, database):
         return False
 
     settings = database.table("Settings")
-    CurrentVersionString = settings.search(
-        tinydb.Query().setting_name == "LaserOMS_Version"
-    )[0]["setting_value"]
+    CurrentVersionString = settings.search(tinydb.Query().setting_name == "LaserOMS_Version")[0][
+        "setting_value"
+    ]
     CurrentVersion = CurrentVersionString.split(".")
     CurrentVersion = [int(i) for i in CurrentVersion]
 

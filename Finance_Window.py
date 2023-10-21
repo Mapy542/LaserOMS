@@ -51,9 +51,7 @@ def GetRevenueStats(database):
 def VerifyExpenseColumns(database):
     expenses = database.table("Expenses")
     # make sure every expense has required fields for later comparisons
-    expenses.update(
-        {"expense_image_path": ""}, (~(tinydb.Query().expense_image_path.exists()))
-    )
+    expenses.update({"expense_image_path": ""}, (~(tinydb.Query().expense_image_path.exists())))
     # add image_path field if it does not exist on the expense
 
 
@@ -115,9 +113,7 @@ def UpdateListbox(database, ShowCombo, ExpenseSortDiv, DeleteButton):
 
 
 def ShowFinancialStats(database):
-    YearlyRevenue, MonthlyRevenue = GetRevenueStats(
-        database
-    )  # returns 2 lists of dictionaries
+    YearlyRevenue, MonthlyRevenue = GetRevenueStats(database)  # returns 2 lists of dictionaries
     YearlyExpenses, MonthlyExpenses = GetExpenseStats(database)
 
     # sort yearly revenue by year descending. Most recent on top
@@ -136,9 +132,7 @@ def ShowFinancialStats(database):
             listbox.append("  Expenses: " + str(YearlyExpenses[year]))
             listbox.append(
                 "  Profit: "
-                + str(
-                    Common.MonetarySubtract(YearlyRevenue[year], YearlyExpenses[year])
-                )
+                + str(Common.MonetarySubtract(YearlyRevenue[year], YearlyExpenses[year]))
             )  # calculate and display difference in revenue and expenses
         else:  # if there are no expenses
             listbox.append("  Expenses: 0")  # display no expenses
@@ -149,9 +143,7 @@ def ShowFinancialStats(database):
         for j in range(len(MonthlyRevenue[year])):
             month = list(MonthlyRevenue[year].keys())[j]  # find month
             listbox.append("    Month: " + str(month))  # print month
-            listbox.append(
-                "      Revenue: " + str(MonthlyRevenue[year][month])
-            )  # print revenue
+            listbox.append("      Revenue: " + str(MonthlyRevenue[year][month]))  # print revenue
             # if has expenses etc
             if year in MonthlyExpenses and month in MonthlyExpenses[year]:
                 listbox.append("      Expenses: " + str(MonthlyExpenses[year][month]))
@@ -220,9 +212,7 @@ def ShowExpenses(database):
             AddedYears.append(str(Year))  # add year to added years
 
         if ToShowExpenseSort == "All":  # if all expenses
-            VerifiedExpenseText = MakeVerifiedExpenseText(
-                expense, CheckMark, ShowNonImageExpenses
-            )
+            VerifiedExpenseText = MakeVerifiedExpenseText(expense, CheckMark, ShowNonImageExpenses)
             listbox.append(
                 expense["expense_name"]
                 + ": "
@@ -236,9 +226,7 @@ def ShowExpenses(database):
                 + VerifiedExpenseText
             )  # add expense to listbox
         elif ToShowExpenseSort == str(Year):  # if expenses from year
-            VerifiedExpenseText = MakeVerifiedExpenseText(
-                expense, CheckMark, ShowNonImageExpenses
-            )
+            VerifiedExpenseText = MakeVerifiedExpenseText(expense, CheckMark, ShowNonImageExpenses)
             listbox.append(
                 expense["expense_name"]
                 + ": "
@@ -268,9 +256,7 @@ def EditExpense():
     global window2
     global DatabasePassThrough
     global ShowCombo
-    if (
-        listbox.value == None or ShowCombo.value == "Statistics"
-    ):  # if no expense selected
+    if listbox.value == None or ShowCombo.value == "Statistics":  # if no expense selected
         return
     expense = listbox.value[0].split(":")[0]  # get expense name from listbox
     Expense_Details_Window.ExpenseEdit(
@@ -319,12 +305,8 @@ def DeleteExpense(database, listbox, window2):
         "Delete Expense", "Enter password to delete expense"
     )  # get password
     settings = database.table("Settings")  # find settings
-    hash = settings.get(tinydb.where("setting_name") == "Settings_Password")[
-        "setting_value"
-    ]
-    if (
-        password == None or Settings_Window.PasswordHash(password) != hash
-    ):  # if password incorrect
+    hash = settings.get(tinydb.where("setting_name") == "Settings_Password")["setting_value"]
+    if password == None or Settings_Window.PasswordHash(password) != hash:  # if password incorrect
         window2.error("Delete Expense", "Incorrect password")
         return
 
@@ -341,9 +323,7 @@ def FinancesDisplay(main_window, database):
     global ShowCombo, ExpenseSort
     DatabasePassThrough = database
 
-    window2 = Window(
-        main_window, title="Finances", layout="grid", width=1100, height=700
-    )
+    window2 = Window(main_window, title="Finances", layout="grid", width=1100, height=700)
 
     WelcomeMessage = Text(
         window2,
@@ -372,18 +352,12 @@ def FinancesDisplay(main_window, database):
     )
 
     # sort expenses
-    ExpenseSortDiv = TitleBox(
-        window2, text="Sort Expenses by", grid=[5, 4, 1, 1], layout="grid"
-    )
+    ExpenseSortDiv = TitleBox(window2, text="Sort Expenses by", grid=[5, 4, 1, 1], layout="grid")
     ExpenseSort = Combo(ExpenseSortDiv, options=["All"], grid=[0, 0, 1, 1])
 
     # options
-    ListBoxModeDiv = TitleBox(
-        window2, text="Display Mode", grid=[5, 3, 1, 1], layout="grid"
-    )
-    ShowCombo = Combo(
-        ListBoxModeDiv, options=["Statistics", "Expenses"], grid=[0, 0, 1, 1]
-    )
+    ListBoxModeDiv = TitleBox(window2, text="Display Mode", grid=[5, 3, 1, 1], layout="grid")
+    ShowCombo = Combo(ListBoxModeDiv, options=["Statistics", "Expenses"], grid=[0, 0, 1, 1])
     RebuildButton = PushButton(
         ListBoxModeDiv,
         text="Reload",

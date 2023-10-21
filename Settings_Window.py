@@ -43,12 +43,8 @@ def VerifySettings(database):
 
                 defaultValue = line[1]
                 if len(defaultValue) > 0 and defaultValue[0] == "!":
-                    defaultValue = defaultValue[
-                        1:
-                    ]  # remove the ! from the start of the string
-                    defaultValue = defaultValue.split(
-                        ":"
-                    )  # split the string into a list of values
+                    defaultValue = defaultValue[1:]  # remove the ! from the start of the string
+                    defaultValue = defaultValue.split(":")  # split the string into a list of values
 
                     operator = defaultValue[0]
                     value = defaultValue[1]
@@ -126,9 +122,7 @@ def TrimDatabase(app, database):  # remove excess lines from the database
         items.remove(~(tinydb.Query().item_UID.one_of(AllUtilizedItemUIDs)))
     )  # remove all items except for ones that are utilized
 
-    app.info(
-        "Database Trim", "Removed " + str(CleaningTotal) + " entries from database"
-    )
+    app.info("Database Trim", "Removed " + str(CleaningTotal) + " entries from database")
 
 
 def reset(window, database):  # Resets settings to default values
@@ -144,9 +138,7 @@ def reset(window, database):  # Resets settings to default values
     ]  # Get current password
     database.drop_table("Settings")  # Drop settings table
     settings = database.table("Settings")  # Form settings table
-    settings.insert(
-        {"setting_name": "Empty", "setting_value": "Empty", "process_status": "IGNORE"}
-    )
+    settings.insert({"setting_name": "Empty", "setting_value": "Empty", "process_status": "IGNORE"})
     settings.insert(
         {
             "setting_name": "Settings_Password",
@@ -181,9 +173,7 @@ def ShowSettings(database):
         if len(VisibleSettings[i]["setting_name"]) > MaxSettingNameLength:
             MaxSettingNameLength = len(VisibleSettings[i]["setting_name"])
     for i in range(len(SettingNames)):  # Pad setting names to be the same length
-        SettingNames[i] = (
-            SettingNames[i] + (MaxSettingNameLength - len(SettingNames[i])) * " "
-        )
+        SettingNames[i] = SettingNames[i] + (MaxSettingNameLength - len(SettingNames[i])) * " "
         SettingValues[i] = SettingValues[i]
 
     listview.clear()
@@ -211,25 +201,17 @@ def UpdateSetting():
             + " to true/false (True:Yes, False:No)",
         )
         if result:  # If user wants to change to true, change to true
-            settings.update(
-                {"setting_value": "True"}, tinydb.Query().setting_name == SettingName
-            )
+            settings.update({"setting_value": "True"}, tinydb.Query().setting_name == SettingName)
         else:  # If user wants to change to false, change to false
-            settings.update(
-                {"setting_value": "False"}, tinydb.Query().setting_name == SettingName
-            )
+            settings.update({"setting_value": "False"}, tinydb.Query().setting_name == SettingName)
     elif ValueType == "TEXT":  # If setting is text, ask user for new value
         result = window.question(
             SettingName,
             "Change " + SettingName + " from " + SettingValue + " to new value",
         )
         if result:
-            settings.update(
-                {"setting_value": result}, tinydb.Query().setting_name == SettingName
-            )
-    elif (
-        ValueType == "PASSWORD"
-    ):  # If setting is password, ask user for new password twice
+            settings.update({"setting_value": result}, tinydb.Query().setting_name == SettingName)
+    elif ValueType == "PASSWORD":  # If setting is password, ask user for new password twice
         result1 = window.question("Admin Password", "Enter new password.")
         result2 = window.question("Admin Password", "Re-enter new password.")
         if result1 == result2:
@@ -251,21 +233,15 @@ def UpdateSetting():
             filename="",
         )
         if result:
-            settings.update(
-                {"setting_value": result}, tinydb.Query().setting_name == SettingName
-            )
+            settings.update({"setting_value": result}, tinydb.Query().setting_name == SettingName)
     elif ValueType == "COLOR":  # If setting is color, ask user for new color
         result = window.select_color(color=None)
         if result:
-            settings.update(
-                {"setting_value": result}, tinydb.Query().setting_name == SettingName
-            )
+            settings.update({"setting_value": result}, tinydb.Query().setting_name == SettingName)
     elif ValueType == "FOLDER":  # If setting is folder, ask user for new folder path
         result = window.select_folder(title="Select folder", folder=".")
         if result:
-            settings.update(
-                {"setting_value": result}, tinydb.Query().setting_name == SettingName
-            )
+            settings.update({"setting_value": result}, tinydb.Query().setting_name == SettingName)
     ShowSettings(ForwardDataBase)  # Show settings
 
 
@@ -291,18 +267,14 @@ def Settings(main_window, database):  # Settings window
         return
     if (
         not PasswordHash(password)
-        == settings.search(tinydb.Query().setting_name == "Settings_Password")[0][
-            "setting_value"
-        ]
+        == settings.search(tinydb.Query().setting_name == "Settings_Password")[0]["setting_value"]
     ):
         # If password is incorrect, warn user
         window.warn("Incorrect Password", "Incorrect password entered.")
         window.destroy()  # Close window
         return
 
-    SettingsText = Text(
-        window, text="Settings", size=20, grid=[0, 0, 2, 1]
-    )  # Create text
+    SettingsText = Text(window, text="Settings", size=20, grid=[0, 0, 2, 1])  # Create text
     listview = ListBox(
         window, items=[], width=600, height=300, scrollbar=True, grid=[0, 1, 4, 5]
     )  # Create listview of settings

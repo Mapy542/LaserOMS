@@ -51,13 +51,9 @@ if doOverwrite:
         }
     )
     order_items = database.table("Order_Items")  # Form order items table
-    order_items.insert(
-        {"order_ID": 111, "item_UID": "IGNORE", "process_status": "IGNORE"}
-    )
+    order_items.insert({"order_ID": 111, "item_UID": "IGNORE", "process_status": "IGNORE"})
     expenses = database.table("Expenses")  # Form expenses table
-    expenses.insert(
-        {"expense_ID": 111, "expense_name": "LAST_EXPENSE", "process_status": "IGNORE"}
-    )
+    expenses.insert({"expense_ID": 111, "expense_name": "LAST_EXPENSE", "process_status": "IGNORE"})
     inventory = database.table("Products")  # Form inventory table
     inventory.insert(
         {"product_name": "Empty", "product_base_price": 0, "process_status": "UTILIZED"}
@@ -68,9 +64,7 @@ if doOverwrite:
     tasks = database.table("Tasks")  # Form tasks table
     tasks.insert({"task_name": "Empty", "process_status": "IGNORE"})
     settings = database.table("Settings")  # Form settings table
-    settings.insert(
-        {"setting_name": "Empty", "setting_value": "Empty", "process_status": "IGNORE"}
-    )
+    settings.insert({"setting_name": "Empty", "setting_value": "Empty", "process_status": "IGNORE"})
     database.close()
 
 # make image folder

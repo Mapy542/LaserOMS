@@ -61,9 +61,7 @@ def RebuildProductsFromSheets(app, database):
         # Set google sheet listing to true
         product["google_sheet_listing"] = "TRUE"
         for l in range(len(PricingStylesName)):  # Add pricing styles to product
-            product[PricingStylesName[l].replace(" ", "_")] = line[
-                PricingStylesIndexes[l]
-            ]
+            product[PricingStylesName[l].replace(" ", "_")] = line[PricingStylesIndexes[l]]
         products.insert(product)  # Insert product into database
         ProductCount += 1  # Increment product count
 

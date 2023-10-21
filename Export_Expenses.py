@@ -74,9 +74,7 @@ def ExpenseToHTML(expenses):
         code += (
             "<p>Expense Total: $"
             + str(
-                Common.MonetaryMultiply(
-                    expense["expense_quantity"], expense["expense_unit_price"]
-                )
+                Common.MonetaryMultiply(expense["expense_quantity"], expense["expense_unit_price"])
             )
             + "</p> <br> \n"
         )
@@ -88,9 +86,7 @@ def ExpenseToHTML(expenses):
             + "</p> <br> \n"
         )
         code += "<p>Expense Description: " + expense["expense_notes"] + "</p> <br> \n"
-        if (
-            expense["expense_image_path"] != ""
-        ):  # If there is an image, add it to the report
+        if expense["expense_image_path"] != "":  # If there is an image, add it to the report
             filetype = expense["expense_image_path"].split(".")[-1]
             if filetype.lower() == "pdf":
                 code += (
@@ -99,9 +95,7 @@ def ExpenseToHTML(expenses):
                     + """" type="application/pdf" width="500" height="500"></p> <br> \n"""
                 )
             elif (
-                filetype.lower() == "jpg"
-                or filetype.lower() == "jpeg"
-                or filetype.lower() == "png"
+                filetype.lower() == "jpg" or filetype.lower() == "jpeg" or filetype.lower() == "png"
             ):
                 code += (
                     '<p>Expense Image: <img src="file:'
@@ -116,9 +110,7 @@ def ExpenseToHTML(expenses):
                 )
         code += "<hr> \n"
         total.add(
-            Common.MonetaryMultiply(
-                expense["expense_quantity"], expense["expense_unit_price"]
-            )
+            Common.MonetaryMultiply(expense["expense_quantity"], expense["expense_unit_price"])
         )
 
     code += "<h2>Total Expenses: $" + str(total) + "</h2> \n"
@@ -159,16 +151,10 @@ def MakeExpenseReport(app, database, Year=None, Month=None, ShowNonVerified=Fals
 
     # Generate the HTML for the report
     HTMLData = (
-        HeaderHTML()
-        + BodyHeadHTML()
-        + ExpenseToHTML(ShowExpenses)
-        + BodyFootHTML()
-        + FooterHTML()
+        HeaderHTML() + BodyHeadHTML() + ExpenseToHTML(ShowExpenses) + BodyFootHTML() + FooterHTML()
     )
 
-    NameModifier = (
-        ""  # create a string to modify the file name based on the year and month
-    )
+    NameModifier = ""  # create a string to modify the file name based on the year and month
     if Year != None:
         NameModifier += Year
     if Month != None:

@@ -326,6 +326,9 @@ def RebuildProducts():  # rebuild products from sheets
 
 
 def SyncOrders(app, database):  # sync orders from sheets
+    # run through authentication to ensure it works
+
+    # run asynchronous ingest of orders
     Synchronizer = threading.Thread(
         target=SyncOrdersThread, args=(app, database), daemon=True
     )

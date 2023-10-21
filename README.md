@@ -103,6 +103,7 @@ Version 1.2.7
 
 - Added USPS Shipping Label Expense Import
 - Fixed Details Window Changing Pricing Option Bug
+- Reformatted with 110 character line limit
 
 Version 1.2.6
 

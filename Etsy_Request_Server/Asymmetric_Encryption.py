@@ -2,6 +2,8 @@ import cryptography.hazmat.primitives.serialization as serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
+import socket
+
 # USED BY LASER OMS. DO NOT DELETE
 
 
@@ -51,7 +53,7 @@ def DecryptData(data, private_key):  # decrypt data with private key
     )
 
 
-def SendablePublicKey(public_key):  # return public key in bytes for transmission
+def PublicKeyToBytes(public_key):  # return public key in bytes for transmission
     return public_key.public_bytes(  # return public key in bytes
         encoding=serialization.Encoding.PEM,  # use PEM encoding
         # use SubjectPublicKeyInfo format
@@ -65,110 +67,47 @@ def LoadPublicKey(public_key):  # load public key from bytes into a public key o
     )
 
 
-def ClientHandshake(socket, PublicKey, PrivateKey):
-    try:
-        socket.sendall(b"InitiateHandshake")  # send handshake request
-        data = socket.recv(BufferSize())  # receive public key
+def EnsureSend(socket, public_key = None, data):  # ensure data is sent in full
+    if public_key == None: # if no public key is provided send data as is
+        while True:
+            socket.sendall(b"")
 
-        ServerKey = LoadPublicKey(data)  # load public key from received bytes
-        socket.sendall(SendablePublicKey(PublicKey))  # send public key
+class ConnectionRole:  # Role class for server/client roles
+    RoleTypes = ["Server", "Client"]
 
-        test = socket.recv(BufferSize())  # receive handshake complete
-        if not DecryptData(test, PrivateKey) == b"HandshakeComplete":
-            # if handshake failed or server is not listening
-            socket.sendall(EncryptData(b"CANCEL", ServerKey))
-            return False, None
+    def __init__(self, Role="Client"):
+        if Role in Role.RoleTypes:
+            self.Role = Role
         else:
-            socket.sendall(EncryptData(b"HandshakeCompleteAcknowledged", ServerKey))
+            raise Exception("Role must be either 'Server' or 'Client'")
 
-        data = socket.recv(BufferSize())  # receive data
-        # if handshake failed or server is not listening
-        if not DecryptData(data, PrivateKey) == b"Listening":
-            socket.sendall(EncryptData(b"CANCEL", ServerKey))
-            print("Server not listening")
-            return False, None
-
-        else:
-            return True, ServerKey
-
-    except:
-        return False, None
+    def __str__(self):
+        return self.Role
 
 
-def StringToBytes(string):  # convert string to bytes for transmission
-    return string.encode("utf-8")
+def ConnectionThread(TransmissionStack, ReceptionStack, Socket, Role=ConnectionRole("Client")):
+    """A secure connection thread for a client or server.
 
+    Args:
+        TransmissionStack (List): A list of data to be continuously sent.
+            [UID, Response UID, Data]
+            Send items are removed from the list after being sent.
+        ReceptionStack (List): A list of responses being continuously sent.
+            [Status Code, UID, Response UID, Data]
+            Follows http status code rules.
+        Socket (Python Socket Object): The socket to send and receive data on.
+        Role (ConnectionRole Object, optional): Defines the role of the connection thread.
+            Defaults to ConnectionRole('Client').
+            Servers can only respond to requests, and must provide a Response UID.
+    """
+    if TransmissionStack.__class__ != list:
+        raise Exception("TransmissionStack must be a list")
+    if ReceptionStack.__class__ != list:
+        raise Exception("ReceptionStack must be a list")
+    if Socket.__class__ != socket.socket:
+        raise Exception("Socket must be a socket object")
+    
+    PrivateKey, PublicKey = GenerateKeyPair()  # generate key pair
 
-def BytesToString(bytes):  # convert bytes to string for use
-    return bytes.decode("utf-8")
+    while True: #authentication handshake
 
-
-def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for client side
-    # chop string into MaxStringLen() byte chunks and send to client (86 is the theoretical max length of a tcp packet with encryption and padding)
-    chunks = [string[i : i + MaxStringLen()] for i in range(0, len(string), MaxStringLen())]
-
-    socket.sendall(EncryptData(b"ChopSendCheckStart", ClientKey))  # send chop send check start
-
-    # receive chop send check start
-    data = DecryptData(socket.recv(BufferSize()), PrivateKey)
-
-    if not data == b"ChopSendCheckAcknowledged":
-        return False  # chop send check failed
-
-    i = 0
-    while i < len(chunks):
-        socket.sendall(EncryptData(StringToBytes(chunks[i]), ClientKey))
-        data = DecryptData(socket.recv(BufferSize()), PrivateKey)
-        # check if chunk was received correctly
-        if data == StringToBytes(chunks[i]):
-            i += 1
-        else:
-            socket.sendall(EncryptData(b"ChunkResend", ClientKey))
-            data = DecryptData(socket.recv(BufferSize()), PrivateKey)
-            if not data == b"ChunkResendAcknowledged":
-                return False  # chop send check failed
-
-    socket.sendall(EncryptData(b"ChopSendCheckComplete", ClientKey))
-    data = DecryptData(socket.recv(BufferSize()), PrivateKey)
-    if not data == b"ChopSendCheckCompleteAcknowledged":
-        return False  # chop send check failed
-
-    return True  # chop send check complete
-
-
-# chop receive check for client side
-def ChopReceiveCheck(socket, ClientKey, PrivateKey):
-    # receive chop send check start
-    data = DecryptData(socket.recv(BufferSize()), PrivateKey)
-    if not data == b"ChopSendCheckStart":  # check if chop send check start was received correctly
-        print(data)
-        return False
-    socket.sendall(
-        EncryptData(b"ChopSendCheckAcknowledged", ClientKey)  # send chop send check acknowledged
-    )
-    chunks = []
-    while True:  # receive chunks
-        RawData = socket.recv(BufferSize())
-        data = DecryptData(RawData, PrivateKey)
-
-        if (
-            data == b"ChopSendCheckComplete"
-        ):  # check if chop send check complete was received correctly
-            socket.sendall(
-                EncryptData(  # send chop send check complete acknowledged
-                    b"ChopSendCheckCompleteAcknowledged", ClientKey
-                )
-            )
-            break  # chop send check complete
-        elif data == b"ChunkResend":  # check if chunk resend was received correctly
-            socket.sendall(
-                EncryptData(b"ChunkResendAcknowledged", ClientKey)  # send chunk resend acknowledged
-            )
-            print("Chunk resend acknowledged")
-            # remove last chunk from list
-            chunks.pop()
-            continue
-        else:
-            chunks.append(BytesToString(data))  # add chunk to list
-            socket.sendall(EncryptData(data, ClientKey))  # send chunk acknowledged
-    return "".join(chunks)

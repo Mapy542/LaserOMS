@@ -4,6 +4,8 @@ import os
 import random
 import socketserver
 import string
+import threading
+import time
 import traceback
 from datetime import datetime
 
@@ -336,11 +338,12 @@ class RequestHandler(socketserver.BaseRequestHandler):
             CodeAndState = HeadlessURI.split("&state=")
             code = CodeAndState[0]
             state = CodeAndState[1]
-        except:
+        except Exception as e:
             self.AppendLog(
                 "Oauth Token Registration Failed",
                 str(self.client_address[0]) + " failed to get code and state from user uri.",
             )
+            print(e)
             return False
 
         try:
@@ -449,6 +452,9 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     shop_id=int(OauthTokenSet["shop_id"]),  # get receipts from Etsy
                     limit=int(MaximumReceiptsPerQuery),
                     offset=int(i),
+                    was_canceled=False,
+                    was_shipped=None,
+                    was_paid=None,
                 )
                 if i >= Receipts["count"]:  # if no more receipts
                     break
@@ -700,7 +706,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
             self.ReceiveAndDecrypt()
 
             # close connection if client sends b''
-            if self.data == b"" and self.Action == "Listening":
+            if self.data == b"" or self.data == b"CLOSE":
                 self.AppendLog(
                     "Connection Closed",
                     str(self.client_address[0]) + " closed connection.",
@@ -959,6 +965,77 @@ def VerifySettings(database):
     return MadeUpdate
 
 
+def RefreshAllTokens(database):
+    def UpdateOauthToken(Token, RefreshToken, ExpiresAt):
+        # Token must be refreshed after expiry so the package handles this automatically
+        UpdateDataBase(
+            "OauthTokens",
+            tinydb.Query().shop_id == ShopID,
+            {  # update oauth token in database
+                "token": Token,
+                "refresh_token": RefreshToken,
+                "expires_at": datetime.timestamp(ExpiresAt),
+            },
+        )
+
+        AppendLog(
+            "Oauth Token Updated",
+            "Refresh Service successfully updated Oauth Token with ShopID:" + str(ShopID) + ".",
+        )  # log success
+
+    def UpdateDataBase(TableName, Query, Data):
+        global database
+        table = database.table(TableName)  # get table
+        table.update(Data, Query)  # update data
+
+    def AppendLog(EventType, Message):  # append log to database
+        global database
+        table = database.table("Logs")
+        table.insert(
+            {
+                "event_type": EventType,
+                "event_message": Message,  # insert log
+                "event_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "event_year": datetime.now().strftime("%Y"),
+                "event_month": datetime.now().strftime("%m"),
+            }
+        )
+
+        # remove logs older than 1 year
+        table.remove(tinydb.Query().event_year < datetime.now().strftime("%Y"))
+        table.remove(
+            tinydb.Query().event_year == datetime.now().strftime("%Y")
+            and tinydb.Query().event_month < datetime.now().strftime("%m")
+        )  # remove logs older than 1 month
+
+    while True:
+        # Refresh all tokens in database
+        tokens = database.table("OauthTokens")
+        settings = database.table("Settings")
+
+        APIKeyString = settings.get(tinydb.Query().setting_name == "API_Key_String")[
+            "setting_value"
+        ]  # get API key string
+
+        for token in tokens.all():
+            OauthTokenSet = token
+            ShopID = OauthTokenSet["shop_id"]
+            EtsyClient = EtsyAPI(
+                keystring=APIKeyString,
+                token=OauthTokenSet["token"],
+                refresh_token=OauthTokenSet["refresh_token"],
+                expiry=datetime.fromtimestamp(OauthTokenSet["expires_at"]),
+                refresh_save=UpdateOauthToken,
+            )  # create Etsy API client
+            try:
+                EtsyClient.get_shop(ShopID)
+                print("Refreshed token for shop id: " + str(OauthTokenSet["shop_id"]))
+            except:
+                print("Failed to refresh token for shop id: " + str(OauthTokenSet["shop_id"]))
+
+        time.sleep(60 * 60 * 24 * 7)  # sleep for 1 week
+
+
 try:
     database = tinydb.TinyDB(
         os.path.join(os.path.realpath(os.path.dirname(__file__)), "../../Server.json"),
@@ -968,6 +1045,10 @@ try:
     if VerifySettings(database):
         print("Updated Settings. Closing Server. Check Server.json for changes.")
         exit(0)
+
+    # start refresh service
+    Refresher = threading.Thread(target=RefreshAllTokens, args=(database,), daemon=True)
+    Refresher.start()
 
     # setup server
     HOST, PORT = "", 55555  # listen on all interfaces on port 55555

@@ -17,7 +17,7 @@ import Listing_Database_Window
 import New_Task_Window
 import PackingSlip
 from Easy_Cart_Ingest import ImportEasyCartOrders
-from Etsy_Ingest import ImportAllThreadHandler
+from Etsy_Ingest import FastAuthentication, ImportAllThreadHandler
 from Google_Sheets_Sync import RebuildProductsFromSheets
 from New_Expense_Window import NewExpense
 from New_Order_Window import NewOrder
@@ -311,6 +311,17 @@ def RebuildProducts():  # rebuild products from sheets
 
 def SyncOrders(app, database):  # sync orders from sheets
     # run through authentication to ensure it works
+    settings = database.table("Settings")  # get settings table
+    Etsy = settings.search(tinydb.Query().setting_name == "Synchronize_Etsy")[0][
+        "setting_value"
+    ]  # get etsy setting
+    if Etsy == "True":
+        print("Running Authentication")
+        success = FastAuthentication(app, database)
+        print("Authentication Success: " + str(success))
+        if not success:
+            app.error("Authentication Error", "Authentication Failed Ingest Aborted")
+            return
 
     # run asynchronous ingest of orders
     Synchronizer = threading.Thread(target=SyncOrdersThread, args=(app, database), daemon=True)

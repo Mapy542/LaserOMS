@@ -16,7 +16,7 @@ def UpdatePackages(app):
             f.close()
             packages = recs.split(",")
             for i in range(len(packages)):
-                os.system("pip install --upgrade " + str(packages[i]))
+                os.system("python3 -m pip install --upgrade " + str(packages[i]))
     except:
         app.warn("Update Error", "Unable to find Packages.txt")
 

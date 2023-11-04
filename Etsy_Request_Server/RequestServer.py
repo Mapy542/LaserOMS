@@ -4,6 +4,8 @@ import os
 import random
 import socketserver
 import string
+import threading
+import time
 import traceback
 from datetime import datetime
 
@@ -100,13 +102,9 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 continue
             # receive client key
             elif self.HandsShakeStatus == 2 and self.data != b"InitiateHandshake":
-                self.ClientKey = Asymmetric_Encryption.LoadPublicKey(
-                    self.data
-                )  # load client key
+                self.ClientKey = Asymmetric_Encryption.LoadPublicKey(self.data)  # load client key
                 self.request.sendall(
-                    Asymmetric_Encryption.EncryptData(
-                        b"HandshakeComplete", self.ClientKey
-                    )
+                    Asymmetric_Encryption.EncryptData(b"HandshakeComplete", self.ClientKey)
                 )  # send handshake complete to verify success
                 self.HandsShakeStatus = 1
                 continue
@@ -116,9 +114,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 )  # decrypt data
                 if not self.data == b"HandshakeCompleteAcknowledged":
                     self.request.sendall(
-                        Asymmetric_Encryption.EncryptData(
-                            b"HandshakeFailed", self.ClientKey
-                        )
+                        Asymmetric_Encryption.EncryptData(b"HandshakeFailed", self.ClientKey)
                     )  # send handshake failed and close connection
                     return False, None
                 else:
@@ -127,16 +123,12 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     return True, self.ClientKey
 
     def ReceiveAndDecrypt(self):  # receive and decrypt data generic and reusable
-        self.RawData = self.request.recv(
-            Asymmetric_Encryption.BufferSize()
-        )  # receive data
+        self.RawData = self.request.recv(Asymmetric_Encryption.BufferSize())  # receive data
         if self.RawData == b"":  # check if connection was closed or data was empty
             self.data = b""  # set data to empty
             # decryption fails if data is empty so return to prevent error
             return
-        self.data = Asymmetric_Encryption.DecryptData(
-            self.RawData, self.PrivateKey
-        )  # decrypt data
+        self.data = Asymmetric_Encryption.DecryptData(self.RawData, self.PrivateKey)  # decrypt data
 
     def ChopSendCheck(self, string):
         # chop string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client (MAX is 86 theoretically based on Asymmetric_Encryption.BufferSize() bit transmission)
@@ -248,9 +240,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     )
                 )
                 break  # chop send check complete
-            elif (
-                self.data == b"ChunkResend"
-            ):  # check if chunk resend was received correctly
+            elif self.data == b"ChunkResend":  # check if chunk resend was received correctly
                 self.request.sendall(
                     Asymmetric_Encryption.EncryptData(  # send chunk resend acknowledged
                         b"ChunkResendAcknowledged", self.ClientKey
@@ -259,13 +249,11 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 chunks.pop()  # remove last chunk from list
                 continue
             else:
-                chunks.append(
-                    Asymmetric_Encryption.BytesToString(self.data)
-                )  # add chunk to list
+                chunks.append(Asymmetric_Encryption.BytesToString(self.data))  # add chunk to list
                 self.request.sendall(
-                    Asymmetric_Encryption.EncryptData(  # send chunk acknowledged
+                    Asymmetric_Encryption.EncryptData(
                         self.data, self.ClientKey
-                    )
+                    )  # send chunk acknowledged
                 )
         return "".join(chunks)
 
@@ -283,25 +271,18 @@ class RequestHandler(socketserver.BaseRequestHandler):
         if not self.data == b"PrepareOauthAcknowledged":
             self.AppendLog(
                 "Oauth Token Registration Failed",
-                str(self.client_address[0])
-                + " failed to prepare for Oauth Token Registration.",
+                str(self.client_address[0]) + " failed to prepare for Oauth Token Registration.",
             )
             return False
 
         self.request.sendall(
-            Asymmetric_Encryption.EncryptData(  # send shop id request
-                b"SendShopID", self.ClientKey
-            )
+            Asymmetric_Encryption.EncryptData(b"SendShopID", self.ClientKey)  # send shop id request
         )
         self.ReceiveAndDecrypt()  # receive shop id
-        self.ShopID = Asymmetric_Encryption.BytesToString(
-            self.data
-        )  # convert shop id to string
+        self.ShopID = Asymmetric_Encryption.BytesToString(self.data)  # convert shop id to string
 
         try:  # check if shop id already exists
-            exists = self.AccessDataBase(
-                "OauthTokens", tinydb.Query().shop_id == self.ShopID
-            )[0]
+            exists = self.AccessDataBase("OauthTokens", tinydb.Query().shop_id == self.ShopID)[0]
             if exists:
                 # if shop id already exists send existing oauth token message to client and close connection
                 self.AppendLog(
@@ -310,9 +291,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     + " failed to register a new Oauth Token because one already exists for this shop.",
                 )
                 self.request.sendall(
-                    Asymmetric_Encryption.EncryptData(
-                        b"ExistingOauthToken", self.ClientKey
-                    )
+                    Asymmetric_Encryption.EncryptData(b"ExistingOauthToken", self.ClientKey)
                 )
                 return False
         except IndexError:
@@ -359,12 +338,12 @@ class RequestHandler(socketserver.BaseRequestHandler):
             CodeAndState = HeadlessURI.split("&state=")
             code = CodeAndState[0]
             state = CodeAndState[1]
-        except:
+        except Exception as e:
             self.AppendLog(
                 "Oauth Token Registration Failed",
-                str(self.client_address[0])
-                + " failed to get code and state from user uri.",
+                str(self.client_address[0]) + " failed to get code and state from user uri.",
             )
+            print(e)
             return False
 
         try:
@@ -385,8 +364,8 @@ class RequestHandler(socketserver.BaseRequestHandler):
             return False
 
         ClientToken = "".join(
-            random.choice(string.ascii_letters + string.digits)  # generate client token
-            for _ in range(100)
+            random.choice(string.ascii_letters + string.digits)
+            for _ in range(100)  # generate client token
         )
         # hash client token with shop id
         Hash = self.IDTokenHash(self.ShopID, ClientToken)
@@ -410,8 +389,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
         if not self.data == b"AuthenticationSuccessAcknowledged":
             self.AppendLog(
                 "Oauth Token Registration Failed",
-                str(self.client_address[0])
-                + " failed to acknowledge authentication success.",
+                str(self.client_address[0]) + " failed to acknowledge authentication success.",
             )
             return False
 
@@ -419,8 +397,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
         if not Success:
             self.AppendLog(
                 "Oauth Token Registration Failed",
-                str(self.client_address[0])  # log failure
-                + " failed to send password to client.",
+                str(self.client_address[0]) + " failed to send password to client.",  # log failure
             )
             return False
 
@@ -447,16 +424,14 @@ class RequestHandler(socketserver.BaseRequestHandler):
         )[0][
             "setting_value"
         ]  # get API key string
-        OauthTokenSet = self.AccessDataBase(
-            "OauthTokens", tinydb.Query().shop_id == ShopID
-        )[
+        OauthTokenSet = self.AccessDataBase("OauthTokens", tinydb.Query().shop_id == ShopID)[
             0
         ]  # get oauth token set from database
 
         self.AppendLog(
             "Begin Receipt Retrieval",
-            str(self.client_address[0])  # log receipt retrieval start
-            + " started a new Receipt Retrieval.",
+            str(self.client_address[0])
+            + " started a new Receipt Retrieval.",  # log receipt retrieval start
         )
 
         EtsyClient = EtsyAPI(
@@ -477,6 +452,9 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     shop_id=int(OauthTokenSet["shop_id"]),  # get receipts from Etsy
                     limit=int(MaximumReceiptsPerQuery),
                     offset=int(i),
+                    was_canceled=False,
+                    was_shipped=None,
+                    was_paid=None,
                 )
                 if i >= Receipts["count"]:  # if no more receipts
                     break
@@ -485,15 +463,15 @@ class RequestHandler(socketserver.BaseRequestHandler):
             except:
                 self.AppendLog(
                     "Receipt Retrieval Failed",
-                    str(self.client_address[0])  # log failure
-                    + " failed to retrieve Receipts from Etsy.",
+                    str(self.client_address[0])
+                    + " failed to retrieve Receipts from Etsy.",  # log failure
                 )
                 return False, None
 
         self.AppendLog(
             "Receipt Retrieval Success",
-            str(self.client_address[0])  # log success
-            + " successfully retrieved Receipts from Etsy.",
+            str(self.client_address[0])
+            + " successfully retrieved Receipts from Etsy.",  # log success
         )
         return True, AllReceipts
 
@@ -510,16 +488,14 @@ class RequestHandler(socketserver.BaseRequestHandler):
         )[0][
             "setting_value"
         ]  # get API key string
-        OauthTokenSet = self.AccessDataBase(
-            "OauthTokens", tinydb.Query().shop_id == ShopID
-        )[
+        OauthTokenSet = self.AccessDataBase("OauthTokens", tinydb.Query().shop_id == ShopID)[
             0
         ]  # get oauth token set from database
 
         self.AppendLog(
             "Begin Receipt Retrieval",
-            str(self.client_address[0])  # log receipt retrieval start
-            + " started a new Receipt Retrieval.",
+            str(self.client_address[0])
+            + " started a new Receipt Retrieval.",  # log receipt retrieval start
         )
 
         EtsyClient = EtsyAPI(
@@ -562,16 +538,16 @@ class RequestHandler(socketserver.BaseRequestHandler):
             except:
                 self.AppendLog(
                     "Receipt Retrieval Failed",
-                    str(self.client_address[0])  # log failure
-                    + " failed to retrieve Receipts from Etsy.",
+                    str(self.client_address[0])
+                    + " failed to retrieve Receipts from Etsy.",  # log failure
                 )
                 print(traceback.format_exc())  # debugging
                 return False, None
 
         self.AppendLog(
             "Receipt Retrieval Success",
-            str(self.client_address[0])  # log success
-            + " successfully retrieved Receipts from Etsy.",
+            str(self.client_address[0])
+            + " successfully retrieved Receipts from Etsy.",  # log success
         )
         return True, AllReceipts
 
@@ -587,16 +563,14 @@ class RequestHandler(socketserver.BaseRequestHandler):
         )[0][
             "setting_value"
         ]  # get API key string
-        OauthTokenSet = self.AccessDataBase(
-            "OauthTokens", tinydb.Query().shop_id == ShopID
-        )[
+        OauthTokenSet = self.AccessDataBase("OauthTokens", tinydb.Query().shop_id == ShopID)[
             0
         ]  # get oauth token set from database
 
         self.AppendLog(
             "Begin Shop Retrieval",
-            str(self.client_address[0])  # log shop retrieval start
-            + " started a new Shop Retrieval.",
+            str(self.client_address[0])
+            + " started a new Shop Retrieval.",  # log shop retrieval start
         )
 
         EtsyClient = EtsyAPI(
@@ -608,22 +582,18 @@ class RequestHandler(socketserver.BaseRequestHandler):
         )  # create Etsy API client
 
         try:
-            Shop = EtsyClient.get_shop(
-                shop_id=int(OauthTokenSet["shop_id"])  # get shop from Etsy
-            )
+            Shop = EtsyClient.get_shop(shop_id=int(OauthTokenSet["shop_id"]))  # get shop from Etsy
 
         except:
             self.AppendLog(
                 "Shop Retrieval Failed",
-                str(self.client_address[0])  # log failure
-                + " failed to retrieve Shop from Etsy.",
+                str(self.client_address[0]) + " failed to retrieve Shop from Etsy.",  # log failure
             )
             return False, None
 
         self.AppendLog(
             "Shop Retrieval Success",
-            str(self.client_address[0])  # log success
-            + " successfully retrieved Shop from Etsy.",
+            str(self.client_address[0]) + " successfully retrieved Shop from Etsy.",  # log success
         )
         return True, Shop
 
@@ -694,12 +664,11 @@ class RequestHandler(socketserver.BaseRequestHandler):
         # also acts as a simple rate limiter
         self.LogConnectIP(self.client_address[0])  # log connection ip
         Allow = self.AllowConnection(self.client_address[0])  # check if ip is allowed
-        Allow = True  # remove this line to re-enable ip limiting------
+        # Allow = True  # remove this line to re-enable ip limiting------
         if not Allow:
             self.AppendLog(
                 "Connection Denied",
-                str(self.client_address[0])  # log failure
-                + " was denied connection to server.",
+                str(self.client_address[0]) + " was denied connection to server.",  # log failure
             )
             # send connection denied message
             self.request.sendall(b"ConnectionDenied")
@@ -718,15 +687,14 @@ class RequestHandler(socketserver.BaseRequestHandler):
         if not Success:
             self.AppendLog(
                 "Handshake Failed",
-                str(self.client_address[0])  # log failure
-                + " failed to handshake with server.",
+                str(self.client_address[0]) + " failed to handshake with server.",  # log failure
             )
             return
 
         self.AppendLog(
             "Handshake Success",
-            str(self.client_address[0])  # log success
-            + " successfully started a secure communication.",
+            str(self.client_address[0])
+            + " successfully started a secure communication.",  # log success
         )
 
         self.request.sendall(
@@ -738,7 +706,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
             self.ReceiveAndDecrypt()
 
             # close connection if client sends b''
-            if self.data == b"" and self.Action == "Listening":
+            if self.data == b"" or self.data == b"CLOSE":
                 self.AppendLog(
                     "Connection Closed",
                     str(self.client_address[0]) + " closed connection.",
@@ -760,9 +728,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     self.Action = "Listening"
                     # send listening acknowledgement to client to start sending data
                     self.request.sendall(
-                        Asymmetric_Encryption.EncryptData(
-                            b"OauthFailed", self.ClientKey
-                        )
+                        Asymmetric_Encryption.EncryptData(b"OauthFailed", self.ClientKey)
                     )
                     continue
 
@@ -780,18 +746,14 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     self.Action = "Listening"
                     # send listening acknowledgement to client to start sending data
                     self.request.sendall(
-                        Asymmetric_Encryption.EncryptData(
-                            b"AuthenticationFailed", self.ClientKey
-                        )
+                        Asymmetric_Encryption.EncryptData(b"AuthenticationFailed", self.ClientKey)
                     )
                 else:
                     self.LoggedIn = True
                     self.Action = "Listening"
                     # send listening acknowledgement to client to start sending data
                     self.request.sendall(
-                        Asymmetric_Encryption.EncryptData(
-                            b"AuthenticationSuccess", self.ClientKey
-                        )
+                        Asymmetric_Encryption.EncryptData(b"AuthenticationSuccess", self.ClientKey)
                     )
                     self.AppendLog(
                         "Authentication Success",
@@ -802,15 +764,9 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     )
                 continue
 
-            elif (
-                self.Action == "Listening"
-                and self.data == b"RemoveToken"
-                and self.LoggedIn
-            ):
+            elif self.Action == "Listening" and self.data == b"RemoveToken" and self.LoggedIn:
                 self.request.sendall(
-                    Asymmetric_Encryption.EncryptData(
-                        b"ConfirmRemoveToken", self.ClientKey
-                    )
+                    Asymmetric_Encryption.EncryptData(b"ConfirmRemoveToken", self.ClientKey)
                 )  # send confirmation to client to remove token
                 self.Action = "RemoveToken"
                 continue
@@ -827,8 +783,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 if not data:  # check if token was received correctly
                     self.AppendLog(
                         "Remove Token Failed",
-                        str(self.client_address[0])
-                        + " failed to send token to server.",
+                        str(self.client_address[0]) + " failed to send token to server.",
                     )
                     return False
                 self.RemoveDataBase(
@@ -844,17 +799,11 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 )  # log success
                 self.Action = "Listening"  # set action to listening
                 self.request.sendall(
-                    Asymmetric_Encryption.EncryptData(
-                        b"RemoveTokenSuccess", self.ClientKey
-                    )
+                    Asymmetric_Encryption.EncryptData(b"RemoveTokenSuccess", self.ClientKey)
                 )  # send listening acknowledgement to client to start sending data
                 continue
 
-            elif (
-                self.Action == "Listening"
-                and self.data == b"QueryAllReceipts"
-                and self.LoggedIn
-            ):
+            elif self.Action == "Listening" and self.data == b"QueryAllReceipts" and self.LoggedIn:
                 self.Action = "QueryAllReceipts"
                 self.request.sendall(
                     Asymmetric_Encryption.EncryptData(b"QueryFloor", self.ClientKey)
@@ -868,9 +817,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     self.Action = "Listening"
                     # send listening acknowledgement to client to start sending data
                     self.request.sendall(
-                        Asymmetric_Encryption.EncryptData(
-                            b"QueryReceiptsFailed", self.ClientKey
-                        )
+                        Asymmetric_Encryption.EncryptData(b"QueryReceiptsFailed", self.ClientKey)
                     )
                     continue
                 StringReceipts = json.dumps(Receipts)
@@ -878,8 +825,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 if not Success:
                     self.AppendLog(
                         "Query Receipts Failed",
-                        str(self.client_address[0])
-                        + " failed to send receipt data to server.",
+                        str(self.client_address[0]) + " failed to send receipt data to server.",
                     )
                 else:
                     self.AppendLog(
@@ -891,11 +837,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     )  # log success
                 self.Action = "Listening"
 
-            elif (
-                self.Action == "Listening"
-                and self.data == b"QueryReceipts"
-                and self.LoggedIn
-            ):
+            elif self.Action == "Listening" and self.data == b"QueryReceipts" and self.LoggedIn:
                 self.Action = "QueryReceipts"
                 self.request.sendall(
                     Asymmetric_Encryption.EncryptData(b"EndID", self.ClientKey)
@@ -909,9 +851,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     self.Action = "Listening"
                     # send listening acknowledgement to client to start sending data
                     self.request.sendall(
-                        Asymmetric_Encryption.EncryptData(
-                            b"QueryReceiptsFailed", self.ClientKey
-                        )
+                        Asymmetric_Encryption.EncryptData(b"QueryReceiptsFailed", self.ClientKey)
                     )
                     continue
                 StringReceipts = json.dumps(Receipts)
@@ -919,8 +859,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 if not Success:
                     self.AppendLog(
                         "Query Receipts Failed",
-                        str(self.client_address[0])
-                        + " failed to send receipt data to server.",
+                        str(self.client_address[0]) + " failed to send receipt data to server.",
                     )
                 else:
                     self.AppendLog(
@@ -932,16 +871,10 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     )  # log success
                 self.Action = "Listening"
 
-            elif (
-                self.Action == "Listening"
-                and self.data == b"QueryShop"
-                and self.LoggedIn
-            ):
+            elif self.Action == "Listening" and self.data == b"QueryShop" and self.LoggedIn:
                 self.Action = "QueryShop"
                 self.request.sendall(
-                    Asymmetric_Encryption.EncryptData(
-                        b"PrepareQueryShop", self.ClientKey
-                    )
+                    Asymmetric_Encryption.EncryptData(b"PrepareQueryShop", self.ClientKey)
                 )
                 continue
 
@@ -951,9 +884,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     self.Action = "Listening"
                     # send listening acknowledgement to client to start sending data
                     self.request.sendall(
-                        Asymmetric_Encryption.EncryptData(
-                            b"QueryShopFailed", self.ClientKey
-                        )
+                        Asymmetric_Encryption.EncryptData(b"QueryShopFailed", self.ClientKey)
                     )
                     self.AppendLog(
                         "Query Shop Failed",
@@ -972,17 +903,14 @@ class RequestHandler(socketserver.BaseRequestHandler):
                         + ".",
                     )
                     self.request.sendall(
-                        Asymmetric_Encryption.EncryptData(
-                            b"QueryShopSuccess", self.ClientKey
-                        )
+                        Asymmetric_Encryption.EncryptData(b"QueryShopSuccess", self.ClientKey)
                     )
                 StringShop = json.dumps(Shop)
                 Success = self.ChopSendCheck(StringShop)
                 if not Success:
                     self.AppendLog(
                         "Query Shop Failed",
-                        str(self.client_address[0])
-                        + " failed to receive shop data from server.",
+                        str(self.client_address[0]) + " failed to receive shop data from server.",
                     )
                 self.Action = "Listening"
                 continue
@@ -1007,9 +935,7 @@ def VerifySettings(database):
         MadeUpdate = True
 
     # Version
-    if not settings.contains(
-        (tinydb.Query().setting_name == "LaserOMS_Server_Version")
-    ):
+    if not settings.contains((tinydb.Query().setting_name == "LaserOMS_Server_Version")):
         settings.insert(
             {
                 "setting_name": "LaserOMS_Server_Version",
@@ -1020,9 +946,7 @@ def VerifySettings(database):
             }
         )
         MadeUpdate = True
-    settings.update(
-        {"setting_rank": 1}, tinydb.Query().setting_name == "LaserOMS_Server_Version"
-    )
+    settings.update({"setting_rank": 1}, tinydb.Query().setting_name == "LaserOMS_Server_Version")
 
     # API Key String for accessing the API
     if not settings.contains((tinydb.Query().setting_name == "API_Key_String")):
@@ -1036,11 +960,80 @@ def VerifySettings(database):
             }
         )
         MadeUpdate = True
-    settings.update(
-        {"setting_rank": 13}, tinydb.Query().setting_name == "API_Key_String"
-    )
+    settings.update({"setting_rank": 13}, tinydb.Query().setting_name == "API_Key_String")
 
     return MadeUpdate
+
+
+def RefreshAllTokens(database):
+    def UpdateOauthToken(Token, RefreshToken, ExpiresAt):
+        # Token must be refreshed after expiry so the package handles this automatically
+        UpdateDataBase(
+            "OauthTokens",
+            tinydb.Query().shop_id == ShopID,
+            {  # update oauth token in database
+                "token": Token,
+                "refresh_token": RefreshToken,
+                "expires_at": datetime.timestamp(ExpiresAt),
+            },
+        )
+
+        AppendLog(
+            "Oauth Token Updated",
+            "Refresh Service successfully updated Oauth Token with ShopID:" + str(ShopID) + ".",
+        )  # log success
+
+    def UpdateDataBase(TableName, Query, Data):
+        global database
+        table = database.table(TableName)  # get table
+        table.update(Data, Query)  # update data
+
+    def AppendLog(EventType, Message):  # append log to database
+        global database
+        table = database.table("Logs")
+        table.insert(
+            {
+                "event_type": EventType,
+                "event_message": Message,  # insert log
+                "event_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "event_year": datetime.now().strftime("%Y"),
+                "event_month": datetime.now().strftime("%m"),
+            }
+        )
+
+        # remove logs older than 1 year
+        table.remove(tinydb.Query().event_year < datetime.now().strftime("%Y"))
+        table.remove(
+            tinydb.Query().event_year == datetime.now().strftime("%Y")
+            and tinydb.Query().event_month < datetime.now().strftime("%m")
+        )  # remove logs older than 1 month
+
+    while True:
+        # Refresh all tokens in database
+        tokens = database.table("OauthTokens")
+        settings = database.table("Settings")
+
+        APIKeyString = settings.get(tinydb.Query().setting_name == "API_Key_String")[
+            "setting_value"
+        ]  # get API key string
+
+        for token in tokens.all():
+            OauthTokenSet = token
+            ShopID = OauthTokenSet["shop_id"]
+            EtsyClient = EtsyAPI(
+                keystring=APIKeyString,
+                token=OauthTokenSet["token"],
+                refresh_token=OauthTokenSet["refresh_token"],
+                expiry=datetime.fromtimestamp(OauthTokenSet["expires_at"]),
+                refresh_save=UpdateOauthToken,
+            )  # create Etsy API client
+            try:
+                EtsyClient.get_shop(ShopID)
+                print("Refreshed token for shop id: " + str(OauthTokenSet["shop_id"]))
+            except:
+                print("Failed to refresh token for shop id: " + str(OauthTokenSet["shop_id"]))
+
+        time.sleep(60 * 60 * 24 * 7)  # sleep for 1 week
 
 
 try:
@@ -1048,16 +1041,19 @@ try:
         os.path.join(os.path.realpath(os.path.dirname(__file__)), "../../Server.json"),
         storage=CachingMiddleware(JSONStorage),
     )  # load database (use memory cache)
+
     if VerifySettings(database):
         print("Updated Settings. Closing Server. Check Server.json for changes.")
         exit(0)
 
+    # start refresh service
+    Refresher = threading.Thread(target=RefreshAllTokens, args=(database,), daemon=True)
+    Refresher.start()
+
     # setup server
     HOST, PORT = "", 55555  # listen on all interfaces on port 55555
 
-    with socketserver.TCPServer(
-        (HOST, PORT), RequestHandler
-    ) as server:  # create server
+    with socketserver.TCPServer((HOST, PORT), RequestHandler) as server:  # create server
         server.serve_forever()  # start server
 
 except Exception as err:  # catch all errors

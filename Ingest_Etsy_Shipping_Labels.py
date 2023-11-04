@@ -20,9 +20,7 @@ def export(database):
     global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton
     expenses = database.table("Expenses")  # Get expenses table
 
-    ExpenseName.value = Common.CleanedFileName(
-        ExpenseName.value
-    )  # Clean up expense name
+    ExpenseName.value = Common.CleanedFileName(ExpenseName.value)  # Clean up expense name
 
     # Check if expense name is already in database
     while len(expenses.search(tinydb.Query().expense_name == ExpenseName.value)) > 0:
@@ -58,9 +56,7 @@ def export(database):
         # copy file to new path based on defined image folder path. file name is expense name. file type is preserved.
         shutil.copy(
             ImageButton.text,
-            os.path.join(
-                os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]
-            ),
+            os.path.join(os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]),
         )
 
         expenses.update(
@@ -136,12 +132,10 @@ def ImportEtsyShippingExpense(main_window, database):
     for page in range(len(PDFReader.pages)):
         PDFText += PDFReader.pages[page].extract_text()
 
-    Cost = PDFText.split("Total Cost $")[1].split(" ")[
+    Cost = PDFText.split("Total Cost $")[1].split(" ")[0]  # get the cost of the shipping label
+    ShippingNumber = PDFText.split("Shipping Label was created for your order # ")[1].split(" . ")[
         0
-    ]  # get the cost of the shipping label
-    ShippingNumber = PDFText.split("Shipping Label was created for your order # ")[
-        1
-    ].split(" . ")[0]
+    ]
     ShippingNumber.replace(" ", "")  # get the shipping number
 
     welcome_message = Text(
@@ -188,9 +182,7 @@ def ImportEtsyShippingExpense(main_window, database):
     ImageButton = PushButton(
         Window2, command=AttachImage, args=[Window2], text=PDFPath, grid=[1, 17]
     )
-    ImageCancelButton = PushButton(
-        Window2, command=RemoveImage, text="Clear", grid=[2, 17]
-    )
+    ImageCancelButton = PushButton(Window2, command=RemoveImage, text="Clear", grid=[2, 17])
 
     DateText = Text(Window2, text="Date", size=15, font="Times New Roman", grid=[0, 18])
     DateField = TextBox(
@@ -203,6 +195,4 @@ def ImportEtsyShippingExpense(main_window, database):
     FinishButton = PushButton(
         Window2, command=export, text="Save", grid=[0, 19], args=[database]
     )  # Create button
-    CancelButton = PushButton(
-        Window2, command=close, text="Cancel", grid=[1, 19]
-    )  # Create button
+    CancelButton = PushButton(Window2, command=close, text="Cancel", grid=[1, 19])  # Create button

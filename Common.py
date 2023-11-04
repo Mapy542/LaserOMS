@@ -256,18 +256,14 @@ class Decimal:  # Replacement for a float that has no floating point error
         # Divide with accuracy given for passes of long division
         ResultantDigits = []  # List of digits in the resultant decimal
 
-        Dividend = self.get_digit(
-            self.value, 0
-        )  # First digit of the dividend to be divided
+        Dividend = self.get_digit(self.value, 0)  # First digit of the dividend to be divided
 
         UsedAccuracy = 0  # Number of digits of accuracy used in loop
         ExtraPower = (
             -1
         )  # Power of the decimal to be added to the resultant decimal (is positive to show decimal place is moved x places to the left: 10^(-x))
 
-        Number1Index = (
-            0  # Index of the digit of the dividend that has been used in the loop
-        )
+        Number1Index = 0  # Index of the digit of the dividend that has been used in the loop
 
         while UsedAccuracy < Accuracy:
             if Dividend == 0:  # If the dividend is 0
@@ -288,18 +284,16 @@ class Decimal:  # Replacement for a float that has no floating point error
             if (
                 Number1Index < len(str(self.value)) - 1
             ):  # If there are more digits of the dividend to be used
-                Number1Index += (
-                    1  # Increment the index of the digit of the dividend to be used
-                )
+                Number1Index += 1  # Increment the index of the digit of the dividend to be used
                 Dividend *= 10  # Multiply the dividend by 10 to add the next digit
                 Dividend += self.get_digit(
                     self.value, Number1Index
                 )  # Add the next digit of the dividend to the dividend
             else:  # If there are no more digits of the dividend to be used
-                ExtraPower += 1  # Increment the power of the decimal to be added to the resultant decimal
-                UsedAccuracy += (
-                    1  # Increment the number of digits of accuracy used in the loop
+                ExtraPower += (
+                    1  # Increment the power of the decimal to be added to the resultant decimal
                 )
+                UsedAccuracy += 1  # Increment the number of digits of accuracy used in the loop
                 Dividend *= 10  # Multiply the dividend by 10 to add a 0 to the dividend
 
         OriginalValue = self.value  # Store the original value of the decimal
@@ -412,9 +406,7 @@ def MonetarySummation(List):
             continue
         if not type(Number) == Decimal:
             if type(Number) == str:  # If the number is a string
-                Number = Decimal(
-                    Number.replace("$", "")
-                )  # Remove the dollar sign if it is present
+                Number = Decimal(Number.replace("$", ""))  # Remove the dollar sign if it is present
             Number = Decimal(Number)
         Sum.add(Number)
     return round(Sum.__float__(), 2)
@@ -449,12 +441,8 @@ def MakeUIDs(order_items, ItemCount):
         List[Int]: List of random and unique UIDs
     """
     allUIDs = []
-    order_items = order_items.search(
-        tinydb.Query().process_status == "UTILIZE"
-    )  # Get all items
-    if (
-        order_items == []
-    ):  # If there are no items in the database, return a list of random UIDs
+    order_items = order_items.search(tinydb.Query().process_status == "UTILIZE")  # Get all items
+    if order_items == []:  # If there are no items in the database, return a list of random UIDs
         returnUIDs = []
         returnUIDs.append(random.randint(1000000, 9999999))
         for i in range(ItemCount):
@@ -468,9 +456,7 @@ def MakeUIDs(order_items, ItemCount):
     returnUIDs = []
     for i in range(ItemCount):
         UID = random.randint(1000000, 9999999)  # Generate a random UID
-        while (
-            UID in allUIDs
-        ):  # If the UID is already in the database, generate a new one
+        while UID in allUIDs:  # If the UID is already in the database, generate a new one
             UID = random.randint(1000000, 9999999)  # Generate a random UID
         returnUIDs.append(UID)
     return returnUIDs  # Return the list of UIDs
@@ -486,15 +472,11 @@ def MakeOrderID(orders):
         Int: Random and unique order ID
     """
     allIDs = []
-    AvailableOrders = orders.search(
-        tinydb.Query().process_status == "UTILIZE"
-    )  # Get all orders
+    AvailableOrders = orders.search(tinydb.Query().process_status == "UTILIZE")  # Get all orders
     for order in AvailableOrders:
         # Add all order IDs to a list
         allIDs.append(int(order["order_number"]))
     order_ID = 112
-    while (
-        order_ID in allIDs
-    ):  # If the order ID is already in the database, generate a new one
+    while order_ID in allIDs:  # If the order ID is already in the database, generate a new one
         order_ID += 1
     return order_ID

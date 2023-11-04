@@ -36,12 +36,12 @@ def ImportEasyCartOrders(app, database0):
     DatabasePassword = settings.search(
         tinydb.Query().setting_name == "Easy_Cart_Database_Password"
     )[0]["setting_value"]
-    DatabaseAddress = settings.search(
-        tinydb.Query().setting_name == "Easy_Cart_Database_Address"
-    )[0]["setting_value"]
-    DatabaseName = settings.search(
-        tinydb.Query().setting_name == "Easy_Cart_Database_Name"
-    )[0]["setting_value"]
+    DatabaseAddress = settings.search(tinydb.Query().setting_name == "Easy_Cart_Database_Address")[
+        0
+    ]["setting_value"]
+    DatabaseName = settings.search(tinydb.Query().setting_name == "Easy_Cart_Database_Name")[0][
+        "setting_value"
+    ]
     if (
         DatabaseAddress == ""
         or DatabaseUsername == ""
@@ -53,9 +53,9 @@ def ImportEasyCartOrders(app, database0):
 
     # if using MariaDB
     if (
-        settings.search(tinydb.Query().setting_name == "Easy_Cart_Database_Is_MariaDB")[
-            0
-        ]["setting_value"]
+        settings.search(tinydb.Query().setting_name == "Easy_Cart_Database_Is_MariaDB")[0][
+            "setting_value"
+        ]
         == "True"
     ):
         try:
@@ -76,8 +76,7 @@ def ImportEasyCartOrders(app, database0):
         OrderData = [
             dict(line)
             for line in [
-                zip([column[0] for column in cursor.description], row)
-                for row in cursor.fetchall()
+                zip([column[0] for column in cursor.description], row) for row in cursor.fetchall()
             ]
         ]  # dictionary of results
         for order in OrderData:
@@ -88,8 +87,7 @@ def ImportEasyCartOrders(app, database0):
         OrderItemData = [
             dict(line)
             for line in [
-                zip([column[0] for column in cursor.description], row)
-                for row in cursor.fetchall()
+                zip([column[0] for column in cursor.description], row) for row in cursor.fetchall()
             ]
         ]  # dictionary of results
         for OrderItem in OrderItemData:
@@ -139,9 +137,7 @@ def ImportEasyCartOrders(app, database0):
             else:
                 DBOrder["order_number"] = order["order_id"]
 
-            DBOrder["order_name"] = (
-                order["billing_first_name"] + " " + order["billing_last_name"]
-            )
+            DBOrder["order_name"] = order["billing_first_name"] + " " + order["billing_last_name"]
 
             DBOrder["order_address"] = order["shipping_address_line_1"]
             DBOrder["order_address2"] = order["shipping_address_line_2"]
@@ -152,9 +148,7 @@ def ImportEasyCartOrders(app, database0):
             date = order["order_date"].split(" ")[0].split("-")
             DBOrder["order_date"] = date[1] + "-" + date[2] + "-" + date[0]
 
-            DBOrder["order_status"] = EasyCartOrderStatusLookup[
-                int(order["orderstatus_id"])
-            ]
+            DBOrder["order_status"] = EasyCartOrderStatusLookup[int(order["orderstatus_id"])]
 
             DBOrder["order_items_UID"] = OrderToItemUID[order["order_id"]]
 

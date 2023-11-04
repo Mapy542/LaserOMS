@@ -14,7 +14,7 @@ The server will create a Server.json file in the parent of the parent directory.
 
 ## Security
 
-The server stores oauth tokens for all shops locally. However outside users cannot utilize the tokens without the shop ID and a randomly generated token of 50 random characters. The hash of the Shop ID and token plus the Shop ID are stored. The token is not stored anywhere, and is only given to the client that makes the oauth token to keep.
+The server stores oauth tokens for all shops locally. However outside users cannot utilize the tokens without the shop ID and a randomly generated token. The hash of the Shop ID and token plus the Shop ID are stored. The token is not stored anywhere, and is only given to the client that makes the oauth token to keep.
 
 The server and client talk only though an RSA public key encrypted tunnel. This may not prevent a man in the middle attack, but will stop any outside listening of the data transmitted.
 

@@ -22,11 +22,7 @@ def UpdateListbox(InfoBox, database):
                 InfoBox.append(values[i])
             else:
                 InfoBox.append(
-                    "    "
-                    + keys[i]
-                    + ":"
-                    + " " * (MaxKeyLength - len(keys[i]))
-                    + values[i]
+                    "    " + keys[i] + ":" + " " * (MaxKeyLength - len(keys[i])) + values[i]
                 )
         InfoBox.append("")
 
@@ -42,9 +38,7 @@ def SyncGoogleSheet(main_window, database):
 def ListingDisplay(main_window, database):
     global InfoBox
     global window2
-    window2 = Window(
-        main_window, title="Listings", layout="grid", width=1100, height=700
-    )
+    window2 = Window(main_window, title="Listings", layout="grid", width=1100, height=700)
 
     WelcomeMessage = Text(
         window2, text="Listing Data", size=15, font="Times New Roman", grid=[0, 0, 4, 1]

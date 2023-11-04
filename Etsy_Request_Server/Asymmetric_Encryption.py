@@ -1,5 +1,3 @@
-import time
-
 import cryptography.hazmat.primitives.serialization as serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -105,17 +103,11 @@ def BytesToString(bytes):  # convert bytes to string for use
     return bytes.decode("utf-8")
 
 
-def ChopSendCheck(
-    string, socket, ClientKey, PrivateKey
-):  # chop send check for client side
+def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for client side
     # chop string into MaxStringLen() byte chunks and send to client (86 is the theoretical max length of a tcp packet with encryption and padding)
-    chunks = [
-        string[i : i + MaxStringLen()] for i in range(0, len(string), MaxStringLen())
-    ]
+    chunks = [string[i : i + MaxStringLen()] for i in range(0, len(string), MaxStringLen())]
 
-    socket.sendall(
-        EncryptData(b"ChopSendCheckStart", ClientKey)  # send chop send check start
-    )
+    socket.sendall(EncryptData(b"ChopSendCheckStart", ClientKey))  # send chop send check start
 
     # receive chop send check start
     data = DecryptData(socket.recv(BufferSize()), PrivateKey)
@@ -148,15 +140,11 @@ def ChopSendCheck(
 def ChopReceiveCheck(socket, ClientKey, PrivateKey):
     # receive chop send check start
     data = DecryptData(socket.recv(BufferSize()), PrivateKey)
-    if (
-        not data == b"ChopSendCheckStart"
-    ):  # check if chop send check start was received correctly
+    if not data == b"ChopSendCheckStart":  # check if chop send check start was received correctly
         print(data)
         return False
     socket.sendall(
-        EncryptData(  # send chop send check acknowledged
-            b"ChopSendCheckAcknowledged", ClientKey
-        )
+        EncryptData(b"ChopSendCheckAcknowledged", ClientKey)  # send chop send check acknowledged
     )
     chunks = []
     while True:  # receive chunks
@@ -174,9 +162,7 @@ def ChopReceiveCheck(socket, ClientKey, PrivateKey):
             break  # chop send check complete
         elif data == b"ChunkResend":  # check if chunk resend was received correctly
             socket.sendall(
-                EncryptData(  # send chunk resend acknowledged
-                    b"ChunkResendAcknowledged", ClientKey
-                )
+                EncryptData(b"ChunkResendAcknowledged", ClientKey)  # send chunk resend acknowledged
             )
             print("Chunk resend acknowledged")
             # remove last chunk from list

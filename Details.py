@@ -170,9 +170,7 @@ def OrderExport():
     UIDIncrement = 0
     # Insert the order items into the database
     for item in [item1, item2, item3, item4, item5]:
-        if (
-            item.value != "Empty" and item.value != ""
-        ):  # Insert the order items into the database
+        if item.value != "Empty" and item.value != "":  # Insert the order items into the database
             # Get the data for the item
             product = products.search(tinydb.Query().product_name == item.value)
             order_items.insert(
@@ -180,9 +178,7 @@ def OrderExport():
                     "item_UID": itemsUIDs[UIDIncrement],
                     "item_name": product[0]["product_name"],
                     "item_quantity": int(ItemQuantities[ItemIncrement]),
-                    "item_unit_price": int(
-                        product[0][PricingOptionButton.value.replace(" ", "_")]
-                    ),
+                    "item_unit_price": int(product[0][PricingOptionButton.value.replace(" ", "_")]),
                     "process_status": "UTILIZE",
                     "product_snapshot": product[0],
                 }
@@ -234,8 +230,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     product_pricing_styles = database.table("Product_Pricing_Styles")
     orders = database.table("Orders")  # Get the orders table
     EditableOrder = orders.search(
-        (tinydb.Query().order_number == OrderNumber)
-        & (tinydb.Query().process_status == "UTILIZE")
+        (tinydb.Query().order_number == OrderNumber) & (tinydb.Query().process_status == "UTILIZE")
     )[
         0
     ]  # Get the order to edit
@@ -272,79 +267,51 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     )  # Buyer name
     PurchaseName = TextBox(window2, grid=[1, 1], width=30)
     # shipping info
-    AddressText = Text(
-        window2, text="Address", size=15, font="Times New Roman", grid=[0, 3]
-    )
+    AddressText = Text(window2, text="Address", size=15, font="Times New Roman", grid=[0, 3])
     address = TextBox(window2, grid=[1, 3], width=60)
-    AddressText2 = Text(
-        window2, text="Line 2", size=15, font="Times New Roman", grid=[0, 4]
-    )
+    AddressText2 = Text(window2, text="Line 2", size=15, font="Times New Roman", grid=[0, 4])
     address2 = TextBox(window2, grid=[1, 4], width=60)
     CityText = Text(window2, text="City", size=15, font="Times New Roman", grid=[0, 5])
     city = TextBox(window2, grid=[1, 5], width=30)
-    StateText = Text(
-        window2, text="State", size=15, font="Times New Roman", grid=[0, 6]
-    )
+    StateText = Text(window2, text="State", size=15, font="Times New Roman", grid=[0, 6])
     state = TextBox(window2, grid=[1, 6], width=10)
-    ZipText = Text(
-        window2, text="Zip Code", size=15, font="Times New Roman", grid=[0, 7]
-    )
+    ZipText = Text(window2, text="Zip Code", size=15, font="Times New Roman", grid=[0, 7])
     ZipCode = TextBox(window2, grid=[1, 7], width=10)
     # items header
-    ItemsMessage = Text(
-        window2, text="Include Items", size=18, font="Times New Roman", grid=[1, 8]
-    )
+    ItemsMessage = Text(window2, text="Include Items", size=18, font="Times New Roman", grid=[1, 8])
 
-    PricingOptionButton = Combo(
-        window2, options=styles, command=PriceUpdate, grid=[2, 7]
-    )
+    PricingOptionButton = Combo(window2, options=styles, command=PriceUpdate, grid=[2, 7])
     # items
     item1 = TextBox(window2, width=30, grid=[0, 9], text="Empty")
     item1.when_double_clicked = DropDownSelection
-    ItemQuantity1 = TextBox(
-        window2, grid=[1, 9], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity1 = TextBox(window2, grid=[1, 9], width=10, command=PriceUpdate, text="0")
     ItemPrice1 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 9])
 
     item2 = TextBox(window2, width=30, grid=[0, 10], text="Empty")
     item2.when_double_clicked = DropDownSelection
-    ItemQuantity2 = TextBox(
-        window2, grid=[1, 10], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity2 = TextBox(window2, grid=[1, 10], width=10, command=PriceUpdate, text="0")
     ItemPrice2 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 10])
 
     item3 = TextBox(window2, width=30, grid=[0, 11], text="Empty")
     item3.when_double_clicked = DropDownSelection
-    ItemQuantity3 = TextBox(
-        window2, grid=[1, 11], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity3 = TextBox(window2, grid=[1, 11], width=10, command=PriceUpdate, text="0")
     ItemPrice3 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 11])
 
     item4 = TextBox(window2, width=30, grid=[0, 12], text="Empty")
     item4.when_double_clicked = DropDownSelection
-    ItemQuantity4 = TextBox(
-        window2, grid=[1, 12], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity4 = TextBox(window2, grid=[1, 12], width=10, command=PriceUpdate, text="0")
     ItemPrice4 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 12])
 
     item5 = TextBox(window2, width=30, grid=[0, 13], text="Empty")
     item5.when_double_clicked = DropDownSelection
-    ItemQuantity5 = TextBox(
-        window2, grid=[1, 13], width=10, command=PriceUpdate, text="0"
-    )
+    ItemQuantity5 = TextBox(window2, grid=[1, 13], width=10, command=PriceUpdate, text="0")
     ItemPrice5 = Text(window2, text="0", size=15, font="Times New Roman", grid=[2, 13])
 
     # Total
-    Total = Text(
-        window2, text="Total: $0", size=18, font="Times New Roman", grid=[2, 19]
-    )
+    Total = Text(window2, text="Total: $0", size=18, font="Times New Roman", grid=[2, 19])
 
-    DateText = Text(
-        window2, text="Order Date: ", size=15, font="Times New Roman", grid=[0, 18]
-    )
-    DateField = TextBox(
-        window2, grid=[1, 18], width=15, text=datetime.today().strftime("%m-%d-%Y")
-    )
+    DateText = Text(window2, text="Order Date: ", size=15, font="Times New Roman", grid=[0, 18])
+    DateField = TextBox(window2, grid=[1, 18], width=15, text=datetime.today().strftime("%m-%d-%Y"))
 
     PurchaseName.value = EditableOrder["order_name"]
     address.value = EditableOrder["order_address"]
@@ -367,8 +334,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     items = []
     for uid in UIDs:
         item = order_items.search(
-            (tinydb.Query().item_UID == uid)
-            & (tinydb.Query().process_status == "UTILIZE")
+            (tinydb.Query().item_UID == uid) & (tinydb.Query().process_status == "UTILIZE")
         )[0]
         items.append(item)
     if len(items) > 0:
@@ -397,8 +363,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
 def ViewEasyCartOrder(main_window, database, OrderNumber):
     orders = database.table("Orders")  # Get the orders table
     Order = orders.search(
-        (tinydb.Query().order_number == OrderNumber)
-        & (tinydb.Query().process_status == "UTILIZE")
+        (tinydb.Query().order_number == OrderNumber) & (tinydb.Query().process_status == "UTILIZE")
     )[
         0
     ]  # Get the order to edit
@@ -418,36 +383,20 @@ def ViewEasyCartOrder(main_window, database, OrderNumber):
     PurchaseNameText = Text(
         window2, text="Buyer Name", size=15, font="Times New Roman", grid=[0, 1]
     )  # Buyer name
-    PurchaseName = Text(
-        window2, grid=[1, 1], size=15, font="Times New Roman", text="Buyer Name"
-    )
+    PurchaseName = Text(window2, grid=[1, 1], size=15, font="Times New Roman", text="Buyer Name")
     # shipping info
-    AddressText = Text(
-        window2, text="Address", size=15, font="Times New Roman", grid=[0, 3]
-    )
+    AddressText = Text(window2, text="Address", size=15, font="Times New Roman", grid=[0, 3])
     address = Text(window2, grid=[1, 3], size=15, font="Times New Roman", text="Line 1")
-    AddressText2 = Text(
-        window2, text="Line 2", size=15, font="Times New Roman", grid=[0, 4]
-    )
-    address2 = Text(
-        window2, grid=[1, 4], size=15, font="Times New Roman", text="Line 2"
-    )
+    AddressText2 = Text(window2, text="Line 2", size=15, font="Times New Roman", grid=[0, 4])
+    address2 = Text(window2, grid=[1, 4], size=15, font="Times New Roman", text="Line 2")
     CityText = Text(window2, text="City", size=15, font="Times New Roman", grid=[0, 5])
     city = Text(window2, grid=[1, 5], size=15, font="Times New Roman", text="City")
-    StateText = Text(
-        window2, text="State", size=15, font="Times New Roman", grid=[0, 6]
-    )
+    StateText = Text(window2, text="State", size=15, font="Times New Roman", grid=[0, 6])
     state = Text(window2, grid=[1, 6], size=15, font="Times New Roman", text="State")
-    ZipText = Text(
-        window2, text="Zip Code", size=15, font="Times New Roman", grid=[0, 7]
-    )
-    ZipCode = Text(
-        window2, grid=[1, 7], size=15, font="Times New Roman", text="Zip Code"
-    )
+    ZipText = Text(window2, text="Zip Code", size=15, font="Times New Roman", grid=[0, 7])
+    ZipCode = Text(window2, grid=[1, 7], size=15, font="Times New Roman", text="Zip Code")
     # items header
-    ItemsMessage = Text(
-        window2, text="Items", size=18, font="Times New Roman", grid=[1, 8]
-    )
+    ItemsMessage = Text(window2, text="Items", size=18, font="Times New Roman", grid=[1, 8])
 
     ItemInfoListBox = ListBox(
         window2, items=[], grid=[0, 9, 4, 5], width=400, height=370, scrollbar=True
@@ -475,23 +424,18 @@ def ViewEasyCartOrder(main_window, database, OrderNumber):
     UIDs = Order["order_items_UID"]
     for uid in UIDs:
         item = order_items.search(
-            (tinydb.Query().item_UID == uid)
-            & (tinydb.Query().process_status == "UTILIZE")
+            (tinydb.Query().item_UID == uid) & (tinydb.Query().process_status == "UTILIZE")
         )[0]
         ItemKeys = list(item.keys())
         for key in ItemKeys:
             if item[key] == "":
                 continue
-            if (
-                key == "product_snapshot"
-            ):  # if the key is the product snapshot, add the SubKeys
+            if key == "product_snapshot":  # if the key is the product snapshot, add the SubKeys
                 SubKeys = list(item[key].keys())
                 for SubKey in SubKeys:
                     if item[key][SubKey] == "":
                         continue
-                    ItemInfoListBox.append(
-                        "        " + SubKey + " : " + str(item[key][SubKey])
-                    )
+                    ItemInfoListBox.append("        " + SubKey + " : " + str(item[key][SubKey]))
                 continue
 
             ItemInfoListBox.append("    " + key + " : " + str(item[key]))
@@ -502,8 +446,7 @@ def ViewEasyCartOrder(main_window, database, OrderNumber):
 def ViewEtsyOrder(main_window, database, OrderNumber):
     orders = database.table("Orders")  # Get the orders table
     Order = orders.search(
-        (tinydb.Query().order_number == OrderNumber)
-        & (tinydb.Query().process_status == "UTILIZE")
+        (tinydb.Query().order_number == OrderNumber) & (tinydb.Query().process_status == "UTILIZE")
     )[
         0
     ]  # Get the order to edit
@@ -523,36 +466,20 @@ def ViewEtsyOrder(main_window, database, OrderNumber):
     PurchaseNameText = Text(
         window2, text="Buyer Name", size=15, font="Times New Roman", grid=[0, 1]
     )  # Buyer name
-    PurchaseName = Text(
-        window2, grid=[1, 1], size=15, font="Times New Roman", text="Buyer Name"
-    )
+    PurchaseName = Text(window2, grid=[1, 1], size=15, font="Times New Roman", text="Buyer Name")
     # shipping info
-    AddressText = Text(
-        window2, text="Address", size=15, font="Times New Roman", grid=[0, 3]
-    )
+    AddressText = Text(window2, text="Address", size=15, font="Times New Roman", grid=[0, 3])
     address = Text(window2, grid=[1, 3], size=15, font="Times New Roman", text="Line 1")
-    AddressText2 = Text(
-        window2, text="Line 2", size=15, font="Times New Roman", grid=[0, 4]
-    )
-    address2 = Text(
-        window2, grid=[1, 4], size=15, font="Times New Roman", text="Line 2"
-    )
+    AddressText2 = Text(window2, text="Line 2", size=15, font="Times New Roman", grid=[0, 4])
+    address2 = Text(window2, grid=[1, 4], size=15, font="Times New Roman", text="Line 2")
     CityText = Text(window2, text="City", size=15, font="Times New Roman", grid=[0, 5])
     city = Text(window2, grid=[1, 5], size=15, font="Times New Roman", text="City")
-    StateText = Text(
-        window2, text="State", size=15, font="Times New Roman", grid=[0, 6]
-    )
+    StateText = Text(window2, text="State", size=15, font="Times New Roman", grid=[0, 6])
     state = Text(window2, grid=[1, 6], size=15, font="Times New Roman", text="State")
-    ZipText = Text(
-        window2, text="Zip Code", size=15, font="Times New Roman", grid=[0, 7]
-    )
-    ZipCode = Text(
-        window2, grid=[1, 7], size=15, font="Times New Roman", text="Zip Code"
-    )
+    ZipText = Text(window2, text="Zip Code", size=15, font="Times New Roman", grid=[0, 7])
+    ZipCode = Text(window2, grid=[1, 7], size=15, font="Times New Roman", text="Zip Code")
     # items header
-    ItemsMessage = Text(
-        window2, text="Items", size=18, font="Times New Roman", grid=[1, 8]
-    )
+    ItemsMessage = Text(window2, text="Items", size=18, font="Times New Roman", grid=[1, 8])
 
     ItemInfoListBox = ListBox(
         window2, items=[], grid=[0, 9, 4, 5], width=400, height=370, scrollbar=True
@@ -580,23 +507,18 @@ def ViewEtsyOrder(main_window, database, OrderNumber):
     UIDs = Order["order_items_UID"]
     for uid in UIDs:
         item = order_items.search(
-            (tinydb.Query().item_UID == uid)
-            & (tinydb.Query().process_status == "UTILIZE")
+            (tinydb.Query().item_UID == uid) & (tinydb.Query().process_status == "UTILIZE")
         )[0]
         ItemKeys = list(item.keys())
         for key in ItemKeys:
             if item[key] == "":
                 continue
-            if (
-                key == "product_snapshot"
-            ):  # if the key is the product snapshot, add the SubKeys
+            if key == "product_snapshot":  # if the key is the product snapshot, add the SubKeys
                 SubKeys = list(item[key].keys())
                 for SubKey in SubKeys:
                     if item[key][SubKey] == "":
                         continue
-                    ItemInfoListBox.append(
-                        "        " + SubKey + " : " + str(item[key][SubKey])
-                    )
+                    ItemInfoListBox.append("        " + SubKey + " : " + str(item[key][SubKey]))
                 continue
 
             ItemInfoListBox.append("    " + key + " : " + str(item[key]))
@@ -636,9 +558,7 @@ def TaskExport(database):  # Export data to database
     global window2
     tasks = database.table("Tasks")
 
-    if (
-        name.value == StartName
-    ):  # If the task name is the same as the original, update the task
+    if name.value == StartName:  # If the task name is the same as the original, update the task
         tasks.update(
             {
                 "task_name": name.value,
@@ -650,8 +570,7 @@ def TaskExport(database):  # Export data to database
         )
     else:  # If the task name is different, remove the old task and add a new one
         tasks.remove(
-            (tinydb.Query().task_name == StartName)
-            & (tinydb.Query().process_status == "UTILIZE")
+            (tinydb.Query().task_name == StartName) & (tinydb.Query().process_status == "UTILIZE")
         )
         tasks.insert(
             {
@@ -679,36 +598,25 @@ def EditTask(main_window, database, TaskName):  # Create new task window
 
     tasks = database.table("Tasks")
     EditingTask = tasks.search(
-        (tinydb.Query().task_name == TaskName)
-        & (tinydb.Query().process_status == "UTILIZE")
+        (tinydb.Query().task_name == TaskName) & (tinydb.Query().process_status == "UTILIZE")
     )
     StartName = EditingTask[0]["task_name"]
 
-    window2 = Window(
-        main_window, title="Edit Task", layout="grid", width=1100, height=700
-    )
-    welcome_message = Text(
-        window2, text="Edit Task", size=18, font="Times New Roman", grid=[1, 0]
-    )
+    window2 = Window(main_window, title="Edit Task", layout="grid", width=1100, height=700)
+    welcome_message = Text(window2, text="Edit Task", size=18, font="Times New Roman", grid=[1, 0])
 
-    name_text = Text(
-        window2, text="Task Name", size=15, font="Times New Roman", grid=[0, 1]
-    )
+    name_text = Text(window2, text="Task Name", size=15, font="Times New Roman", grid=[0, 1])
     name = TextBox(window2, grid=[1, 1], width=30)
     # shipping info
     description_text = Text(
         window2, text="Description", size=15, font="Times New Roman", grid=[0, 3]
     )
     description = TextBox(window2, grid=[1, 3], width=60, multiline=True, height=15)
-    priority_text = Text(
-        window2, text="Priority", size=15, font="Times New Roman", grid=[0, 7]
-    )
+    priority_text = Text(window2, text="Priority", size=15, font="Times New Roman", grid=[0, 7])
     priority = TextBox(window2, grid=[1, 7], width=10, text="0")
     # items header
 
-    finish = PushButton(
-        window2, command=TaskExport, text="Save", grid=[0, 19], args=[database]
-    )
+    finish = PushButton(window2, command=TaskExport, text="Save", grid=[0, 19], args=[database])
     cancel = PushButton(window2, command=CancelTask, text="Cancel", grid=[1, 19])
 
     name.value = EditingTask[0]["task_name"]

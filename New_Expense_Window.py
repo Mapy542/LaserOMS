@@ -10,18 +10,14 @@ import Common
 
 def price_update():
     global ExpenseName, ItemQuantity, ItemPrice, TotalText
-    TotalText.value = "Total: $" + str(
-        Common.MonetaryMultiply(ItemQuantity.value, ItemPrice.value)
-    )
+    TotalText.value = "Total: $" + str(Common.MonetaryMultiply(ItemQuantity.value, ItemPrice.value))
 
 
 def export(database):
     global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton
     expenses = database.table("Expenses")  # Get expenses table
 
-    ExpenseName.value = Common.CleanedFileName(
-        ExpenseName.value
-    )  # Clean up expense name
+    ExpenseName.value = Common.CleanedFileName(ExpenseName.value)  # Clean up expense name
 
     # Check if expense name is already in database
     while len(expenses.search(tinydb.Query().expense_name == ExpenseName.value)) > 0:
@@ -57,9 +53,7 @@ def export(database):
         # copy file to new path based on defined image folder path. file name is expense name. file type is preserved.
         shutil.copy(
             ImageButton.text,
-            os.path.join(
-                os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]
-            ),
+            os.path.join(os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]),
         )
 
         expenses.update(
@@ -154,12 +148,8 @@ def NewExpense(main_window, database):
         font="Times New Roman",
         grid=[0, 17],
     )
-    ImageButton = PushButton(
-        Window2, command=AttachImage, args=[Window2], text="", grid=[1, 17]
-    )
-    ImageCancelButton = PushButton(
-        Window2, command=RemoveImage, text="Clear", grid=[2, 17]
-    )
+    ImageButton = PushButton(Window2, command=AttachImage, args=[Window2], text="", grid=[1, 17])
+    ImageCancelButton = PushButton(Window2, command=RemoveImage, text="Clear", grid=[2, 17])
 
     DateText = Text(Window2, text="Date", size=15, font="Times New Roman", grid=[0, 18])
     DateField = TextBox(
@@ -172,6 +162,4 @@ def NewExpense(main_window, database):
     FinishButton = PushButton(
         Window2, command=export, text="Save", grid=[0, 19], args=[database]
     )  # Create button
-    CancelButton = PushButton(
-        Window2, command=close, text="Cancel", grid=[1, 19]
-    )  # Create button
+    CancelButton = PushButton(Window2, command=close, text="Cancel", grid=[1, 19])  # Create button

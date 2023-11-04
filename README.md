@@ -92,10 +92,19 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.2.8
+
+- Fixed Etsy Oauth Token Creation Bug
+- Fixed Etsy Ingest Bug
+- Added ability to delete Etsy token
+
+- Etsy Request Server now weekly refreshes tokens to prevent token expiration
+
 Version 1.2.7
 
 - Added USPS Shipping Label Expense Import
 - Fixed Details Window Changing Pricing Option Bug
+- Reformatted with 110 character line limit
 
 Version 1.2.6
 

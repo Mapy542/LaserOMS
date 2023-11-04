@@ -17,7 +17,7 @@ import Listing_Database_Window
 import New_Task_Window
 import PackingSlip
 from Easy_Cart_Ingest import ImportEasyCartOrders
-from Etsy_Ingest import ImportAllThreadHandler
+from Etsy_Ingest import FastAuthentication, ImportAllThreadHandler
 from Google_Sheets_Sync import RebuildProductsFromSheets
 from New_Expense_Window import NewExpense
 from New_Order_Window import NewOrder
@@ -47,14 +47,10 @@ def DisplayAllOrders(database):
         if (
             order["order_date"].split("-")[2] not in FilterOptions
         ):  # if year is not in filter options
-            FilterOptions.append(
-                order["order_date"].split("-")[2]
-            )  # add to filter options
+            FilterOptions.append(order["order_date"].split("-")[2])  # add to filter options
 
     FilterOptions = sorted(FilterOptions)  # sort filter options by year
-    UpdateDropDown(
-        FilterByYearDropDown, FilterOptions
-    )  # update filter by year dropdown
+    UpdateDropDown(FilterByYearDropDown, FilterOptions)  # update filter by year dropdown
 
     if FilterByYearDropDown.value != "All":  # if filter by year is not all
         AllOrders = [
@@ -70,9 +66,7 @@ def DisplayAllOrders(database):
 
     listbox.clear()  # clear listbox
     for i in range(len(AllOrders)):  # for each open order
-        listbox.append(
-            str(AllOrders[i]["order_number"]) + ", " + AllOrders[i]["order_name"]
-        )
+        listbox.append(str(AllOrders[i]["order_number"]) + ", " + AllOrders[i]["order_name"])
 
     WelcomeMessage.value = (
         "Welcome to Laser OMS, " + str(len(AllOrders)) + " visible orders."
@@ -82,17 +76,14 @@ def DisplayAllOrders(database):
 def ShowOpenOrders(database):  # show open orders
     orders = database.table("Orders")  # get orders table
     OpenOrders = orders.search(
-        (tinydb.Query().order_status == "OPEN")
-        & (tinydb.Query().process_status == "UTILIZE")
+        (tinydb.Query().order_status == "OPEN") & (tinydb.Query().process_status == "UTILIZE")
     )  # get all open orders and ignore shell holders
     for item in OpenOrders:
         item["order_number"] = int(item["order_number"])
     OpenOrders = sorted(OpenOrders, key=lambda k: k["order_number"])
     VisualData = []  # list of orders to display
     for i in range(len(OpenOrders)):  # for each open order
-        VisualData.append(
-            str(OpenOrders[i]["order_number"]) + ", " + OpenOrders[i]["order_name"]
-        )
+        VisualData.append(str(OpenOrders[i]["order_number"]) + ", " + OpenOrders[i]["order_name"])
     listbox.clear()  # clear listbox
     for i in VisualData:  # for each order
         listbox.append(i)  # add to listbox
@@ -106,12 +97,9 @@ def LoadTasks(database):
     orders = database.table("Orders")  # get orders table
     settings = database.table("Settings")  # get settings table
 
-    tasks = TaskTable.search(
-        tinydb.Query().process_status == "UTILIZE"
-    )  # get all tasks
+    tasks = TaskTable.search(tinydb.Query().process_status == "UTILIZE")  # get all tasks
     OpenOrders = orders.search(
-        (tinydb.Query().order_status == "OPEN")
-        & (tinydb.Query().process_status == "UTILIZE")
+        (tinydb.Query().order_status == "OPEN") & (tinydb.Query().process_status == "UTILIZE")
     )  # get all open orders and ignore shell holders
 
     if len(OpenOrders) != 0:  # if there are open orders
@@ -135,9 +123,7 @@ def LoadTasks(database):
     # if there are tasks
     if (
         tasks != []
-        and settings.search(tinydb.Query().setting_name == "Show_Task_Priority")[0][
-            "setting_value"
-        ]
+        and settings.search(tinydb.Query().setting_name == "Show_Task_Priority")[0]["setting_value"]
         == "True"
     ):
         MaxPriority = 0  # max priority
@@ -282,9 +268,7 @@ def DeleteOrder(database, app):
     )  # ask for password confirmation
     if (
         not PasswordHash(password)
-        == settings.get(tinydb.Query().setting_name == "Settings_Password")[
-            "setting_value"
-        ]
+        == settings.get(tinydb.Query().setting_name == "Settings_Password")["setting_value"]
     ):
         app.error("Incorrect Password", "Incorrect Password, order not deleted")
         return
@@ -326,17 +310,27 @@ def RebuildProducts():  # rebuild products from sheets
 
 
 def SyncOrders(app, database):  # sync orders from sheets
-    Synchronizer = threading.Thread(
-        target=SyncOrdersThread, args=(app, database), daemon=True
-    )
+    # run through authentication to ensure it works
+    settings = database.table("Settings")  # get settings table
+    Etsy = settings.search(tinydb.Query().setting_name == "Synchronize_Etsy")[0][
+        "setting_value"
+    ]  # get etsy setting
+    if Etsy == "True":
+        print("Running Authentication")
+        success = FastAuthentication(app, database)
+        print("Authentication Success: " + str(success))
+        if not success:
+            app.error("Authentication Error", "Authentication Failed Ingest Aborted")
+            return
+
+    # run asynchronous ingest of orders
+    Synchronizer = threading.Thread(target=SyncOrdersThread, args=(app, database), daemon=True)
     Synchronizer.start()
 
 
 def SyncOrdersThread(app, database):  # sync orders asynchronously
     settings = database.table("Settings")  # get settings table
-    EasyCart = settings.search(tinydb.Query().setting_name == "Synchronize_Easy_Cart")[
-        0
-    ][
+    EasyCart = settings.search(tinydb.Query().setting_name == "Synchronize_Easy_Cart")[0][
         "setting_value"
     ]  # get easy cart setting
     Etsy = settings.search(tinydb.Query().setting_name == "Synchronize_Etsy")[0][
@@ -351,13 +345,10 @@ def SyncOrdersThread(app, database):  # sync orders asynchronously
 
         transients = database.table("Transients")  # get transients table
         while (
-            transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated")
-            == None
+            transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated") == None
         ):  # while there are no transients about etsy orders
             time.sleep(1)  # wait for etsy orders to finish importing
-        orders += transients.get(
-            tinydb.where("transient_name") == "Etsy_Orders_Updated"
-        )[
+        orders += transients.get(tinydb.where("transient_name") == "Etsy_Orders_Updated")[
             "transient_value"
         ]  # add etsy orders to total
         transients.remove(
@@ -365,9 +356,7 @@ def SyncOrdersThread(app, database):  # sync orders asynchronously
         )  # remove transient
 
     UpdateScreen(database)  # update screen
-    app.info(
-        "Orders Synchronized", str(orders) + " orders have been imported from APIs."
-    )
+    app.info("Orders Synchronized", str(orders) + " orders have been imported from APIs.")
 
 
 # settings
@@ -481,9 +470,7 @@ try:
     )
 
     # sync options
-    sync_options_div = TitleBox(
-        app, text="Synchronize", grid=[0, 9, 3, 1], layout="grid"
-    )
+    sync_options_div = TitleBox(app, text="Synchronize", grid=[0, 9, 3, 1], layout="grid")
     Product_Pricing_Sync = PushButton(
         sync_options_div,
         text="Update Pricing",
@@ -499,9 +486,7 @@ try:
     )
 
     # stats options
-    stats_options_div = TitleBox(
-        app, text="Statistics", grid=[0, 10, 3, 1], layout="grid"
-    )
+    stats_options_div = TitleBox(app, text="Statistics", grid=[0, 10, 3, 1], layout="grid")
     ListingDataView_button = PushButton(
         stats_options_div,
         text="View All Products",
@@ -518,9 +503,7 @@ try:
         args=[database],
     )
 
-    SettingsButton = PushButton(
-        app, text="Settings", command=SettingsWindow, grid=[3, 9, 1, 1]
-    )
+    SettingsButton = PushButton(app, text="Settings", command=SettingsWindow, grid=[3, 9, 1, 1])
 
     SettingsCheck = VerifySettings(database)  # verify settings
     if SettingsCheck:  # if settings are invalid

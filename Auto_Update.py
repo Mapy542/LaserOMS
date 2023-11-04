@@ -16,7 +16,7 @@ def UpdatePackages(app):
             f.close()
             packages = recs.split(",")
             for i in range(len(packages)):
-                os.system("pip install --upgrade " + str(packages[i]))
+                os.system("python3 -m pip install --upgrade " + str(packages[i]))
     except:
         app.warn("Update Error", "Unable to find Packages.txt")
 
@@ -34,9 +34,9 @@ def CheckForUpdate(app, database):
         return False
 
     settings = database.table("Settings")
-    CurrentVersionString = settings.search(
-        tinydb.Query().setting_name == "LaserOMS_Version"
-    )[0]["setting_value"]
+    CurrentVersionString = settings.search(tinydb.Query().setting_name == "LaserOMS_Version")[0][
+        "setting_value"
+    ]
     CurrentVersion = CurrentVersionString.split(".")
     CurrentVersion = [int(i) for i in CurrentVersion]
 

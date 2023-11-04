@@ -309,11 +309,19 @@ def Settings(main_window, database):  # Settings window
         command=RefreshPackages,
     )  # Create refresh packages button
 
-    UpdateAllOrdersButton = PushButton(
+    """UpdateAllOrdersButton = PushButton(
         SynchronizeDiv,
         text="Update All Orders",
         grid=[0, 0, 1, 1],
         command=Etsy_Ingest.SyncAllOrders,
+        args=[window, database],
+    )"""  # main window button does the same thing
+
+    DeleteEtsyTokenButton = PushButton(
+        SynchronizeDiv,
+        text="Delete Etsy Token",
+        grid=[0, 0, 1, 1],
+        command=Etsy_Ingest.DeleteEtsyToken,
         args=[window, database],
     )
 

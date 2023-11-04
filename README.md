@@ -94,10 +94,11 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 Version 1.2.8
 
-- Fixed Etsy Ingest Dead Token Bug
-  Etsy Oauth Tokens permanently expire after 90 days of no use. Upon communication with request server, LaserOMS and the Request Server coordinate removal of dead tokens. (There is currently no other way to remove tokens manually as a security measure.)
-- Fixed Etsy Ingest Oauth Token Generation Bug
-  The process of generating an Oauth token requires a URI from the user. Tkinter inputs do not function from a thread. The process of generating a token has been moved to the main thread. When tokens are setup successfully, a deamon thread will be started to handle the ingest.
+- Fixed Etsy Oauth Token Creation Bug
+- Fixed Etsy Ingest Bug
+- Added ability to delete Etsy token
+
+- Etsy Request Server now weekly refreshes tokens to prevent token expiration
 
 Version 1.2.7
 

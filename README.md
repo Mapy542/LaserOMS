@@ -92,6 +92,12 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.2.9
+
+- Fixed Etsy Request Server Memory Cache Loss Bug
+- Fixed Etsy Request Fast Auth Bug
+- Added Local Etsy Token Deletion Option
+
 Version 1.2.8
 
 - Fixed Etsy Oauth Token Creation Bug

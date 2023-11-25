@@ -1039,8 +1039,8 @@ def RefreshAllTokens(database):
 try:
     database = tinydb.TinyDB(
         os.path.join(os.path.realpath(os.path.dirname(__file__)), "../../Server.json"),
-        storage=CachingMiddleware(JSONStorage),
-    )  # load database (use memory cache)
+        storage=JSONStorage,
+    )  # load database, don't use memory cache. It is not persistent atm.
 
     if VerifySettings(database):
         print("Updated Settings. Closing Server. Check Server.json for changes.")
@@ -1062,3 +1062,4 @@ finally:
     database.close()  # close database
     server.close_request()  # close server
     # NOT CLOSED PROPERLY RESULTS IN LOSS OF CACHED CHANGES
+    # service stop does not call finally( find out why and fix )

@@ -323,9 +323,9 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     UIDs = EditableOrder["order_items_UID"]
 
     try:
-        PricingOptionButton.value = EditableOrder[
-            "order_pricing_style"
-        ]  # Set the pricing option to the one in the database
+        PricingOptionButton.value = EditableOrder["order_pricing_style"].replace(
+            "_", " "
+        )  # Set the pricing option to the one in the database
     except KeyError:
         PricingOptionButton.value = styles[
             0

@@ -160,8 +160,6 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 "Enter the URL from the address bar of the web browser that was opened.",
             ).strip()
 
-            print(UserURI)
-
             if UserURI == "":  # if user did not enter URL
                 app.warn("Request Server Connection Failed", "User did not enter URL.")
                 return False
@@ -175,7 +173,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                     "Request Server failed to receive URL.",
                 )
                 return False
-            print("sent url")
+
             data = Asymmetric_Encryption.DecryptData(
                 s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
             )  # receive response from server
@@ -192,7 +190,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                     "Request Server failed to authenticate.",
                 )
                 return False
-            print("received success")
+
             Token = Asymmetric_Encryption.ChopReceiveCheck(
                 s, ServerKey, PrivateKey
             )  # receive token from server
@@ -207,12 +205,10 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 {"setting_value": Token},
                 tinydb.where("setting_name") == "Etsy_Request_Server_Token",
             )  # save token to database
-            print("saved token")
-            print(Token)
+
             return True
 
         else:  # token exists so log in with it
-            print("token exists")
             s.sendall(
                 Asymmetric_Encryption.EncryptData(b"AuthenticateSession", ServerKey)
             )  # send request to server to authenticate
@@ -760,7 +756,6 @@ def FastAuthentication(app, database):
         ).strip()
         if UserShopID == "":
             app.warn("Etsy Ingest Error", "Etsy Shop ID not set. Ingest cancelled.")
-            ProgressList[3] = 1  # completed so delete progress bar
             return
         else:
             settings.upsert(
@@ -785,7 +780,6 @@ def FastAuthentication(app, database):
                 "Request Server Connection Failed",
                 "Request Server denied connection. Ingest cancelled.",
             )
-            ProgressList[3] = 1  # completed so delete progress bar
             return
 
         Success, ServerKey = Asymmetric_Encryption.ClientHandshake(
@@ -797,7 +791,6 @@ def FastAuthentication(app, database):
                 "Request Server Connection Failed",
                 "Handshake failed, unable to communicate to server.",
             )
-            ProgressList[3] = 1  # completed so delete progress bar
             return
 
         # authentication loop. if token is not set, set it up, then log in
@@ -807,7 +800,6 @@ def FastAuthentication(app, database):
         s.sendall(Asymmetric_Encryption.EncryptData(b"", ServerKey))
         s.close()
         if not AuthenticationSuccess:
-            ProgressList[3] = 1  # mark completed so delete progress bar
             app.warn(
                 "Request Server Connection Failed",
                 "Request Server failed to authenticate.",
@@ -815,6 +807,31 @@ def FastAuthentication(app, database):
             return False
         else:
             return True
+
+
+def LocalOnlyTokenDelete(app, database):
+    check = app.yesno(
+        "Delete Etsy Token",
+        "Delete local etsy request token? Only do this if token is not in request server.",
+    )
+    if not check:
+        app.info("Stop Delete Etsy Token", "Etsy Authentication token delete canceled.")
+        return
+    DoubleCheck = app.yesno(
+        "Delete Etsy Token",
+        "Are you sure you want to delete the LOCAL only Etsy Authentication token? If the token is in the request server, it will not be deleted and you will not be able to recover it.",
+    )
+    if not DoubleCheck:
+        app.info("Stop Delete Etsy Token", "Etsy Authentication token delete canceled.")
+        return
+
+    settings = database.table("Settings")
+    settings.upsert(
+        {"setting_value": ""},
+        tinydb.where("setting_name") == "Etsy_Request_Server_Token",
+    )
+
+    app.info("Etsy Token Deleted", "LOCAL Etsy Authentication token deleted.")
 
 
 def DeleteEtsyToken(app, database):
@@ -855,6 +872,7 @@ def DeleteEtsyToken(app, database):
                 "Request Server Connection Failed",
                 "Request Server denied connection. Delete canceled.",
             )
+            LocalOnlyTokenDelete(app, database)
             return
 
         Success, ServerKey = Asymmetric_Encryption.ClientHandshake(
@@ -866,6 +884,7 @@ def DeleteEtsyToken(app, database):
                 "Request Server Connection Failed",
                 "Handshake failed, unable to communicate to server.",
             )
+            LocalOnlyTokenDelete(app, database)
             return
 
         # authentication loop. if token is not set, set it up, then log in
@@ -877,6 +896,7 @@ def DeleteEtsyToken(app, database):
                 "Request Server Connection Failed",
                 "Request Server failed to authenticate.",
             )
+            LocalOnlyTokenDelete(app, database)
             return
 
         s.sendall(Asymmetric_Encryption.EncryptData(b"RemoveToken", ServerKey))

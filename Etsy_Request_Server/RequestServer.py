@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import random
+import signal
 import socketserver
 import string
 import threading
@@ -343,7 +344,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 "Oauth Token Registration Failed",
                 str(self.client_address[0]) + " failed to get code and state from user uri.",
             )
-            print(e)
             return False
 
         try:
@@ -521,7 +521,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     R["receipt_id"] == EndingReceiptID for R in Receipts["results"]
                 ):  # if ending receipt id reached
                     # remove all receipts after ending receipt id and the ending receipt id
-                    print("match found")
                     for i in range(len(Receipts["results"])):
                         if Receipts["results"][i]["receipt_id"] == EndingReceiptID:
                             Receipts["results"] = Receipts["results"][
@@ -541,7 +540,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     str(self.client_address[0])
                     + " failed to retrieve Receipts from Etsy.",  # log failure
                 )
-                print(traceback.format_exc())  # debugging
                 return False, None
 
         self.AppendLog(
@@ -1036,11 +1034,21 @@ def RefreshAllTokens(database):
         time.sleep(60 * 60 * 24 * 7)  # sleep for 1 week
 
 
+# signal termination handling
+def signal_handler(sig, frame):
+    global database
+    database.close()
+    print("database closed on termination")
+    exit(0)
+
+
+signal.signal(signal.SIGTERM, signal_handler)
+
 try:
     database = tinydb.TinyDB(
         os.path.join(os.path.realpath(os.path.dirname(__file__)), "../../Server.json"),
-        storage=CachingMiddleware(JSONStorage),
-    )  # load database (use memory cache)
+        storage=JSONStorage,
+    )  # load database, don't use memory cache. It is not persistent atm.
 
     if VerifySettings(database):
         print("Updated Settings. Closing Server. Check Server.json for changes.")
@@ -1060,5 +1068,5 @@ except Exception as err:  # catch all errors
     print(traceback.format_exc())  # print error
 finally:
     database.close()  # close database
-    server.close_request()  # close server
+    # close server if your feeling nice
     # NOT CLOSED PROPERLY RESULTS IN LOSS OF CACHED CHANGES

@@ -85,7 +85,6 @@ def ClientHandshake(socket, PublicKey, PrivateKey):
         # if handshake failed or server is not listening
         if not DecryptData(data, PrivateKey) == b"Listening":
             socket.sendall(EncryptData(b"CANCEL", ServerKey))
-            print("Server not listening")
             return False, None
 
         else:
@@ -141,7 +140,6 @@ def ChopReceiveCheck(socket, ClientKey, PrivateKey):
     # receive chop send check start
     data = DecryptData(socket.recv(BufferSize()), PrivateKey)
     if not data == b"ChopSendCheckStart":  # check if chop send check start was received correctly
-        print(data)
         return False
     socket.sendall(
         EncryptData(b"ChopSendCheckAcknowledged", ClientKey)  # send chop send check acknowledged
@@ -164,7 +162,6 @@ def ChopReceiveCheck(socket, ClientKey, PrivateKey):
             socket.sendall(
                 EncryptData(b"ChunkResendAcknowledged", ClientKey)  # send chunk resend acknowledged
             )
-            print("Chunk resend acknowledged")
             # remove last chunk from list
             chunks.pop()
             continue

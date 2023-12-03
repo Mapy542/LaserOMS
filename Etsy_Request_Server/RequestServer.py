@@ -344,7 +344,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 "Oauth Token Registration Failed",
                 str(self.client_address[0]) + " failed to get code and state from user uri.",
             )
-            print(e)
             return False
 
         try:
@@ -522,7 +521,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     R["receipt_id"] == EndingReceiptID for R in Receipts["results"]
                 ):  # if ending receipt id reached
                     # remove all receipts after ending receipt id and the ending receipt id
-                    print("match found")
                     for i in range(len(Receipts["results"])):
                         if Receipts["results"][i]["receipt_id"] == EndingReceiptID:
                             Receipts["results"] = Receipts["results"][
@@ -542,7 +540,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     str(self.client_address[0])
                     + " failed to retrieve Receipts from Etsy.",  # log failure
                 )
-                print(traceback.format_exc())  # debugging
                 return False, None
 
         self.AppendLog(

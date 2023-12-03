@@ -1,4 +1,5 @@
 import os
+import signal
 import threading
 import time
 import tkinter
@@ -363,6 +364,16 @@ def SyncOrdersThread(app, database):  # sync orders asynchronously
 def SettingsWindow():  # display settings window
     Settings(app, database)
 
+
+# signal termination handling
+def signal_handler(sig, frame):
+    global database
+    database.close()
+    print("database closed on termination")
+    exit(0)
+
+
+signal.signal(signal.SIGTERM, signal_handler)
 
 try:
     database = tinydb.TinyDB(

@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import random
+import signal
 import socketserver
 import string
 import threading
@@ -1036,6 +1037,16 @@ def RefreshAllTokens(database):
         time.sleep(60 * 60 * 24 * 7)  # sleep for 1 week
 
 
+# signal termination handling
+def signal_handler(sig, frame):
+    global database
+    database.close()
+    print("database closed on termination")
+    exit(0)
+
+
+signal.signal(signal.SIGTERM, signal_handler)
+
 try:
     database = tinydb.TinyDB(
         os.path.join(os.path.realpath(os.path.dirname(__file__)), "../../Server.json"),
@@ -1060,6 +1071,5 @@ except Exception as err:  # catch all errors
     print(traceback.format_exc())  # print error
 finally:
     database.close()  # close database
-    server.close_request()  # close server
+    # close server if your feeling nice
     # NOT CLOSED PROPERLY RESULTS IN LOSS OF CACHED CHANGES
-    # service stop does not call finally( find out why and fix )

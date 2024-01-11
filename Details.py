@@ -198,7 +198,7 @@ def OrderExport():
             ItemIncrement += 1
 
     if ChooseExportCheckBox.value == 1:  # If the user wants to export the order
-        PackingSlip.PrintPackingSlip(window2, ForwardDataBase, OriginalOrderNumber)
+        PackingSlip.PrintPackingSlip(window2, ForwardDataBase, str(OriginalOrderNumber))
 
     if ChooseShippingCheckBox.value == 1:  # If the user wants to ship the order
         # ShippingHandler.ShipOrder(order)
@@ -370,7 +370,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     PriceUpdate()
 
     # Export Options
-    ChooseExportCheckBox = CheckBox(window2, text="Export Order", grid=[1, 19])
+    ChooseExportCheckBox = CheckBox(window2, text="Generate Packing Slip", grid=[1, 19])
     ChooseShippingCheckBox = CheckBox(window2, text="Ship Order", grid=[1, 20])
     finish = PushButton(window2, command=OrderExport, text="Save", grid=[0, 19])
 

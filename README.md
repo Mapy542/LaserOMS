@@ -106,6 +106,7 @@ Version 1.3.1
 - Order Details Window utilizes item product snapshots.
 - Added Inventory Management for Consignment Stores tracking.
 - Added ability for new orders to affect inventory.
+- Fixed bug within new/edit order: packing slip generation not working on export.
 
 Version 1.2.9
 

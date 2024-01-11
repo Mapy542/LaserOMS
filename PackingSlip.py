@@ -10,6 +10,18 @@ import Common
 
 
 def PrintPackingSlip(app, database, OrderNumber):
+    """Prints a packing slip for the given order number.
+
+    Args:
+        app (GuiZero Window): The main window of the program.
+        database (TindyDb): The database to use.
+        OrderNumber (Str): The order number to print the packing slip for.
+    """
+
+    if type(OrderNumber) != str:
+        OrderNumber = str(OrderNumber)
+        app.warn("Order Number Error", "The order number must be a string. Casting to string.")
+
     try:
         settings = database.table("Settings")
         orders = database.table("Orders")

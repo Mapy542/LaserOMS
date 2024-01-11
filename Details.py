@@ -8,6 +8,31 @@ import Common
 import PackingSlip
 
 
+def SnapshotFailoverSearch(itemName, products):
+    """Attempts to locate item information from order item snapshots, but if it fails, searches the database.
+
+    Args:
+        itemName (String): auto-filled item name (Must be exact to match)
+        products (TinyDB Table): The products table from the database
+
+    Returns:
+        List: The product data
+    """
+
+    global ItemSnapShots
+
+    try:
+        for snapshot in ItemSnapShots:
+            if snapshot["product_name"] == itemName:
+                return [snapshot]
+        return products.search(
+            (tinydb.Query().product_name == item1.value)
+            & (tinydb.Query().process_status == "UTILIZE")
+        )  # Get the data for the item
+    except:  # If the snapshot search fails, search the database, if that fails, return an empty product with the name of the item and the price of "NA"
+        return [{"product_name": itemName, PricingOptionButton.value.replace(" ", "_"): "NA"}]
+
+
 def PriceUpdate():
     global PurchaseName, address, address2, city, state, ZipCode, PricingOptionButton, item1, item2, item3, item4, item5
     global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
@@ -20,10 +45,7 @@ def PriceUpdate():
         autofill1 = dl.get_close_matches(item1.value, product_names)
         item1.value = autofill1[0]  # Set the item name to the closest match
 
-        item1_data = products.search(
-            (tinydb.Query().product_name == item1.value)
-            & (tinydb.Query().process_status == "UTILIZE")
-        )  # Get the data for the item
+        item1_data = SnapshotFailoverSearch(item1.value, products)
         # Set the price to the price of the item times the quantity
         ItemPrice1.value = "$" + str(
             Common.MonetaryMultiply(
@@ -38,10 +60,7 @@ def PriceUpdate():
         autofill2 = dl.get_close_matches(item2.value, product_names)
         item2.value = autofill2[0]  # Set the item name to the closest match
 
-        item2_data = products.search(
-            (tinydb.Query().product_name == item2.value)
-            & (tinydb.Query().process_status == "UTILIZE")
-        )  # Get the data for the item
+        item2_data = SnapshotFailoverSearch(item2.value, products)
         # Set the price to the price of the item times the quantity
         ItemPrice2.value = "$" + str(
             Common.MonetaryMultiply(
@@ -56,10 +75,7 @@ def PriceUpdate():
         autofill3 = dl.get_close_matches(item3.value, product_names)
         item3.value = autofill3[0]  # Set the item name to the closest match
 
-        item3_data = products.search(
-            (tinydb.Query().product_name == item3.value)
-            & (tinydb.Query().process_status == "UTILIZE")
-        )  # Get the data for the item
+        item3_data = SnapshotFailoverSearch(item3.value, products)  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice3.value = "$" + str(
             Common.MonetaryMultiply(
@@ -74,10 +90,8 @@ def PriceUpdate():
         autofill4 = dl.get_close_matches(item4.value, product_names)
         item4.value = autofill4[0]  # Set the item name to the closest match
 
-        item4_data = products.search(
-            (tinydb.Query().product_name == item4.value)
-            & (tinydb.Query().process_status == "UTILIZE")
-        )  # Get the data for the item
+        item4_data = SnapshotFailoverSearch(item4.value, products)
+        # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice4.value = "$" + str(
             Common.MonetaryMultiply(
@@ -92,10 +106,7 @@ def PriceUpdate():
         autofill5 = dl.get_close_matches(item5.value, product_names)
         item5.value = autofill5[0]  # Set the item name to the closest match
 
-        item5_data = products.search(
-            (tinydb.Query().product_name == item5.value)
-            & (tinydb.Query().process_status == "UTILIZE")
-        )  # Get the data for the item
+        item5_data = SnapshotFailoverSearch(item5.value, products)  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice5.value = "$" + str(
             Common.MonetaryMultiply(
@@ -172,7 +183,7 @@ def OrderExport():
     for item in [item1, item2, item3, item4, item5]:
         if item.value != "Empty" and item.value != "":  # Insert the order items into the database
             # Get the data for the item
-            product = products.search(tinydb.Query().product_name == item.value)
+            product = SnapshotFailoverSearch(item.value, products)  # Get the data for the item
             order_items.insert(
                 {
                     "item_UID": itemsUIDs[UIDIncrement],
@@ -187,7 +198,7 @@ def OrderExport():
             ItemIncrement += 1
 
     if ChooseExportCheckBox.value == 1:  # If the user wants to export the order
-        PackingSlip.PrintPackingSlip(window2, ForwardDataBase, OriginalOrderNumber)
+        PackingSlip.PrintPackingSlip(window2, ForwardDataBase, str(OriginalOrderNumber))
 
     if ChooseShippingCheckBox.value == 1:  # If the user wants to ship the order
         # ShippingHandler.ShipOrder(order)
@@ -223,6 +234,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
     global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish, OriginalOrderNumber, OriginalItemUIDs
     global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
+    global ItemSnapShots
 
     products = database.table("Products")  # Get the products table
     ForwardDataBase = database  # Set the forward database to the database
@@ -337,6 +349,9 @@ def EditDefaultOrder(main_window, database, OrderNumber):
             (tinydb.Query().item_UID == uid) & (tinydb.Query().process_status == "UTILIZE")
         )[0]
         items.append(item)
+
+    ItemSnapShots = [item["product_snapshot"] for item in items]  # Get the snapshots for the items
+
     if len(items) > 0:
         item1.value = items[0]["item_name"]
         ItemQuantity1.value = items[0]["item_quantity"]
@@ -355,7 +370,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     PriceUpdate()
 
     # Export Options
-    ChooseExportCheckBox = CheckBox(window2, text="Export Order", grid=[1, 19])
+    ChooseExportCheckBox = CheckBox(window2, text="Generate Packing Slip", grid=[1, 19])
     ChooseShippingCheckBox = CheckBox(window2, text="Ship Order", grid=[1, 20])
     finish = PushButton(window2, command=OrderExport, text="Save", grid=[0, 19])
 

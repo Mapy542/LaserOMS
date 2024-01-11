@@ -56,7 +56,7 @@ if doOverwrite:
     expenses.insert({"expense_ID": 111, "expense_name": "LAST_EXPENSE", "process_status": "IGNORE"})
     inventory = database.table("Products")  # Form inventory table
     inventory.insert(
-        {"product_name": "Empty", "product_base_price": 0, "process_status": "UTILIZED"}
+        {"product_name": "Empty", "product_base_price": 0, "process_status": "UTILIZE"}
     )
     # Form product pricing styles table
     prods = database.table("Product_Pricing_Styles")
@@ -65,6 +65,13 @@ if doOverwrite:
     tasks.insert({"task_name": "Empty", "process_status": "IGNORE"})
     settings = database.table("Settings")  # Form settings table
     settings.insert({"setting_name": "Empty", "setting_value": "Empty", "process_status": "IGNORE"})
+    inventories = database.table("Inventories")  # Form inventories table
+    inventories.insert(
+        {
+            "inventory_name": "Empty",
+            "process_status": "IGNORE",
+        }
+    )
     database.close()
 
 # make image folder

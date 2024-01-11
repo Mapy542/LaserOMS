@@ -14,6 +14,7 @@ from tinydb.storages import JSONStorage
 import Auto_Update
 import Details
 import Finance_Window
+import Inventory_Management_Window
 import Listing_Database_Window
 import New_Task_Window
 import PackingSlip
@@ -305,6 +306,15 @@ def ViewListings(database):  # view
     Listing_Database_Window.ListingDisplay(app, database)
 
 
+def AccessInventoryManagement(database):
+    """Access the inventory management window
+
+    Args:
+        database (TinyDB Database): The Laser OMS database
+    """
+    Inventory_Management_Window.ListingDisplay(app, database)
+
+
 # API syncing
 def RebuildProducts():  # rebuild products from sheets
     RebuildProductsFromSheets(app, database)  # rebuild products from sheets
@@ -511,6 +521,14 @@ try:
         text="Financial Statistics",
         command=FinanceStatistics,
         grid=[1, 0, 1, 1],
+        args=[database],
+    )
+
+    InventoryManagementButton = PushButton(
+        stats_options_div,
+        text="Inventory Management",
+        command=AccessInventoryManagement,
+        grid=[0, 1, 2, 1],
         args=[database],
     )
 

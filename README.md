@@ -9,7 +9,7 @@ Lightweight python based local order/business management system with Etsy integr
 - Expense tracking
 - Wordpress plugin Easy Cart integration
 - Etsy integration (Via Remote Server)
-- Amazon integration (WIP)
+- Inventory management
 - Product spreadsheet connection
 - Packing slip generation
 - Customization and flexibility
@@ -65,7 +65,13 @@ Etsy sends shipping labels confirmation receipts as emails. These can be importe
 The settings page can be accessed by selecting the settings button in the main window.\
 The user will be prompted to enter the password to access the settings page. The default password is 'admin' but it is recommended the user change this.\
 The settings page contains a large list of settings. Double clicking a setting will allow the user to change the value of the setting. A pop-up will ask the user to: select yes or no, enter text, select a file, select a folder, or pick a color.
-The password can be changed by selecting the password setting. The user must enter the same password twice to confirm the change. The password settings will display an obfuscated version of the password for security.\
+The password can be changed by selecting the password setting. The user must enter the same password twice to confirm the change. The password settings will display an obfuscated version of the password for security.
+
+### Inventory Management:
+
+The inventory management page can be accessed by selecting the inventory button in the main window.\
+The inventory management page allows the user to track inventory for consignment stores or other systems. The user can add new items to the inventory, and edit existing items. The user can also delete items from the inventory.\
+During the creation of a new order, the user can select to affect inventory. This will remove the items from the inventory.
 
 ### Etsy Request Server:
 
@@ -74,23 +80,32 @@ The Etsy request server is the address of the running request server. This is us
 
 Rate limiting is in effect on the public server. 10 connections can be made per day. This is in an attempt to prevent abuse and stop brute force attacks. If you need more connections, consider running your own server.
 
-#### Optimization
+#### Optimization (WIP, disabled)
 
 The Request server and etsy ingest attempt to limit ingest time by reducing the number of orders ingested, as a shop with 100 orders or more may take significant time to synchronize. By default only existing open orders and new orders and downloaded by Laser OMS. The idea is that complected orders are generally unchanged. However there is a temporary override in the settings menu if there are inconsistencies.
 
 ### Statistics:
 
-The statistics page can be accessed by selecting the statistics button in the main window. This will open a new window with the statistics of finances broken down by year and month. A list of expenses can be show, and searched through by name or date. Double clicking on each expense will open a new window with the details of the expense. Selecting the open image, will open the default image viewer on the system with the expense attached image.\
+The statistics page can be accessed by selecting the statistics button in the main window. This will open a new window with the statistics of finances broken down by year and month. A list of expenses can be show, and searched through by name or date. Double clicking on each expense will open a new window with the details of the expense. Selecting the open image, will open the default image viewer on the system with the expense attached image.
 
 ## Projects:
 
 - Amazon integration
-- Shipping integration
+- Shipping integration (USPS API or ShipStation API)
 - Customizable product data synchronization
 - Multiple Instance support or database locking
 - Make each window look more modern
+- Add more inventory management features
+- Add inventory statistics and reports
+- Add inventory stock alerts to tasks.
 
 ## Changes:
+
+Version 1.3.1
+
+- Order Details Window utilizes item product snapshots.
+- Added Inventory Management for Consignment Stores tracking.
+- Added ability for new orders to affect inventory.
 
 Version 1.2.9
 

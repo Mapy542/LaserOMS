@@ -142,6 +142,7 @@ def export():
         )
         if not success:
             window2.warn("Error", "Inventory Modification Failed. Export Order Canceled.")
+            return
 
     OrderNumber = Common.MakeOrderID(orders)  # Make a unique order ID
 

@@ -6,6 +6,7 @@ import tinydb
 from guizero import CheckBox, Combo, ListBox, PushButton, Text, TextBox, Window
 
 import Common
+import Inventory_Management_Window
 import PackingSlip
 
 
@@ -126,6 +127,21 @@ def export():
     global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
     global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish
     global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
+    global doModifyInventory, InventorySelection
+
+    if doModifyInventory.value == 1:
+        inventory = []
+        for item, quantity in zip(
+            [item1, item2, item3, item4, item5],
+            [ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5],
+        ):
+            if item.value != "Empty" and item.value != "" and quantity.value != "0":
+                inventory.append([item.value, int(quantity.value)])
+        success = Inventory_Management_Window.OrderModifyInventory(
+            window2, ForwardDataBase, InventorySelection.value, inventory
+        )
+        if not success:
+            window2.warn("Error", "Inventory Modification Failed. Export Order Canceled.")
 
     OrderNumber = Common.MakeOrderID(orders)  # Make a unique order ID
 
@@ -186,7 +202,9 @@ def export():
             ItemIncrement += 1
 
     if ChooseExportCheckBox.value == 1:  # If the user wants to export the order
-        PackingSlip.PrintPackingSlip(window2, ForwardDataBase, OrderNumber)
+        PackingSlip.PrintPackingSlip(
+            window2, ForwardDataBase, str(OrderNumber)
+        )  # tf why is order number a string? too much work to change it now
 
     if ChooseShippingCheckBox.value == 1:  # If the user wants to ship the order
         # ShippingHandler.ShipOrder(order)
@@ -217,11 +235,20 @@ def DropDownSelection(event):  # Select a product from the dropdown
     ItemsList.when_double_clicked = SelectedProductFill
 
 
+def InventoryComboVisibility():
+    global doModifyInventory, InventorySelection
+    if doModifyInventory.value == 1:
+        InventorySelection.show()
+    else:
+        InventorySelection.hide()
+
+
 def NewOrder(main_window, database):
     global PurchaseName, address, address2, city, state, ZipCode, PricingOptionButton, item1, item2, item3, item4, item5
     global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
     global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish
     global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
+    global doModifyInventory, InventorySelection
 
     products = database.table("Products")  # Get the products table
     ForwardDataBase = database  # Set the forward database to the database
@@ -244,6 +271,10 @@ def NewOrder(main_window, database):
     )  # Get all the active styles
     for style in ActiveStyles:
         styles.append(style["style_name"])
+
+    inventories = Inventory_Management_Window.GetInventoryGroups(
+        database
+    )  # Get the inventory groups
 
     window2 = Window(
         main_window, title="New Order", layout="grid", width=1100, height=700
@@ -308,6 +339,14 @@ def NewOrder(main_window, database):
     DateField = TextBox(window2, grid=[1, 18], width=15, text=datetime.today().strftime("%m-%d-%Y"))
 
     # Export Options
-    ChooseExportCheckBox = CheckBox(window2, text="Export Order", grid=[1, 19])
+    ChooseExportCheckBox = CheckBox(window2, text="Generate Packing Slip", grid=[1, 19])
     ChooseShippingCheckBox = CheckBox(window2, text="Ship Order", grid=[1, 20])
     finish = PushButton(window2, command=export, text="Save", grid=[0, 19])
+
+    doModifyInventory = CheckBox(window2, text="Modify Inventory", grid=[0, 20])
+    window2.repeat(
+        500, InventoryComboVisibility
+    )  # Check if the checkbox is checked, and show/hide the inventory selection combo box
+    # this is a hacky way to do it, but it works, and I don't know how to do it better
+
+    InventorySelection = Combo(window2, options=inventories, grid=[0, 21])

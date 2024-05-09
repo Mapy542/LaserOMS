@@ -101,6 +101,10 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.3.2
+
+- Improved the Etsy Request Server to serve data much faster by leveraging TCP for data transfer assurance.
+
 Version 1.3.1
 
 - Order Details Window utilizes item product snapshots.

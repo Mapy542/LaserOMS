@@ -14,6 +14,17 @@ from Etsy_Request_Server import Asymmetric_Encryption
 
 
 def ProgressChopReceiveCheck(socket, ClientKey, PrivateKey):
+    """Receive a arbitrary length data from a socket and return it as a string while updating a progress bar.
+        Note the first packet received is the total number of packets to be received.
+
+    Args:
+        socket (TCP Socket Client): Must already be authenticated and connected to the server, plus the other end must be ready to send data.
+        ClientKey (RSA PublicKey): The public key of the client.
+        PrivateKey (RSA PrivateKey): The private key of self.
+
+    Returns:
+        String: The data received from the server. May be empty if no data was received.
+    """
     global ProgressList
     # receive chop send check start
     data = Asymmetric_Encryption.DecryptData(
@@ -33,8 +44,8 @@ def ProgressChopReceiveCheck(socket, ClientKey, PrivateKey):
 
         # progressmarker
         if len(chunks) > 1:
-            ProgressList[0] = len(chunks) - 1
-            ProgressList[1] = int(chunks[0])
+            ProgressList[0] = len(chunks) - 1  # set progress to the number of chunks received
+            ProgressList[1] = int(chunks[0])  # set total number of chunks to receive
             # and save it in the mutable list for the other thread to read
             # this is janky but it works
 
@@ -47,20 +58,6 @@ def ProgressChopReceiveCheck(socket, ClientKey, PrivateKey):
                 )
             )
             break  # chop send check complete
-        elif data == b"ChunkResend":  # check if chunk resend was received correctly
-            socket.sendall(
-                Asymmetric_Encryption.EncryptData(  # send chunk resend acknowledged
-                    b"ChunkResendAcknowledged", ClientKey
-                )
-            )
-            # remove last chunk from list
-            chunks.pop()
-            continue
-        else:
-            chunks.append(Asymmetric_Encryption.BytesToString(data))  # add chunk to list
-            socket.sendall(
-                Asymmetric_Encryption.EncryptData(data, ClientKey)
-            )  # send chunk acknowledged
 
     chunks.remove(chunks[0])  # remove first chunk from list
     ProgressList[0] = ProgressList[1]  # set progress to 100% to ensure the progress bar exits

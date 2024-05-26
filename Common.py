@@ -480,3 +480,35 @@ def MakeOrderID(orders):
     while order_ID in allIDs:  # If the order ID is already in the database, generate a new one
         order_ID += 1
     return order_ID
+
+
+# Text Alignment Functions
+def ColumnAlignment(Rows=[[], []]):
+    """Aligns the columns of a list of rows by the longest string in each column
+
+    Args:
+        Rows (list, optional): Row array of columns. Defaults to [[],[]].
+
+    Returns:
+        list: Aligned rows as strings including whitespace
+    """
+    maxLengths = []
+
+    for i in range(len(Rows[0])):  # create a length for each column
+        maxLengths.append(0)
+
+    for row in Rows:  # find the longest string in each column
+        for i in range(len(row)):
+            if len(str(row[i])) > maxLengths[i]:
+                maxLengths[i] = len(str(row[i]))
+
+    returnRows = []
+
+    for row in Rows:  # add whitespace to each string to make them the same length
+        returnRow = []
+        for i in range(len(row)):
+            returnRow.append(str(row[i]) + " " * (maxLengths[i] - len(str(row[i]))))
+        returnRows.append(" ".join(returnRow))
+
+    print(returnRows)
+    return returnRows

@@ -6,13 +6,23 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 
 def BufferSize():  # return buffer size
+    """Static RSA buffer size for encryption and decryption.
+
+    Returns:
+        int: The buffer size for RSA encryption and decryption.
+    """
     return 2048  # return buffer size
     # 1024 bit ran at 3.4 secs for a 44 order request
-    # 2048 bit ran at 2.8 secs for a 44 order request
-    # 4096 bit ran at 7.5 secs for a 44 order request whyyyyyy rsa
+    # 2048 bit ran at 2.8 secs for a 44 order request happy medium
+    # 4096 bit ran at 7.5 secs for a 44 order request
 
 
 def MaxStringLen():
+    """Calculate the maximum string length that can be sent in a single packet.
+
+    Returns:
+        int: The maximum string length that can be sent in a single packet.
+    """
     return (int(BufferSize() / 8) - 42) - 30  # additional safety factor
 
 
@@ -102,7 +112,18 @@ def BytesToString(bytes):  # convert bytes to string for use
     return bytes.decode("utf-8")
 
 
-def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for client side
+def ChopSendCheck(string, socket, ClientKey, PrivateKey):
+    """ChopSendCheck for the client, sends an arbitrary length string to the server in chunks.
+
+    Args:
+        string (String): The string to send to the server.
+        socket (TCP Socket Connection): The socket connection to the server.
+        ClientKey (RSA Public Key): The public key of the server.
+        PrivateKey (RSA Private Key): The private key of the client.
+
+    Returns:
+        bool: True if the ChopSendCheck was successful, False otherwise.
+    """
     # chop string into MaxStringLen() byte chunks and send to client (86 is the theoretical max length of a tcp packet with encryption and padding)
     chunks = [string[i : i + MaxStringLen()] for i in range(0, len(string), MaxStringLen())]
 
@@ -114,18 +135,8 @@ def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for
     if not data == b"ChopSendCheckAcknowledged":
         return False  # chop send check failed
 
-    i = 0
-    while i < len(chunks):
+    for i in range(len(chunks)):
         socket.sendall(EncryptData(StringToBytes(chunks[i]), ClientKey))
-        data = DecryptData(socket.recv(BufferSize()), PrivateKey)
-        # check if chunk was received correctly
-        if data == StringToBytes(chunks[i]):
-            i += 1
-        else:
-            socket.sendall(EncryptData(b"ChunkResend", ClientKey))
-            data = DecryptData(socket.recv(BufferSize()), PrivateKey)
-            if not data == b"ChunkResendAcknowledged":
-                return False  # chop send check failed
 
     socket.sendall(EncryptData(b"ChopSendCheckComplete", ClientKey))
     data = DecryptData(socket.recv(BufferSize()), PrivateKey)
@@ -135,8 +146,17 @@ def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for
     return True  # chop send check complete
 
 
-# chop receive check for client side
 def ChopReceiveCheck(socket, ClientKey, PrivateKey):
+    """ChopReceiveCheck for the client, receives an arbitrary length string from the server in chunks.
+
+    Args:
+        socket (TCP Socket Connection): The socket connection to the server.
+        ClientKey (RSA Public Key): The public key of the server.
+        PrivateKey (RSA Private Key): The private key of the client.
+
+    Returns:
+        String: The string received from the server. May be empty if no data was received, or if the ChopReceiveCheck failed.
+    """
     # receive chop send check start
     data = DecryptData(socket.recv(BufferSize()), PrivateKey)
     if not data == b"ChopSendCheckStart":  # check if chop send check start was received correctly
@@ -158,14 +178,4 @@ def ChopReceiveCheck(socket, ClientKey, PrivateKey):
                 )
             )
             break  # chop send check complete
-        elif data == b"ChunkResend":  # check if chunk resend was received correctly
-            socket.sendall(
-                EncryptData(b"ChunkResendAcknowledged", ClientKey)  # send chunk resend acknowledged
-            )
-            # remove last chunk from list
-            chunks.pop()
-            continue
-        else:
-            chunks.append(BytesToString(data))  # add chunk to list
-            socket.sendall(EncryptData(data, ClientKey))  # send chunk acknowledged
     return "".join(chunks)

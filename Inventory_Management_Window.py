@@ -39,6 +39,8 @@ def ShowGroupOverview(InfoBox, database):
     InfoBox.clear()
     InfoBox.append("Inventory Group Overview")
 
+    sortedInventories = []
+
     for inventory in inventories:
         try:  # If the inventory has a pricing style, use it
             pricingOption = inventory["inventory_pricing_style"]
@@ -56,14 +58,16 @@ def ShowGroupOverview(InfoBox, database):
                 for item in inventory["inventory_items"]
             ]
         )
-
-        InfoBox.append(
-            str(inventory["inventory_name"])
-            + ",       Quantity: "
-            + str(quantity)
-            + "   Value: "
-            + str(value)
+        sortedInventories.append(
+            [inventory["inventory_name"], "QTY: " + str(quantity), "$" + str(value)]
         )
+
+    # sort by inventory name
+    sortedInventories = sorted(sortedInventories, key=lambda x: x[0])
+
+    listboxText = Common.ColumnAlignment(sortedInventories)
+    for item in listboxText:
+        InfoBox.append(item)
 
 
 def ShowIndividualInventory(InfoBox, InventoryName, database):
@@ -89,6 +93,22 @@ def ShowIndividualInventory(InfoBox, InventoryName, database):
         ]
     )
 
+    sortedItems = [
+        [
+            str(item["product_name"]),
+            "Quantity: " + str(item["item_quantity"]),
+            "Value: "
+            + str(
+                Common.MonetaryMultiply(
+                    item["item_quantity"], item["product_snapshot"][pricingOption]
+                )
+            ),
+        ]
+        for item in inventory["inventory_items"]
+    ]
+    sortedItems = sorted(sortedItems, key=lambda x: x[0])
+    listboxText = Common.ColumnAlignment(sortedItems)
+
     InfoBox.clear()
     InfoBox.append(
         str(inventory["inventory_name"])
@@ -98,18 +118,13 @@ def ShowIndividualInventory(InfoBox, InventoryName, database):
         + str(value)
     )
     InfoBox.append("")
-    for item in inventory["inventory_items"]:
-        InfoBox.append(
-            str(item["product_name"])
-            + ",       Quantity: "
-            + str(item["item_quantity"])
-            + "   Value: "
-            + str(
-                Common.MonetaryMultiply(
-                    item["item_quantity"], item["product_snapshot"][pricingOption]
-                )
-            )
-        )
+
+    i = 0
+    for line in listboxText:
+        InfoBox.append(line)
+        if i % 5 == 0 and i != 0:
+            InfoBox.append("")
+        i += 1
 
 
 def GetInventoryGroups(database):

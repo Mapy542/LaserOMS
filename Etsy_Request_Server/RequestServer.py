@@ -132,15 +132,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
         self.data = Asymmetric_Encryption.DecryptData(self.RawData, self.PrivateKey)  # decrypt data
 
     def ChopSendCheck(self, string):
-        """Chop an arbitrary length string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client.
-            Note TCP ensures that the data is received in order and without loss, so the client will receive the chunks in order and without loss, we not worry about that.
-
-        Args:
-            string (String): The string to chop and send to the client.
-
-        Returns:
-            Bool: Success or Failure of the chop send check.
-        """
         # chop string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client (MAX is 86 theoretically based on Asymmetric_Encryption.BufferSize() bit transmission)
         chunks = [
             string[i : i + Asymmetric_Encryption.MaxStringLen()]
@@ -152,15 +143,26 @@ class RequestHandler(socketserver.BaseRequestHandler):
         self.ReceiveAndDecrypt()  # receive chop send check start acknowledgement
         if not self.data == b"ChopSendCheckAcknowledged":
             return False  # chop send check failed
-
-        for i in range(len(chunks)):
+        i = 0
+        while i < len(chunks):
             # send chunk
             self.request.sendall(
                 Asymmetric_Encryption.EncryptData(
                     Asymmetric_Encryption.StringToBytes(chunks[i]), self.ClientKey
                 )
             )
-            # we are essentially screaming into the void, however it should be at least 100% faster.
+            self.ReceiveAndDecrypt()  # receive chunk
+            # check if chunk was received correctly
+            if self.data == Asymmetric_Encryption.StringToBytes(chunks[i]):
+                i += 1
+            else:
+                # if chunk was not received correctly send chunk resend request
+                self.request.sendall(
+                    Asymmetric_Encryption.EncryptData(b"ChunkResend", self.ClientKey)
+                )
+                self.ReceiveAndDecrypt()  # receive chunk resend request acknowledgement
+                if not self.data == b"ChunkResendAcknowledged":
+                    return False  # chop send check failed
 
         self.request.sendall(
             Asymmetric_Encryption.EncryptData(b"ChopSendCheckComplete", self.ClientKey)
@@ -172,15 +174,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
         return True  # chop send check complete
 
     def ProgressChopSendCheck(self, string):
-        """Chop an arbitrary length string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client.
-             Includes a total number of chunks at the start of the transmission.
-
-        Args:
-            string (String): The string to chop and send to the client.
-
-        Returns:
-            Bool: Success or Failure of the chop send check.
-        """
         # chop string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client (MAX is 86 theoretically based on Asymmetric_Encryption.BufferSize() bit transmission)
         chunks = [
             string[i : i + Asymmetric_Encryption.MaxStringLen()]
@@ -195,14 +188,26 @@ class RequestHandler(socketserver.BaseRequestHandler):
         if not self.data == b"ChopSendCheckAcknowledged":
             return False  # chop send check failed
 
-        for i in range(len(chunks)):
+        i = 0
+        while i < len(chunks):
             # send chunk
             self.request.sendall(
                 Asymmetric_Encryption.EncryptData(
                     Asymmetric_Encryption.StringToBytes(chunks[i]), self.ClientKey
                 )
             )
-            # we are essentially screaming into the void, however it should be at least 100% faster.
+            self.ReceiveAndDecrypt()  # receive chunk
+            # check if chunk was received correctly
+            if self.data == Asymmetric_Encryption.StringToBytes(chunks[i]):
+                i += 1
+            else:
+                # if chunk was not received correctly send chunk resend request
+                self.request.sendall(
+                    Asymmetric_Encryption.EncryptData(b"ChunkResend", self.ClientKey)
+                )
+                self.ReceiveAndDecrypt()  # receive chunk resend request acknowledgement
+                if not self.data == b"ChunkResendAcknowledged":
+                    return False  # chop send check failed
 
         self.request.sendall(
             Asymmetric_Encryption.EncryptData(b"ChopSendCheckComplete", self.ClientKey)
@@ -214,11 +219,6 @@ class RequestHandler(socketserver.BaseRequestHandler):
         return True  # chop send check complete
 
     def ChopReceiveCheck(self):
-        """Receive and reassemble chunks of data from the client. The TCP protocol ensures that the data is received in order and without loss, so we drop the checking of that.
-
-        Returns:
-            String: The reassembled string from the chunks.
-        """
         self.ReceiveAndDecrypt()  # receive chop send check start
         if (
             not self.data == b"ChopSendCheckStart"
@@ -241,9 +241,21 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     )
                 )
                 break  # chop send check complete
+            elif self.data == b"ChunkResend":  # check if chunk resend was received correctly
+                self.request.sendall(
+                    Asymmetric_Encryption.EncryptData(  # send chunk resend acknowledged
+                        b"ChunkResendAcknowledged", self.ClientKey
+                    )
+                )
+                chunks.pop()  # remove last chunk from list
+                continue
             else:
                 chunks.append(Asymmetric_Encryption.BytesToString(self.data))  # add chunk to list
-
+                self.request.sendall(
+                    Asymmetric_Encryption.EncryptData(
+                        self.data, self.ClientKey
+                    )  # send chunk acknowledged
+                )
         return "".join(chunks)
 
     def CreateOauthToken(self):

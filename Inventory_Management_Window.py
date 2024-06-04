@@ -112,7 +112,7 @@ def ShowIndividualInventory(InfoBox, InventoryName, database):
     InfoBox.clear()
     InfoBox.append(
         str(inventory["inventory_name"])
-        + ",       Quantity: "
+        + "       QTY: "
         + str(quantity)
         + "   Value: "
         + str(value)
@@ -256,12 +256,17 @@ def ModifyInventory(window2, database, InfoBox):
         Contents.clear()
         inventories = database.table("Inventories")
         inventory = inventories.search(
-            tinydb.where("inventory_name") == InfoBox.value[0].split(",")[0]
+            tinydb.where("inventory_name")
+            == InfoBox.value[0].split("QTY")[0].strip()  # strip to remove whitespace
         )[0]
+
+        rows = []
         for item in inventory["inventory_items"]:
-            Contents.append(
-                str(item["product_name"]) + ",       Quantity: " + str(item["item_quantity"])
-            )
+            rows.append([str(item["product_name"]), " Quantity: " + str(item["item_quantity"])])
+
+        listboxText = Common.ColumnAlignment(rows)
+        for item in listboxText:
+            Contents.append(item)
 
     def QuantityUpdate(editWindow, database, Contents, QuantityDeltaValue):
         if Contents.value == None or Contents.value == []:
@@ -270,11 +275,14 @@ def ModifyInventory(window2, database, InfoBox):
 
         inventories = database.table("Inventories")
         inventory = inventories.search(
-            tinydb.where("inventory_name") == InfoBox.value[0].split(",")[0]
+            tinydb.where("inventory_name") == InfoBox.value[0].split("QTY")[0].strip()
         )[0]
 
         for i in range(len(inventory["inventory_items"])):
-            if inventory["inventory_items"][i]["product_name"] == Contents.value[0].split(",")[0]:
+            if (
+                inventory["inventory_items"][i]["product_name"]
+                == Contents.value[0].split("Quantity")[0].strip()
+            ):
                 if (
                     inventory["inventory_items"][i]["item_quantity"] + int(QuantityDeltaValue.value)
                     < 0
@@ -293,16 +301,21 @@ def ModifyInventory(window2, database, InfoBox):
 
         editWindow.yesno(
             "Remove Item",
-            "Are you sure you want to remove " + Contents.value[0].split(",")[0] + "?",
+            "Are you sure you want to remove "
+            + Contents.value[0].split("Quantity")[0].strip()
+            + "?",
         )
 
         inventories = database.table("Inventories")
         inventory = inventories.search(
-            tinydb.where("inventory_name") == InfoBox.value[0].split(",")[0]
+            tinydb.where("inventory_name") == InfoBox.value[0].split("QTY")[0].strip()
         )[0]
 
         for i in range(len(inventory["inventory_items"])):
-            if inventory["inventory_items"][i]["product_name"] == Contents.value[0].split(",")[0]:
+            if (
+                inventory["inventory_items"][i]["product_name"]
+                == Contents.value[0].split("Quantity")[0].strip()
+            ):
                 inventory["inventory_items"].pop(i)
                 break
 

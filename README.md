@@ -101,6 +101,11 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.3.3
+
+- Fixed USPS Shipping Label Expense Import Bug
+- Added Expense type selection from main window
+
 Version 1.3.2
 
 - Added inventory window item sorting and column alignment.

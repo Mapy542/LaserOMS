@@ -127,14 +127,20 @@ def ImportUSPSShippingExpense(main_window, database):
         return
 
     # get the date from the pdf file
-    PDFReader = PyPDF2.PdfReader(PDFPath)
-    PDFText = ""
-    for page in range(len(PDFReader.pages)):
-        PDFText += PDFReader.pages[page].extract_text()
+    try:
+        PDFReader = PyPDF2.PdfReader(PDFPath)
+        PDFText = ""
+        for page in range(len(PDFReader.pages)):
+            PDFText += PDFReader.pages[page].extract_text()
 
-    Cost = PDFText.split("Total $")[1].split("\n")[0]  # get the cost of the shipping label
-    ShippingNumber = PDFText.split("Order #: ")[1].split(" ")[0]
-    ShippingNumber.replace(" ", "")  # get the shipping number
+        Cost = PDFText.split("Total:")[1].strip().split("\n")[0].replace("$", "")  # get the cost
+        ShippingNumber = (
+            PDFText.split("Order #: ")[1].strip().split("\n")[0]
+        )  # get the order number
+
+    except:
+        Window2.warn("Error", "Error reading PDF file. Please try again.")
+        return
 
     welcome_message = Text(
         Window2, text="Add Expense", size=18, font="Times New Roman", grid=[0, 0]

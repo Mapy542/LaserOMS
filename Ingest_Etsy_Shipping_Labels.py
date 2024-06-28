@@ -17,32 +17,12 @@ def price_update():
 
 
 def export(database):
-    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton
+    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton, deleteImage
     expenses = database.table("Expenses")  # Get expenses table
 
     ExpenseName.value = Common.CleanedFileName(ExpenseName.value)  # Clean up expense name
 
-    # Check if expense name is already in database
-    while len(expenses.search(tinydb.Query().expense_name == ExpenseName.value)) > 0:
-        ExpenseName.value = (
-            ExpenseName.value + "_Copy"
-        )  # If it is, add _Copy to the end of the name
-        # continue adding _Copy until the name is unique
-
-    # Replace the / with a - to clean up the date
-    DateField.value = DateField.value.replace("/", "-")
-    expenses.insert(
-        {
-            "expense_name": ExpenseName.value,
-            "expense_quantity": ItemQuantity.value,
-            "expense_unit_price": ItemPrice.value,
-            "expense_notes": Description.value,
-            "expense_date": DateField.value,
-            "expense_image_path": "",
-            "process_status": "UTILIZE",
-        }
-    )
-    # Add expense to database
+    imgPath = ""  # define in scope for image path, if no image is attached, it will be blank
 
     # copy image to  (MOVE TO BEFORE DATABASE INSERT) add DELTE IMG ON SUCCESSFUL SAVE
     if ImageButton.text != "":
@@ -60,18 +40,43 @@ def export(database):
                 os.path.join(os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]),
             )
         except:
-            Window2.warning("Error", "Image could not be copied to the image folder.")
+            Window2.warning("Error", "Image could not be saved.")
             return
 
-        expenses.update(
-            {
-                "expense_image_path": os.path.join(  # update image path in database
-                    os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]
+        if deleteImage.value == True:  # delete original image if checkbox is checked
+            try:
+                os.remove(ImageButton.text)
+            except:
+                Window2.warning(
+                    "Error",
+                    "Original image could not be deleted. Expense was still saved successfully.",
                 )
-            },
-            tinydb.Query().expense_name == ExpenseName.value,
+
+        imgPath = os.path.join(  # mark the image path for the database
+            os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]
         )
 
+    # Check if expense name is already in database
+    while len(expenses.search(tinydb.Query().expense_name == ExpenseName.value)) > 0:
+        ExpenseName.value = (
+            ExpenseName.value + "_Copy"
+        )  # If it is, add _Copy to the end of the name
+        # continue adding _Copy until the name is unique
+
+    # Replace the / with a - to clean up the date
+    DateField.value = DateField.value.replace("/", "-")
+    expenses.insert(
+        {
+            "expense_name": ExpenseName.value,
+            "expense_quantity": ItemQuantity.value,
+            "expense_unit_price": ItemPrice.value,
+            "expense_notes": Description.value,
+            "expense_date": DateField.value,
+            "expense_image_path": imgPath,
+            "process_status": "UTILIZE",
+        }
+    )
+    # Add expense to database
     Window2.destroy()  # Close window
 
 

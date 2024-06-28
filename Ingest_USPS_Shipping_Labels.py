@@ -4,7 +4,7 @@ import shutil
 
 import PyPDF2
 import tinydb
-from guizero import PushButton, Text, TextBox, Window
+from guizero import CheckBox, PushButton, Text, TextBox, Window
 
 import Common
 
@@ -17,10 +17,44 @@ def price_update():
 
 
 def export(database):
-    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton
+    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, Window2, DateField, ImageButton, deleteImg
     expenses = database.table("Expenses")  # Get expenses table
 
     ExpenseName.value = Common.CleanedFileName(ExpenseName.value)  # Clean up expense name
+
+    imgPath = ""  # define in scope for image path, if no image is attached, it will be blank
+
+    # copy image to
+    if ImageButton.text != "":
+        settings = database.table("Settings")
+        ImageFolderPath = settings.search(
+            (tinydb.Query().setting_name == "Images_Folder_Path")
+            & (tinydb.Query().process_status == "UTILIZE")
+        )[0]["setting_value"]
+        FileEnding = os.path.splitext(ImageButton.text)
+
+        # copy file to new path based on defined image folder path. file name is expense name. file type is preserved.
+        try:
+            shutil.copy(
+                ImageButton.text,
+                os.path.join(os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]),
+            )
+        except:
+            Window2.warning("Error", "Image could not be saved.")
+            return
+
+        if deleteImg.value == True:  # delete original image if checkbox is checked
+            try:
+                os.remove(ImageButton.text)
+            except:
+                Window2.warning(
+                    "Error",
+                    "Original image could not be deleted. Expense was still saved successfully.",
+                )
+
+        imgPath = os.path.join(  # mark the image path for the database
+            os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]
+        )
 
     # Check if expense name is already in database
     while len(expenses.search(tinydb.Query().expense_name == ExpenseName.value)) > 0:
@@ -38,35 +72,11 @@ def export(database):
             "expense_unit_price": ItemPrice.value,
             "expense_notes": Description.value,
             "expense_date": DateField.value,
-            "expense_image_path": "",
+            "expense_image_path": imgPath,
             "process_status": "UTILIZE",
         }
     )
     # Add expense to database
-
-    # copy image to
-    if ImageButton.text != "":
-        settings = database.table("Settings")
-        ImageFolderPath = settings.search(
-            (tinydb.Query().setting_name == "Images_Folder_Path")
-            & (tinydb.Query().process_status == "UTILIZE")
-        )[0]["setting_value"]
-        FileEnding = os.path.splitext(ImageButton.text)
-
-        # copy file to new path based on defined image folder path. file name is expense name. file type is preserved.
-        shutil.copy(
-            ImageButton.text,
-            os.path.join(os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]),
-        )
-
-        expenses.update(
-            {
-                "expense_image_path": os.path.join(  # update image path in database
-                    os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]
-                )
-            },
-            tinydb.Query().expense_name == ExpenseName.value,
-        )
 
     Window2.destroy()  # Close window
 
@@ -107,7 +117,7 @@ def RemoveImage():  # remove image and clear the button
 
 
 def ImportUSPSShippingExpense(main_window, database):
-    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton
+    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton, deleteImg
     global Window2
 
     Window2 = Window(
@@ -200,3 +210,5 @@ def ImportUSPSShippingExpense(main_window, database):
         Window2, command=export, text="Save", grid=[0, 19], args=[database]
     )  # Create button
     CancelButton = PushButton(Window2, command=close, text="Cancel", grid=[1, 19])  # Create button
+
+    deleteImg = CheckBox(Window2, text="Delete Img after Save", grid=[0, 20])

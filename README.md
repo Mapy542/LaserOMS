@@ -103,7 +103,7 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 Version 1.3.4
 
-- Fixed Inventory Management Bug
+- Fixed Inventory Management Selection Bug
 - Added Delete Image on save for Expenses
 
 Version 1.3.3

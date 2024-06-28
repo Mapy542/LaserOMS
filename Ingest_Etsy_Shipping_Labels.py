@@ -4,7 +4,7 @@ import shutil
 
 import PyPDF2
 import tinydb
-from guizero import PushButton, Text, TextBox, Window
+from guizero import CheckBox, PushButton, Text, TextBox, Window
 
 import Common
 
@@ -44,7 +44,7 @@ def export(database):
     )
     # Add expense to database
 
-    # copy image to
+    # copy image to  (MOVE TO BEFORE DATABASE INSERT) add DELTE IMG ON SUCCESSFUL SAVE
     if ImageButton.text != "":
         settings = database.table("Settings")
         ImageFolderPath = settings.search(
@@ -54,10 +54,14 @@ def export(database):
         FileEnding = os.path.splitext(ImageButton.text)
 
         # copy file to new path based on defined image folder path. file name is expense name. file type is preserved.
-        shutil.copy(
-            ImageButton.text,
-            os.path.join(os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]),
-        )
+        try:
+            shutil.copy(
+                ImageButton.text,
+                os.path.join(os.path.realpath(ImageFolderPath), ExpenseName.value + FileEnding[1]),
+            )
+        except:
+            Window2.warning("Error", "Image could not be copied to the image folder.")
+            return
 
         expenses.update(
             {
@@ -107,7 +111,7 @@ def RemoveImage():  # remove image and clear the button
 
 
 def ImportEtsyShippingExpense(main_window, database):
-    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton
+    global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton, deleteImage
     global Window2
 
     Window2 = Window(
@@ -196,3 +200,5 @@ def ImportEtsyShippingExpense(main_window, database):
         Window2, command=export, text="Save", grid=[0, 19], args=[database]
     )  # Create button
     CancelButton = PushButton(Window2, command=close, text="Cancel", grid=[1, 19])  # Create button
+
+    deleteImage = CheckBox(Window2, text="Delete Original Img on Save", grid=[2, 19])

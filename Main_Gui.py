@@ -7,13 +7,15 @@ import traceback
 from datetime import datetime
 
 import tinydb
-from guizero import App, Combo, ListBox, PushButton, Text, TitleBox
+from guizero import App, Combo, ListBox, PushButton, Text, TitleBox, Window
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 
 import Auto_Update
 import Details
 import Finance_Window
+import Ingest_Etsy_Shipping_Labels
+import Ingest_USPS_Shipping_Labels
 import Inventory_Management_Window
 import Listing_Database_Window
 import New_Task_Window
@@ -191,8 +193,39 @@ def NewOrderWindow():  # open new order window
     UpdateScreen(database)  # reload listbox of tasks or orders
 
 
-def CreateExpense():  # create expense via expense form
-    NewExpense(app, database)
+def ExpenseSelect(typeselect, popup, database):
+    """Take selected expense type and open the appropriate expense form
+
+    Args:
+        typeselect (Combo): The combo box containing the expense type selection
+        popup (Window): The popup window to be closed
+        database (TinyDB Database): The Laser OMS database
+    """
+    if typeselect.value == "Etsy":  # if etsy is selected
+        Ingest_Etsy_Shipping_Labels.ImportEtsyShippingExpense(app, database)  # import etsy expense
+    elif typeselect.value == "USPS":  # if usps is selected
+        Ingest_USPS_Shipping_Labels.ImportUSPSShippingExpense(app, database)  # import usps expense
+    else:
+        NewExpense(app, database)
+    popup.destroy()  # close window
+
+
+def CreateExpense():
+    """Select the type of expense to create and open the appropriate form to create it"""
+    popupWindow = Window(app, title="New Expense", layout="grid", width=200, height=100)
+    typeselect = Combo(
+        popupWindow,
+        options=["Empty", "Etsy", "USPS"],
+        grid=[0, 0, 1, 1],
+        selected="Empty",
+    )
+    submit = PushButton(
+        popupWindow,
+        text="select",
+        command=ExpenseSelect,
+        grid=[0, 1, 1, 1],
+        args=[typeselect, popupWindow, database],
+    )
 
 
 def NewTask():  # create new task via task form

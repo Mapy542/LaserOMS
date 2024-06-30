@@ -136,6 +136,7 @@ def OrderExport():
     global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
     global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish, OriginalItemUIDs, OriginalOrderNumber
     global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
+    global orderNotes
 
     ItemCount = 0
     for item in [item1, item2, item3, item4, item5]:  # Count the number of items
@@ -163,6 +164,7 @@ def OrderExport():
             "order_items_UID": itemsUIDs,
             "order_date": DateField.value,
             "order_pricing_style": PricingOptionButton.value.replace(" ", "_"),
+            "order_notes": orderNotes.value,
             "order_status": "OPEN",
             "process_status": "UTILIZE",
         },
@@ -235,6 +237,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish, OriginalOrderNumber, OriginalItemUIDs
     global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
     global ItemSnapShots
+    global orderNotes
 
     products = database.table("Products")  # Get the products table
     ForwardDataBase = database  # Set the forward database to the database
@@ -325,6 +328,11 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     DateText = Text(window2, text="Order Date: ", size=15, font="Times New Roman", grid=[0, 18])
     DateField = TextBox(window2, grid=[1, 18], width=15, text=datetime.today().strftime("%m-%d-%Y"))
 
+    orderNotesText = Text(
+        window2, text="Order Notes", size=15, font="Times New Roman", grid=[0, 20]
+    )
+    orderNotes = TextBox(window2, grid=[0, 21, 3, 2], width=60, multiline=True, height=10)
+
     PurchaseName.value = EditableOrder["order_name"]
     address.value = EditableOrder["order_address"]
     address2.value = EditableOrder["order_address2"]
@@ -342,6 +350,11 @@ def EditDefaultOrder(main_window, database, OrderNumber):
         PricingOptionButton.value = styles[
             0
         ]  # Set the pricing option to the first one if it is not set
+
+    try:  # Set the order notes if they exist (required as notes are a new feature)
+        orderNotes.value = EditableOrder["order_notes"]
+    except KeyError:
+        orderNotes.value = ""
 
     items = []
     for uid in UIDs:

@@ -123,13 +123,15 @@ def PriceUpdate():
 
 
 def export():
+    """Export the order to the database and optionally generate a packing slip and/or ship the order"""
     global PurchaseName, address, address2, city, state, ZipCode, PricingOptionButton, item1, item2, item3, item4, item5
     global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
     global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish
     global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
     global doModifyInventory, InventorySelection
+    global orderNotes
 
-    if doModifyInventory.value == 1:
+    if doModifyInventory.value:
         inventory = []
         for item, quantity in zip(
             [item1, item2, item3, item4, item5],
@@ -169,6 +171,7 @@ def export():
             "order_items_UID": itemsUIDs,
             "order_date": DateField.value,
             "order_pricing_style": PricingOptionButton.value.replace(" ", "_"),
+            "order_notes": orderNotes.value,
             "order_status": "OPEN",
             "process_status": "UTILIZE",
         }
@@ -250,6 +253,7 @@ def NewOrder(main_window, database):
     global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish
     global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
     global doModifyInventory, InventorySelection
+    global orderNotes
 
     products = database.table("Products")  # Get the products table
     ForwardDataBase = database  # Set the forward database to the database
@@ -344,10 +348,19 @@ def NewOrder(main_window, database):
     ChooseShippingCheckBox = CheckBox(window2, text="Ship Order", grid=[1, 20])
     finish = PushButton(window2, command=export, text="Save", grid=[0, 19])
 
-    doModifyInventory = CheckBox(window2, text="Modify Inventory", grid=[0, 20])
-    window2.repeat(
-        500, InventoryComboVisibility
-    )  # Check if the checkbox is checked, and show/hide the inventory selection combo box
+    doModifyInventory = CheckBox(
+        window2, text="Modify Inventory", grid=[0, 20], command=InventoryComboVisibility
+    )
+    # window2.repeat(
+    #    500, InventoryComboVisibility
+    # )  # Check if the checkbox is checked, and show/hide the inventory selection combo box
     # this is a hacky way to do it, but it works, and I don't know how to do it better
 
     InventorySelection = Combo(window2, options=inventories, grid=[0, 21])
+
+    orderNotesText = Text(
+        window2, text="Order Notes", size=15, font="Times New Roman", grid=[0, 22]
+    )
+    orderNotes = TextBox(
+        window2, grid=[0, 23, 4, 3], width=60, height=10, multiline=True, scrollbar=True
+    )

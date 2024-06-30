@@ -1,3 +1,4 @@
+import copy
 import os
 import platform
 import subprocess
@@ -7,6 +8,44 @@ import tinydb
 from PIL import Image, ImageDraw, ImageFont
 
 import Common
+
+
+def TextWrap(text, rowLength):
+    """Wraps text to fit within a given row length. Also hydrates escape sequences if allowed.
+
+    Args:
+        text (Str): The text to wrap.
+        rowLength (Int): The maximum length of each row.
+
+    Returns:
+        Str: The wrapped text.
+    """
+
+    wrappedText = copy.copy(text)  # copy text to avoid modifying original as it will be pull apart
+
+    i = 0  # index of the current character
+    length = 0  # length of the current line
+    while i < len(wrappedText):
+        if wrappedText[i] == "\n":  # if a newline is found, reset the length
+            length = 0
+        else:
+            length += 1
+
+        if length >= rowLength:  # if the length is greater than the row length
+            # find the last space before the row length
+            for j in range(
+                i, i - rowLength, -1
+            ):  # search backwards from the current character to the row length
+                if (
+                    wrappedText[j] == " "
+                ):  # if a space is found, break the loop and wrap the text at that space
+                    wrappedText = wrappedText[:j] + "\n" + wrappedText[j + 1 :]
+                    break
+            length = 0
+
+        i += 1
+
+    return wrappedText
 
 
 def PrintPackingSlip(app, database, OrderNumber):
@@ -64,6 +103,11 @@ def PrintPackingSlip(app, database, OrderNumber):
 
         ImagesFolderPath = settings.search(
             (tinydb.Query().setting_name == "Images_Folder_Path")
+            & (tinydb.Query()["process_status"] == "UTILIZE")
+        )[0]["setting_value"]
+
+        IncludeOrderNotes = settings.search(
+            (tinydb.Query().setting_name == "Packing_Slip_Include_Notes")
             & (tinydb.Query()["process_status"] == "UTILIZE")
         )[0]["setting_value"]
 
@@ -278,6 +322,21 @@ def PrintPackingSlip(app, database, OrderNumber):
 
             Canvas.text((520, 1600), "Total: $" + str(Total), font=NormalFont, fill=(TextColor))
 
+        # Add Notes
+        if IncludeOrderNotes:
+            notes = ""
+            try:
+                notes = order["order_notes"]
+            except KeyError:
+                pass  # no notes to add
+
+            if notes != "":
+                # wrap notes to fit within the packing slip
+                wrappedNotes = TextWrap(notes, 60)
+                Canvas.text((520, 1700), "Order Notes:", font=NormalFont, fill=(TextColor))
+                Canvas.text((520, 1750), wrappedNotes, font=NormalFont, fill=(TextColor))
+
+        # Save Image
         im.save(os.path.join(ImagesFolderPath, str(order["order_number"]) + ".png"), "PNG")
 
         path = os.path.join(ImagesFolderPath, str(order["order_number"]) + ".png")

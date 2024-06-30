@@ -105,6 +105,7 @@ Version 1.3.4
 
 - Fixed Inventory Management Selection Bug
 - Added Delete Image on save for Expenses
+- Added Notes to Orders
 
 Version 1.3.3
 

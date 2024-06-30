@@ -101,6 +101,12 @@ The statistics page can be accessed by selecting the statistics button in the ma
 
 ## Changes:
 
+Version 1.3.3
+
+- Added Update Check Frequency to settings. Github API rate limits are 60 requests per hour.
+- Fixed bug with inventory management page item selection.
+- Fixed bug with details window incorrectly saving modified orders.
+
 Version 1.3.2
 
 - Added inventory window item sorting and column alignment.

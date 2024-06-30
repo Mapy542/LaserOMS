@@ -1,5 +1,6 @@
 import os
 import urllib.request
+import datetime
 
 import tinydb
 
@@ -21,7 +22,98 @@ def UpdatePackages(app):
         app.warn("Update Error", "Unable to find Packages.txt")
 
 
+def GetUpdateTransients(database):
+    """Get the information for software updates from the database if they exist.
+
+    Args:
+        database (tinydb): The database object
+
+    Returns:
+        bool: True if there was transients data, False otherwise (No information)
+        bool: True if there is a software update, False otherwise
+        int: utc timestamp of the last update check
+    """
+
+    transients = database.table("Transients")
+
+    try:
+        updateAvail = transients.search(tinydb.Query().transient_name == "Update_Information")[0]
+        return True, updateAvail["Update_Available"], updateAvail["TimeStamp"]
+    except:
+        return False, False, 0
+
+
+def DoApiQuery(database):
+    """Returns if an API query should be done based on the settings and past information.
+
+    Args:
+        database (tinydb): The database object
+
+    Returns:
+        bool: True if the CheckForUpdate function should be called, False otherwise
+    """
+
+    settings = database.table("Settings")
+    try:
+        UpdateEveryTime = settings.search(tinydb.Query().setting_name == "Update_Every_Open")[0][
+            "setting_value"
+        ]
+    except:
+        return True  # if the setting is not found, return True to check for update
+
+    if UpdateEveryTime == "True":  # if setting to update every time is true, return True
+        return True
+
+    success, updateAvail, checkTimeStamp = GetUpdateTransients(
+        database
+    )  # check if there is any update information in the database
+
+    if success and (
+        updateAvail or datetime.datetime.now().timestamp() - checkTimeStamp > 86400
+    ):  # if there is update information and there is an update available or it has been more than 24 hours since the last check
+        return True
+
+    return False
+
+
+def ModifyUpdateTransients(database, updateAvail):
+    """Modify the update transients in the database.
+
+    Args:
+        database (tinydb): The database object
+        updateAvail (bool): True if there is an update available, False otherwise
+    """
+
+    transients = database.table("Transients")
+    transients.remove(tinydb.Query().transient_name == "Update_Information")
+
+    # add new update information
+    transients.insert(
+        {
+            "transient_name": "Update_Information",
+            "Update_Available": updateAvail,
+            "TimeStamp": datetime.datetime.now().timestamp(),
+        }
+    )
+
+
 def CheckForUpdate(app, database):
+    """Check for software updates on the github API.
+
+    Args:
+        app (GUIZero Window): The main application window
+        database (tinydb): The database object
+
+    Returns:
+        bool: True if there is an update available, False otherwise (Checks against update every time setting and past info transients)
+    """
+    if not DoApiQuery(
+        database
+    ):  # check if the update should be done or not based on settings and past information
+        return False
+
+    # get version number
+
     url = "https://raw.githubusercontent.com/Mapy542/LaserOMS/main/version.txt"
     try:
         response = urllib.request.urlopen(url)
@@ -52,8 +144,12 @@ def CheckForUpdate(app, database):
 
 
 def UpdateSoftware(app, database):
-    if not CheckForUpdate(app, database):  # double check available update
-        return
+    """Update the software to the latest version from the github repository.
+
+    Args:
+        app (GUIZero Window): The main application window (for displaying messages)
+        database (tinydb): The database object
+    """
 
     # get version number
     url = "https://raw.githubusercontent.com/Mapy542/LaserOMS/main/version.txt"

@@ -193,17 +193,17 @@ def NewOrderWindow():  # open new order window
     UpdateScreen(database)  # reload listbox of tasks or orders
 
 
-def ExpenseSelect(typeselect, popup, database):
+def ExpenseSelect(typeSelect, popup, database):
     """Take selected expense type and open the appropriate expense form
 
     Args:
-        typeselect (Combo): The combo box containing the expense type selection
+        typeSelect (Combo): The combo box containing the expense type selection
         popup (Window): The popup window to be closed
         database (TinyDB Database): The Laser OMS database
     """
-    if typeselect.value == "Etsy":  # if etsy is selected
+    if typeSelect.value == "Etsy":  # if etsy is selected
         Ingest_Etsy_Shipping_Labels.ImportEtsyShippingExpense(app, database)  # import etsy expense
-    elif typeselect.value == "USPS":  # if usps is selected
+    elif typeSelect.value == "USPS":  # if usps is selected
         Ingest_USPS_Shipping_Labels.ImportUSPSShippingExpense(app, database)  # import usps expense
     else:
         NewExpense(app, database)
@@ -213,7 +213,7 @@ def ExpenseSelect(typeselect, popup, database):
 def CreateExpense():
     """Select the type of expense to create and open the appropriate form to create it"""
     popupWindow = Window(app, title="New Expense", layout="grid", width=200, height=100)
-    typeselect = Combo(
+    typeSelect = Combo(
         popupWindow,
         options=["Empty", "Etsy", "USPS"],
         grid=[0, 0, 1, 1],
@@ -224,7 +224,7 @@ def CreateExpense():
         text="select",
         command=ExpenseSelect,
         grid=[0, 1, 1, 1],
-        args=[typeselect, popupWindow, database],
+        args=[typeSelect, popupWindow, database],
     )
 
 
@@ -364,7 +364,7 @@ def SyncOrders(app, database):  # sync orders from sheets
         success = FastAuthentication(app, database)
         print("Authentication Success: " + str(success))
         if not success:
-            app.error("Authentication Error", "Authentication Failed Ingest Aborted")
+            app.error("Authentication Error", "Etsy Request Authentication Failed Ingest Aborted")
             return
 
     # run asynchronous ingest of orders

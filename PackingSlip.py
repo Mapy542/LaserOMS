@@ -37,9 +37,14 @@ def TextWrap(text, rowLength):
                 i, i - rowLength, -1
             ):  # search backwards from the current character to the row length
                 if (
-                    wrappedText[j] == " "
+                    wrappedText[j] == " "  # break at spaces in sentence
                 ):  # if a space is found, break the loop and wrap the text at that space
                     wrappedText = wrappedText[:j] + "\n" + wrappedText[j + 1 :]
+                    break
+                elif wrappedText[j] == "/":  # break at slashes in URLs
+                    wrappedText = (
+                        wrappedText[: j + 1] + "\n" + wrappedText[j + 1 :]
+                    )  # include the slash in the next line
                     break
             length = 0
 

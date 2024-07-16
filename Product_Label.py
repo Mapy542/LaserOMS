@@ -10,6 +10,7 @@ from guizero import Combo, ListBox, PushButton, Text, Window
 from PIL import Image, ImageDraw, ImageFont
 
 import Common
+from PackingSlip import TextWrap
 
 
 def PrintProductLabel(app, database, ProductName, PricingStyle):
@@ -125,25 +126,27 @@ def PrintProductLabel(app, database, ProductName, PricingStyle):
             return
 
         # Fonts
-        SmallFont = ImageFont.truetype(
-            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 15
+        MediumFont = ImageFont.truetype(
+            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 40
         )
         NormalFont = ImageFont.truetype(
             os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 25
         )
         BigFont = ImageFont.truetype(
-            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 40
+            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 80
         )
 
         """Label 600w x 300h"""
 
         # Company info
-        Canvas.text((160, 200), companyName, font=NormalFont, fill=(TextColor))
+        Canvas.text((180, 160), companyName, font=MediumFont, fill=(TextColor))
         if showWebsite:
-            Canvas.text((160, 250), companyWebsite, font=SmallFont, fill=(TextColor))
+            wrappedText = TextWrap(companyWebsite, 22)
+            Canvas.text((180, 220), wrappedText, font=NormalFont, fill=(TextColor))
 
         # Product Name
-        Canvas.text((20, 110), product["product_name"], font=NormalFont, fill=(TextColor))
+        wrappedText = TextWrap(product["product_name"], 20)
+        Canvas.text((250, 30), wrappedText, font=NormalFont, fill=(TextColor))
 
         # Product Price
         try:
@@ -154,7 +157,7 @@ def PrintProductLabel(app, database, ProductName, PricingStyle):
                 "The pricing style could not be found in the product. Please check the pricing style and try again.",
             )
             return
-        Canvas.text((20, 20), "$" + str(Price), font=BigFont, fill=(TextColor))
+        Canvas.text((20, 30), "$" + str(Price), font=BigFont, fill=(TextColor))
 
         # Save Image
         im.save(os.path.join(ImagesFolderPath, str(product["product_name"]) + ".png"), "PNG")

@@ -12,44 +12,6 @@ from PIL import Image, ImageDraw, ImageFont
 import Common
 
 
-def TextWrap(text, rowLength):
-    """Wraps text to fit within a given row length. Also hydrates escape sequences if allowed.
-
-    Args:
-        text (Str): The text to wrap.
-        rowLength (Int): The maximum length of each row.
-
-    Returns:
-        Str: The wrapped text.
-    """
-
-    wrappedText = copy.copy(text)  # copy text to avoid modifying original as it will be pull apart
-
-    i = 0  # index of the current character
-    length = 0  # length of the current line
-    while i < len(wrappedText):
-        if wrappedText[i] == "\n":  # if a newline is found, reset the length
-            length = 0
-        else:
-            length += 1
-
-        if length >= rowLength:  # if the length is greater than the row length
-            # find the last space before the row length
-            for j in range(
-                i, i - rowLength, -1
-            ):  # search backwards from the current character to the row length
-                if (
-                    wrappedText[j] == " "
-                ):  # if a space is found, break the loop and wrap the text at that space
-                    wrappedText = wrappedText[:j] + "\n" + wrappedText[j + 1 :]
-                    break
-            length = 0
-
-        i += 1
-
-    return wrappedText
-
-
 def PrintProductLabel(app, database, ProductName, PricingStyle):
     """Prints a packing slip for the given order number.
 

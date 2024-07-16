@@ -111,6 +111,7 @@ Version 1.3.4
 - Added Delete Image on save for Expenses
 - Added Notes to Orders
 - Added Notes to Packing Slips
+- Added Customizable Packing Slip Company Information
 - Added Product Label Generator
 
 Version 1.3.3

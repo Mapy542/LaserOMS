@@ -111,6 +111,36 @@ def PrintPackingSlip(app, database, OrderNumber):
             & (tinydb.Query()["process_status"] == "UTILIZE")
         )[0]["setting_value"]
 
+        CompanyName = settings.search(
+            (tinydb.Query().setting_name == "Company_Name")
+            & (tinydb.Query()["process_status"] == "UTILIZE")
+        )[0]["setting_value"]
+
+        CompanyAddress1 = settings.search(
+            (tinydb.Query().setting_name == "Company_Address_Ln1")
+            & (tinydb.Query()["process_status"] == "UTILIZE")
+        )[0]["setting_value"]
+
+        CompanyAddress2 = settings.search(
+            (tinydb.Query().setting_name == "Company_Address_Ln2")
+            & (tinydb.Query()["process_status"] == "UTILIZE")
+        )[0]["setting_value"]
+
+        CompanyCity = settings.search(
+            (tinydb.Query().setting_name == "Company_City")
+            & (tinydb.Query()["process_status"] == "UTILIZE")
+        )[0]["setting_value"]
+
+        CompanyState = settings.search(
+            (tinydb.Query().setting_name == "Company_State")
+            & (tinydb.Query()["process_status"] == "UTILIZE")
+        )[0]["setting_value"]
+
+        CompanyZip = settings.search(
+            (tinydb.Query().setting_name == "Company_Zip")
+            & (tinydb.Query()["process_status"] == "UTILIZE")
+        )[0]["setting_value"]
+
         # Order
         try:
             order = orders.search(
@@ -214,9 +244,23 @@ def PrintPackingSlip(app, database, OrderNumber):
 
         # From (100 between)
         Canvas.text((20, 870), "Ship From:", font=NormalFont, fill=(TextColor))
-        Canvas.text((20, 920), "LeBoeuf Lasing", font=NormalFont, fill=(TextColor))
-        Canvas.text((20, 960), "2255 Quance Road", font=NormalFont, fill=(TextColor))
-        Canvas.text((20, 1000), "Waterford, Pa 16441", font=NormalFont, fill=(TextColor))
+        Canvas.text((20, 920), CompanyName, font=NormalFont, fill=(TextColor))
+        Canvas.text((20, 960), CompanyAddress1, font=NormalFont, fill=(TextColor))
+        if CompanyAddress2 != "":  # if address2 available
+            Canvas.text((20, 1000), CompanyAddress2, font=NormalFont, fill=(TextColor))
+            Canvas.text(
+                (20, 1040),
+                CompanyCity + ", " + CompanyState + " " + CompanyZip,
+                font=NormalFont,
+                fill=(TextColor),
+            )
+        else:
+            Canvas.text(
+                (20, 1000),
+                CompanyCity + ", " + CompanyState + " " + CompanyZip,
+                font=NormalFont,
+                fill=(TextColor),
+            )
 
         # Order Number (100 between)
         OrderNumber = order["order_number"]

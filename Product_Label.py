@@ -127,10 +127,10 @@ def PrintProductLabel(app, database, ProductName, PricingStyle):
 
         # Fonts
         MediumFont = ImageFont.truetype(
-            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 40
+            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 50
         )
         NormalFont = ImageFont.truetype(
-            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 25
+            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 40
         )
         BigFont = ImageFont.truetype(
             os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 80
@@ -139,13 +139,13 @@ def PrintProductLabel(app, database, ProductName, PricingStyle):
         """Label 600w x 300h"""
 
         # Company info
-        Canvas.text((180, 160), companyName, font=MediumFont, fill=(TextColor))
+        Canvas.text((20, 150), companyName, font=MediumFont, fill=(TextColor))
         if showWebsite:
-            wrappedText = TextWrap(companyWebsite, 22)
-            Canvas.text((180, 220), wrappedText, font=NormalFont, fill=(TextColor))
+            wrappedText = TextWrap(companyWebsite, 20)
+            Canvas.text((20, 220), wrappedText, font=NormalFont, fill=(TextColor))
 
         # Product Name
-        wrappedText = TextWrap(product["product_name"], 20)
+        wrappedText = TextWrap(product["product_name"], 15)
         Canvas.text((250, 30), wrappedText, font=NormalFont, fill=(TextColor))
 
         # Product Price

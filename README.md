@@ -88,6 +88,10 @@ The Request server and etsy ingest attempt to limit ingest time by reducing the 
 
 The statistics page can be accessed by selecting the statistics button in the main window. This will open a new window with the statistics of finances broken down by year and month. A list of expenses can be show, and searched through by name or date. Double clicking on each expense will open a new window with the details of the expense. Selecting the open image, will open the default image viewer on the system with the expense attached image.
 
+### Product View:
+
+The product view page can be accessed by selecting the see all products button in the main window. This will open a new window with a list of all products in the system. There is a selection option to generate product labels. The user can select generate product labels, and select the products they want to generate labels for. The software will generate and open images of the labels in the default image viewer. These can be printed or saved as needed.
+
 ## Projects:
 
 - Amazon integration
@@ -107,6 +111,7 @@ Version 1.3.4
 - Added Delete Image on save for Expenses
 - Added Notes to Orders
 - Added Notes to Packing Slips
+- Added Product Label Generator
 
 Version 1.3.3
 

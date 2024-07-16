@@ -3,6 +3,7 @@ from guizero import ListBox, PushButton, Text, Window
 
 import Google_Sheets_Sync
 import New_Order_Window
+import Product_Label
 
 
 def UpdateListbox(InfoBox, database):
@@ -10,20 +11,7 @@ def UpdateListbox(InfoBox, database):
     InfoBox.clear()
     products = ProductsTable.search(tinydb.where("process_status") == "UTILIZE")
     for product in products:
-        MaxKeyLength = 0
-        keys = list(product)
-        values = list(product.values())
-        for i in range(len(keys)):
-            if len(keys[i]) > MaxKeyLength:
-                MaxKeyLength = len(keys[i])
-
-        for i in range(len(keys)):
-            if keys[i] == "product_name":
-                InfoBox.append(values[i])
-            else:
-                InfoBox.append(
-                    "    " + keys[i] + ":" + " " * (MaxKeyLength - len(keys[i])) + values[i]
-                )
+        InfoBox.append(product["product_name"])
         InfoBox.append("")
 
 
@@ -64,7 +52,13 @@ def ListingDisplay(main_window, database):
         grid=[0, 7, 1, 1],
         args=[InfoBox, database],
     )
-
+    Product_Label_Button = PushButton(
+        window2,
+        text="Print Labels",
+        command=Product_Label.ProductLabelsSelector,
+        grid=[1, 7, 1, 1],
+        args=[main_window, database],
+    )
     NewOrderButton = PushButton(
         window2,
         text="Create New Order",

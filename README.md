@@ -12,12 +12,13 @@ Lightweight python based local order/business management system with Etsy integr
 - Inventory management
 - Product spreadsheet connection
 - Packing slip generation
+- Product label generation
 - Customization and flexibility
 - Windows and Linux support
 
 ## Installation:
 
-Place entire main code into a folder.\
+Place entire main branch code into a folder.\
 Most of the additional file paths can be change in settings, but it is important to note the database json file is always stored in the parent folder of the code.\
 To finish installation, run the file
 
@@ -29,7 +30,7 @@ Answer any prompts that appear. After the installer finishes, run the file
 
 ## Overview:
 
-The LaserOMS is a local order management system that is designed to be lightweight and easy to use.\
+The LaserOMS is a local order management system that is designed to be lightweight and easy to use. It is all natural python meaning it works cross platform, although Apple MAC is untested.
 The software should not be opened in multiple instances at the same time. Database changes are cached in memory, and multiple instances will create cache inconsistencies (Data Loss).
 
 ### Main Window:

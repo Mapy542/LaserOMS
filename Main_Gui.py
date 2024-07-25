@@ -14,6 +14,7 @@ from tinydb.storages import JSONStorage
 import Auto_Update
 import Details
 import Finance_Window
+import Ingest_Amazon_Expense
 import Ingest_Etsy_Shipping_Labels
 import Ingest_USPS_Shipping_Labels
 import Inventory_Management_Window
@@ -205,6 +206,8 @@ def ExpenseSelect(typeSelect, popup, database):
         Ingest_Etsy_Shipping_Labels.ImportEtsyShippingExpense(app, database)  # import etsy expense
     elif typeSelect.value == "USPS":  # if usps is selected
         Ingest_USPS_Shipping_Labels.ImportUSPSShippingExpense(app, database)  # import usps expense
+    elif typeSelect.value == "Amazon Expense":  # if empty is selected
+        Ingest_Amazon_Expense.ImportAmazonExpense(app, database)  # import amazon expense
     else:
         NewExpense(app, database)
     popup.destroy()  # close window
@@ -215,7 +218,7 @@ def CreateExpense():
     popupWindow = Window(app, title="New Expense", layout="grid", width=200, height=100)
     typeSelect = Combo(
         popupWindow,
-        options=["Empty", "Etsy", "USPS"],
+        options=["Empty", "Etsy", "USPS", "Amazon Expense"],
         grid=[0, 0, 1, 1],
         selected="Empty",
     )

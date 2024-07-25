@@ -114,6 +114,7 @@ Version 1.3.4
 - Added Notes to Packing Slips
 - Added Customizable Packing Slip Company Information
 - Added Product Label Generator
+- Added Amazon Expense Ingest for Order invoices.
 
 Version 1.3.3
 

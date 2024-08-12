@@ -414,9 +414,102 @@ def SettingsWindow():  # display settings window
 # signal termination handling
 def signal_handler(sig, frame):
     global database
+    unlockDatabase(database)
     database.close()
     print("database closed on termination")
     exit(0)
+
+
+# database locking
+def lockDatabase(database):
+    """Lock the database to prevent multiple instances from accessing it at the same time
+
+    Args:
+        database (TinyDB Database): The Laser OMS database
+    """
+    transients = database.table("Transients")
+    transients.upsert(
+        {
+            "transient_name": "Database_Lock",
+            "lock_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "lock_pid": os.getpid(),
+        },
+        tinydb.Query().transient_name == "Database_Lock",
+    )
+
+
+def queryDatabaseLock(database):
+    """Query the database to see if it is locked
+
+    Args:
+        database (TinyDB Database): The Laser OMS database
+
+    Returns:
+        bool: True if the database is locked, False otherwise
+    """
+    transients = database.table("Transients")
+    lock = transients.get(tinydb.Query().transient_name == "Database_Lock")
+    if lock is None or len(lock) == 0:
+        return False
+
+    if lock["lock_pid"] == os.getpid():
+        return False
+
+    return True
+
+
+def unlockDatabase(database):
+    """Unlock the database
+
+    Args:
+        database (TinyDB Database): The Laser OMS database
+    """
+    transients = database.table("Transients")
+    transients.remove(
+        (tinydb.Query().transient_name == "Database_Lock")
+        & (tinydb.Query().lock_pid == os.getpid())
+    )
+
+
+def forceUnlockDatabase(database, app):
+    """Force unlock the database, with user confirmation
+
+    Args:
+        database (TinyDB Database): The Laser OMS database
+        app (App): The main application window
+    """
+    transients = database.table("Transients")
+    lock = transients.search(tinydb.Query().transient_name == "Database_Lock")[0]
+
+    app.warn(
+        "Force Unlock Database",
+        "Are you sure there are no other instances of Laser OMS running? Lock Timestamp: "
+        + lock["lock_time"],
+    )
+    confirmation = app.yesno(
+        "Force Unlock Database",
+        "Are you sure you want to force unlock the database? It may cause data corruption.",
+    )
+
+    if not confirmation:
+        exit(0)  # exit if user does not confirm
+
+    settings = database.table("Settings")
+
+    password = app.question("Settings Password", "Enter Password to Force Unlock Database")
+
+    if (
+        not PasswordHash(password)
+        == settings.get(tinydb.Query().setting_name == "Settings_Password")["setting_value"]
+    ):
+        app.error("Incorrect Password", "Incorrect Password, database not unlocked")
+        exit(0)
+
+    transients.remove(tinydb.Query().transient_name == "Database_Lock")  # remove lock
+
+    app.info("Database Unlocked", "Database has been unlocked")
+
+    return True
 
 
 signal.signal(signal.SIGTERM, signal_handler)
@@ -436,6 +529,15 @@ try:
             file=os.path.join(os.path.realpath(os.path.dirname(__file__)), "Icon.png")
         ),
     )  # set icon
+
+    if queryDatabaseLock(database):  # if database is locked
+        if not forceUnlockDatabase(database, app):  # if user does not confirm force unlock
+            exit(0)
+
+    # lock database
+    lockDatabase(database)  # lock database
+
+    database._storage.flush()  # flush database memory cache
 
     WelcomeMessage = Text(
         app,
@@ -596,7 +698,9 @@ except Exception as err:  # catch all errors
     # display error
     app.warn("Critical Error", f"Unexpected {err=}, {type(err)=}")
     print(traceback.format_exc())
+    unlockDatabase(database)
     database.close()  # close database
 finally:
+    unlockDatabase(database)
     database.close()  # close database
     # NOT CLOSED PROPERLY RESULTS IN LOSS OF CACHED CHANGES

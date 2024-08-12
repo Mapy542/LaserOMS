@@ -98,7 +98,6 @@ The product view page can be accessed by selecting the see all products button i
 - Amazon integration
 - Shipping integration (USPS API or ShipStation API)
 - Customizable product data synchronization
-- Multiple Instance support or database locking
 - Make each window look more modern
 - Add more inventory management features
 - Add inventory statistics and reports
@@ -109,12 +108,14 @@ The product view page can be accessed by selecting the see all products button i
 Version 1.3.4
 
 - Fixed Inventory Management Selection Bug
+- Fixed Order Details Window Bug, Incorrectly Saving Modified Orders
 - Added Delete Image on save for Expenses
 - Added Notes to Orders
 - Added Notes to Packing Slips
 - Added Customizable Packing Slip Company Information
 - Added Product Label Generator
 - Added Amazon Expense Ingest for Order invoices.
+- Added database lock to prevent multiple instances of the software from concurrently mutating data.
 
 Version 1.3.3
 

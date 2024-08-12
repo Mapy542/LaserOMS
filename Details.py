@@ -26,7 +26,9 @@ def SnapshotFailoverSearch(itemName, products):
             if snapshot["product_name"] == itemName:
                 return [snapshot]
         return products.search(
-            (tinydb.Query().product_name == item1.value)
+            (
+                tinydb.Query().product_name == itemName
+            )  # this was the details page bug, was item1.value, never actually looked at the parameter
             & (tinydb.Query().process_status == "UTILIZE")
         )  # Get the data for the item
     except:  # If the snapshot search fails, search the database, if that fails, return an empty product with the name of the item and the price of "NA"

@@ -38,7 +38,7 @@ def GetUpdateTransients(database):
 
     try:
         updateAvail = transients.search(tinydb.Query().transient_name == "Update_Information")[0]
-        return True, updateAvail["Update_Available"], updateAvail["TimeStamp"]
+        return True, updateAvail["update_available"], updateAvail["timestamp"]
     except:
         return False, False, 0
 
@@ -76,12 +76,13 @@ def DoApiQuery(database):
     return False
 
 
-def ModifyUpdateTransients(database, updateAvail):
+def ModifyUpdateTransients(database, updateAvail, version):
     """Modify the update transients in the database.
 
     Args:
         database (tinydb): The database object
         updateAvail (bool): True if there is an update available, False otherwise
+        version (str, optional): The latest available version.
     """
 
     transients = database.table("Transients")
@@ -91,8 +92,9 @@ def ModifyUpdateTransients(database, updateAvail):
     transients.insert(
         {
             "transient_name": "Update_Information",
-            "Update_Available": updateAvail,
-            "TimeStamp": datetime.datetime.now().timestamp(),
+            "update_available": updateAvail,
+            "timestamp": datetime.datetime.now().timestamp(),
+            "latest_version": version,
         }
     )
 
@@ -138,8 +140,10 @@ def CheckForUpdate(app, database):
 
     for i in range(MaxCompare):
         if VersionIdentifier[i] > CurrentVersion[i]:
+            ModifyUpdateTransients(database, True, text.strip())
             return True
 
+    ModifyUpdateTransients(database, False, text.strip())
     return False
 
 
@@ -151,15 +155,25 @@ def UpdateSoftware(app, database):
         database (tinydb): The database object
     """
 
-    # get version number
-    url = "https://raw.githubusercontent.com/Mapy542/LaserOMS/main/version.txt"
-    response = urllib.request.urlopen(url)
-    data = response.read()
-    text = data.decode("utf-8")
-    settings = database.table("Settings")
-    settings.update(
-        {"setting_value": text}, tinydb.Query().setting_name == "LaserOMS_Version"
-    )  # update version number in database
+    # get version number (try to avoid api query)
+    try:
+        transients = database.table("Transients")
+        version = transients.search(tinydb.Query().transient_name == "Update_Information")[0][
+            "latest_version"
+        ]
+        settings = database.table("Settings")
+        settings.update(
+            {"setting_value": version}, tinydb.Query().setting_name == "LaserOMS_Version"
+        )  # update version number in database
+    except:
+        url = "https://raw.githubusercontent.com/Mapy542/LaserOMS/main/version.txt"
+        response = urllib.request.urlopen(url)
+        data = response.read()
+        text = data.decode("utf-8")
+        settings = database.table("Settings")
+        settings.update(
+            {"setting_value": text}, tinydb.Query().setting_name == "LaserOMS_Version"
+        )  # update version number in database
 
     import shutil
 

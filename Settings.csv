@@ -3,6 +3,7 @@
 ~ !Operator:value  (For create during runtime functions) e.g. !RelativePath:../LaserOMS_Images
 Empty,Empty,BOOLEAN,IGNORE
 LaserOMS_Version,1.0.0,STATIC,UTILIZE
+Update_Every_Open,True,BOOLEAN,UTILIZE
 ~ Item Settings
 Google_Sheet_Link,,TEXT,UTILIZE
 ~ Homepage view settings

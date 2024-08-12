@@ -120,6 +120,9 @@ Version 1.3.3
 
 - Fixed USPS Shipping Label Expense Import Bug
 - Added Expense type selection from main window
+- Added Update Check Frequency to settings. Github API rate limits are 60 requests per hour.
+- Fixed bug with inventory management page item selection.
+- Fixed bug with details window incorrectly saving modified orders.
 
 Version 1.3.2
 

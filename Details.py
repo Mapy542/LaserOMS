@@ -171,7 +171,7 @@ def OrderExport():
         tinydb.Query().order_number == str(OriginalOrderNumber),
     )
 
-    PriceUpdate()
+    PriceUpdate()  # Update the prices to ensure they are correct
     ItemQuantities = [
         ItemQuantity1.value,
         ItemQuantity2.value,
@@ -380,6 +380,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     if len(items) > 4:
         item5.value = items[4]["item_name"]
         ItemQuantity5.value = items[4]["item_quantity"]
+
     PriceUpdate()
 
     # Export Options

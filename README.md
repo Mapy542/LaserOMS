@@ -31,7 +31,6 @@ Answer any prompts that appear. After the installer finishes, run the file
 ## Overview:
 
 The LaserOMS is a local order management system that is designed to be lightweight and easy to use. It is all natural python meaning it works cross platform, although Apple MAC is untested.
-The software should not be opened in multiple instances at the same time. Database changes are cached in memory, and multiple instances will create cache inconsistencies (Data Loss).
 
 ### Main Window:
 
@@ -81,10 +80,6 @@ The Etsy request server is the address of the running request server. This is us
 
 Rate limiting is in effect on the public server. 10 connections can be made per day. This is in an attempt to prevent abuse and stop brute force attacks. If you need more connections, consider running your own server.
 
-#### Optimization (WIP, disabled)
-
-The Request server and etsy ingest attempt to limit ingest time by reducing the number of orders ingested, as a shop with 100 orders or more may take significant time to synchronize. By default only existing open orders and new orders and downloaded by Laser OMS. The idea is that complected orders are generally unchanged. However there is a temporary override in the settings menu if there are inconsistencies.
-
 ### Statistics:
 
 The statistics page can be accessed by selecting the statistics button in the main window. This will open a new window with the statistics of finances broken down by year and month. A list of expenses can be show, and searched through by name or date. Double clicking on each expense will open a new window with the details of the expense. Selecting the open image, will open the default image viewer on the system with the expense attached image.
@@ -109,6 +104,7 @@ Version 1.3.4
 
 - Fixed Inventory Management Selection Bug
 - Fixed Order Details Window Bug, Incorrectly Saving Modified Orders
+- Speed up Etsy Request Server Data Transfer
 - Added Delete Image on save for Expenses
 - Added Notes to Orders
 - Added Notes to Packing Slips

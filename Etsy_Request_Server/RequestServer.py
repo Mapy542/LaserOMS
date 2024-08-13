@@ -83,9 +83,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
         # handshake status 3 = initiate handshake, 2 = send public key, 1 = receive client key, 0 = handshake complete
         self.HandsShakeStatus = 3
         while True:
-            self.data = self.request.recv(
-                Asymmetric_Encryption.BufferSize()
-            ).strip()  # receive data
+            self.data = self.request.recv(Asymmetric_Encryption.KeySize()).strip()  # receive data
             # parse incoming data
             if self.data == b"" or self.data == b"CLOSE":
                 return False, None  # connection closed
@@ -124,15 +122,16 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     return True, self.ClientKey
 
     def ReceiveAndDecrypt(self):  # receive and decrypt data generic and reusable
-        self.RawData = self.request.recv(Asymmetric_Encryption.BufferSize())  # receive data
+        self.RawData = self.request.recv(Asymmetric_Encryption.PacketSize())  # receive data
         if self.RawData == b"":  # check if connection was closed or data was empty
             self.data = b""  # set data to empty
             # decryption fails if data is empty so return to prevent error
             return
         self.data = Asymmetric_Encryption.DecryptData(self.RawData, self.PrivateKey)  # decrypt data
 
+    """
     def ChopSendCheck(self, string):
-        # chop string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client (MAX is 86 theoretically based on Asymmetric_Encryption.BufferSize() bit transmission)
+        # chop string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client (MAX is 86 theoretically based on Asymmetric_Encryption.PacketSize() bit transmission)
         chunks = [
             string[i : i + Asymmetric_Encryption.MaxStringLen()]
             for i in range(0, len(string), Asymmetric_Encryption.MaxStringLen())
@@ -174,7 +173,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
         return True  # chop send check complete
 
     def ProgressChopSendCheck(self, string):
-        # chop string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client (MAX is 86 theoretically based on Asymmetric_Encryption.BufferSize() bit transmission)
+        # chop string into Asymmetric_Encryption.MaxStringLen() byte chunks and send to client (MAX is 86 theoretically based on Asymmetric_Encryption.PacketSize() bit transmission)
         chunks = [
             string[i : i + Asymmetric_Encryption.MaxStringLen()]
             for i in range(0, len(string), Asymmetric_Encryption.MaxStringLen())
@@ -257,6 +256,165 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     )  # send chunk acknowledged
                 )
         return "".join(chunks)
+    """
+
+    def ArbitraryStringSend(self, string):
+        """Sends an arbitrary length string over TCP as fast as possible.
+
+        Args:
+            string (str): The string to send.
+
+        Returns:
+            bool: True if the string was sent successfully, False otherwise.
+        """
+        chunks = [
+            string[i : i + Asymmetric_Encryption.MaxStringLen()]
+            for i in range(0, len(string), Asymmetric_Encryption.MaxStringLen())
+        ]
+
+        self.request.sendall(
+            Asymmetric_Encryption.EncryptData(b"StringSendStart", self.ClientKey)
+        )  # send string send start
+
+        # receive string send start
+        data = Asymmetric_Encryption.DecryptData(
+            self.request.recv(Asymmetric_Encryption.PacketSize()), self.PrivateKey
+        )
+
+        if not data == b"StringSendAcknowledged":
+            return False
+
+        for i in range(len(chunks)):
+            if i % Asymmetric_Encryption.MaxBufferLen() == 0 and i != 0:
+                data = Asymmetric_Encryption.DecryptData(
+                    self.request.recv(Asymmetric_Encryption.PacketSize()), self.PrivateKey
+                )
+                if not data == b"BufferReceived":
+                    self.request.sendall(
+                        Asymmetric_Encryption.EncryptData(b"CANCEL", self.ClientKey)
+                    )
+                    return False
+
+            self.request.sendall(
+                Asymmetric_Encryption.EncryptData(
+                    Asymmetric_Encryption.StringToBytes(chunks[i]), self.ClientKey
+                )
+            )
+
+        self.request.sendall(
+            Asymmetric_Encryption.EncryptData(b"StringSendComplete", self.ClientKey)
+        )
+        data = Asymmetric_Encryption.DecryptData(
+            self.request.recv(Asymmetric_Encryption.PacketSize()), self.PrivateKey
+        )
+        if not data == b"StringSendCompleteAcknowledged":
+            return False
+
+        return True
+
+    def ArbitraryStringReceive(self):
+        """Receives an arbitrary length string over TCP as fast as possible.
+
+        Returns:
+            str: The received string. None if the string was not received successfully.
+        """
+        data = Asymmetric_Encryption.DecryptData(
+            self.request.recv(Asymmetric_Encryption.PacketSize()), self.PrivateKey
+        )
+        if not data == b"StringSendStart":
+            return ""
+
+        self.request.sendall(
+            Asymmetric_Encryption.EncryptData(b"StringSendAcknowledged", self.ClientKey)
+        )
+
+        chunks = []
+        while True:
+            RawData = self.request.recv(Asymmetric_Encryption.PacketSize())
+            data = Asymmetric_Encryption.DecryptData(RawData, self.PrivateKey)
+
+            if data == b"StringSendComplete":
+                self.request.sendall(
+                    Asymmetric_Encryption.EncryptData(
+                        b"StringSendCompleteAcknowledged", self.ClientKey
+                    )
+                )
+                break
+            elif data == b"CANCEL":
+                return None
+            else:
+                chunks.append(Asymmetric_Encryption.BytesToString(data))
+
+            if len(chunks) % Asymmetric_Encryption.MaxBufferLen() == 0 and len(chunks) != 0:
+                self.request.sendall(
+                    Asymmetric_Encryption.EncryptData(b"BufferReceived", self.ClientKey)
+                )
+
+        return "".join(chunks)
+
+    def ProgressArbitraryStringSend(self, string):
+        """Sends an arbitrary length string over TCP as fast as possible with progress.
+
+        Args:
+            string (str): The string to send.
+        """
+        chunks = [
+            string[i : i + Asymmetric_Encryption.MaxStringLen()]
+            for i in range(0, len(string), Asymmetric_Encryption.MaxStringLen())
+        ]
+
+        self.request.sendall(
+            Asymmetric_Encryption.EncryptData(b"ProgressStringSendStart", self.ClientKey)
+        )  # send string send start
+
+        # receive string send start
+        data = Asymmetric_Encryption.DecryptData(
+            self.request.recv(Asymmetric_Encryption.PacketSize()), self.PrivateKey
+        )
+
+        if not data == b"ProgressStringSendAcknowledged":
+            return False
+
+        self.request.sendall(
+            Asymmetric_Encryption.EncryptData(
+                Asymmetric_Encryption.StringToBytes(str(len(chunks))), self.ClientKey
+            )
+        )
+
+        data = Asymmetric_Encryption.DecryptData(
+            self.request.recv(Asymmetric_Encryption.PacketSize()), self.PrivateKey
+        )
+
+        if not data == b"AcknowledgeTotal":
+            return False
+
+        for i in range(len(chunks)):
+            if i % Asymmetric_Encryption.MaxBufferLen() == 0 and i != 0:
+                data = Asymmetric_Encryption.DecryptData(
+                    self.request.recv(Asymmetric_Encryption.PacketSize()), self.PrivateKey
+                )
+                if not data == b"BufferReceived":
+                    self.request.sendall(
+                        Asymmetric_Encryption.EncryptData(b"CANCEL", self.ClientKey)
+                    )
+                    return False
+
+            self.request.sendall(
+                Asymmetric_Encryption.EncryptData(
+                    Asymmetric_Encryption.StringToBytes(chunks[i]), self.ClientKey
+                )
+            )
+
+        self.request.sendall(
+            Asymmetric_Encryption.EncryptData(b"StringSendComplete", self.ClientKey)
+        )
+        data = Asymmetric_Encryption.DecryptData(
+            self.request.recv(Asymmetric_Encryption.PacketSize()), self.PrivateKey
+        )
+        if not data == b"StringSendCompleteAcknowledged":
+            return False
+
+        return True
 
     def CreateOauthToken(self):
         self.AppendLog(
@@ -323,14 +481,14 @@ class RequestHandler(socketserver.BaseRequestHandler):
         )  # create redirect oauth object
         UserURL = Oauth.get_auth_code()[0]  # get user url to redirect to
 
-        Success = self.ChopSendCheck(UserURL)  # send user url to client
+        Success = self.ArbitraryStringSend(UserURL)  # send user url to client
         if not Success:
             self.AppendLog(
                 "Oauth Token Registration Failed",
                 str(self.client_address[0]) + " failed to send user url to client.",
             )
             return False
-        UserURI = self.ChopReceiveCheck()  # receive user uri from client
+        UserURI = self.ArbitraryStringReceive()  # receive user uri from client
 
         try:
             # get headless uri from user uri
@@ -393,7 +551,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
             )
             return False
 
-        Success = self.ChopSendCheck(ClientToken)  # send password to client
+        Success = self.ArbitraryStringSend(ClientToken)  # send password to client
         if not Success:
             self.AppendLog(
                 "Oauth Token Registration Failed",
@@ -627,7 +785,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
             Asymmetric_Encryption.EncryptData(b"ShopIDReceived", self.ClientKey)
         )  # send shop id received acknowledgement to client
 
-        ClientToken = self.ChopReceiveCheck()  # receive token from client
+        ClientToken = self.ArbitraryStringReceive()  # receive token from client
         if not ClientToken:  # check if token was received correctly
             self.AppendLog(
                 "Authentication Failed",
@@ -777,7 +935,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                 self.request.sendall(
                     Asymmetric_Encryption.EncryptData(b"ResendToken", self.ClientKey)
                 )
-                data = self.ChopReceiveCheck()  # receive token from client
+                data = self.ArbitraryStringReceive()  # receive token from client
                 if not data:  # check if token was received correctly
                     self.AppendLog(
                         "Remove Token Failed",
@@ -819,7 +977,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     )
                     continue
                 StringReceipts = json.dumps(Receipts)
-                Success = self.ProgressChopSendCheck(StringReceipts)
+                Success = self.ProgressArbitraryStringSend(StringReceipts)
                 if not Success:
                     self.AppendLog(
                         "Query Receipts Failed",
@@ -853,7 +1011,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                     )
                     continue
                 StringReceipts = json.dumps(Receipts)
-                Success = self.ProgressChopSendCheck(StringReceipts)
+                Success = self.ProgressArbitraryStringSend(StringReceipts)
                 if not Success:
                     self.AppendLog(
                         "Query Receipts Failed",
@@ -904,7 +1062,7 @@ class RequestHandler(socketserver.BaseRequestHandler):
                         Asymmetric_Encryption.EncryptData(b"QueryShopSuccess", self.ClientKey)
                     )
                 StringShop = json.dumps(Shop)
-                Success = self.ChopSendCheck(StringShop)
+                Success = self.ArbitraryStringSend(StringShop)
                 if not Success:
                     self.AppendLog(
                         "Query Shop Failed",

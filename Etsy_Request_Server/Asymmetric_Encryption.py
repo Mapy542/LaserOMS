@@ -5,23 +5,31 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 # USED BY LASER OMS. DO NOT DELETE
 
 
-def BufferSize():  # return buffer size
-    return 2048  # return buffer size
+def KeySize():  # return key size
+    return 2048  # return key size
+
+
+def PacketSize():  # return buffer size
+    return int(KeySize() / 8)  # return buffer size
     # 1024 bit ran at 3.4 secs for a 44 order request
     # 2048 bit ran at 2.8 secs for a 44 order request
     # 4096 bit ran at 7.5 secs for a 44 order request whyyyyyy rsa
 
 
 def MaxStringLen():
-    return (int(BufferSize() / 8) - 42) - 30  # additional safety factor
+    return (int(PacketSize()) - 42) - 30  # additional safety factor
+
+
+def MaxBufferLen():
+    return 5  # send 5 packets at a time before waiting for a response
 
 
 # Used to generate a public/private key pair and communication.
 def GenerateKeyPair():
     private_key = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=BufferSize(),
-    )  # generate private key (BufferSize() bit, the same size as a max length tcp packet)
+        key_size=KeySize(),
+    )  # generate private key (KeySize() bit, the same size as a max length tcp packet)
     public_key = private_key.public_key()  # generate public key
     return private_key, public_key  # return both keys
 
@@ -68,12 +76,12 @@ def LoadPublicKey(public_key):  # load public key from bytes into a public key o
 def ClientHandshake(socket, PublicKey, PrivateKey):
     try:
         socket.sendall(b"InitiateHandshake")  # send handshake request
-        data = socket.recv(BufferSize())  # receive public key
+        data = socket.recv(KeySize())  # receive public key
 
         ServerKey = LoadPublicKey(data)  # load public key from received bytes
         socket.sendall(SendablePublicKey(PublicKey))  # send public key
 
-        test = socket.recv(BufferSize())  # receive handshake complete
+        test = socket.recv(PacketSize())  # receive handshake complete
         if not DecryptData(test, PrivateKey) == b"HandshakeComplete":
             # if handshake failed or server is not listening
             socket.sendall(EncryptData(b"CANCEL", ServerKey))
@@ -81,7 +89,7 @@ def ClientHandshake(socket, PublicKey, PrivateKey):
         else:
             socket.sendall(EncryptData(b"HandshakeCompleteAcknowledged", ServerKey))
 
-        data = socket.recv(BufferSize())  # receive data
+        data = socket.recv(PacketSize())  # receive data
         # if handshake failed or server is not listening
         if not DecryptData(data, PrivateKey) == b"Listening":
             socket.sendall(EncryptData(b"CANCEL", ServerKey))
@@ -102,6 +110,7 @@ def BytesToString(bytes):  # convert bytes to string for use
     return bytes.decode("utf-8")
 
 
+""" # chop send check  is deprecated
 def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for client side
     # chop string into MaxStringLen() byte chunks and send to client (86 is the theoretical max length of a tcp packet with encryption and padding)
     chunks = [string[i : i + MaxStringLen()] for i in range(0, len(string), MaxStringLen())]
@@ -109,7 +118,7 @@ def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for
     socket.sendall(EncryptData(b"ChopSendCheckStart", ClientKey))  # send chop send check start
 
     # receive chop send check start
-    data = DecryptData(socket.recv(BufferSize()), PrivateKey)
+    data = DecryptData(socket.recv(PacketSize()), PrivateKey)
 
     if not data == b"ChopSendCheckAcknowledged":
         return False  # chop send check failed
@@ -117,18 +126,18 @@ def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for
     i = 0
     while i < len(chunks):
         socket.sendall(EncryptData(StringToBytes(chunks[i]), ClientKey))
-        data = DecryptData(socket.recv(BufferSize()), PrivateKey)
+        data = DecryptData(socket.recv(PacketSize()), PrivateKey)
         # check if chunk was received correctly
         if data == StringToBytes(chunks[i]):
             i += 1
         else:
             socket.sendall(EncryptData(b"ChunkResend", ClientKey))
-            data = DecryptData(socket.recv(BufferSize()), PrivateKey)
+            data = DecryptData(socket.recv(PacketSize()), PrivateKey)
             if not data == b"ChunkResendAcknowledged":
                 return False  # chop send check failed
 
     socket.sendall(EncryptData(b"ChopSendCheckComplete", ClientKey))
-    data = DecryptData(socket.recv(BufferSize()), PrivateKey)
+    data = DecryptData(socket.recv(PacketSize()), PrivateKey)
     if not data == b"ChopSendCheckCompleteAcknowledged":
         return False  # chop send check failed
 
@@ -138,7 +147,7 @@ def ChopSendCheck(string, socket, ClientKey, PrivateKey):  # chop send check for
 # chop receive check for client side
 def ChopReceiveCheck(socket, ClientKey, PrivateKey):
     # receive chop send check start
-    data = DecryptData(socket.recv(BufferSize()), PrivateKey)
+    data = DecryptData(socket.recv(PacketSize()), PrivateKey)
     if not data == b"ChopSendCheckStart":  # check if chop send check start was received correctly
         return False
     socket.sendall(
@@ -146,7 +155,7 @@ def ChopReceiveCheck(socket, ClientKey, PrivateKey):
     )
     chunks = []
     while True:  # receive chunks
-        RawData = socket.recv(BufferSize())
+        RawData = socket.recv(PacketSize())
         data = DecryptData(RawData, PrivateKey)
 
         if (
@@ -168,4 +177,80 @@ def ChopReceiveCheck(socket, ClientKey, PrivateKey):
         else:
             chunks.append(BytesToString(data))  # add chunk to list
             socket.sendall(EncryptData(data, ClientKey))  # send chunk acknowledged
+    return "".join(chunks)
+"""
+
+
+def ArbitraryStringSend(string, socket, ClientKey, PrivateKey):
+    """Send arbitrary length string over TCP as fast as possible
+
+    Args:
+        string (str): string to send
+        socket (socket): socket to send data over
+        ClientKey (public key): public key to encrypt data with
+        PrivateKey (private key): private key to decrypt data with
+
+    Returns:
+        Boolean: True if successful, False if failed
+    """
+    chunks = [string[i : i + MaxStringLen()] for i in range(0, len(string), MaxStringLen())]
+
+    socket.sendall(EncryptData(b"StringSendStart", ClientKey))  # send string send start
+
+    # receive string send start
+    data = DecryptData(socket.recv(PacketSize()), PrivateKey)
+
+    if not data == b"StringSendAcknowledged":
+        return False
+
+    for i in range(len(chunks)):
+        if i % MaxBufferLen() == 0 and i != 0:
+            data = DecryptData(socket.recv(PacketSize()), PrivateKey)
+            if not data == b"BufferReceived":
+                socket.sendall(EncryptData(b"CANCEL", ClientKey))
+                return False
+
+        socket.sendall(EncryptData(StringToBytes(chunks[i]), ClientKey))
+
+    socket.sendall(EncryptData(b"StringSendComplete", ClientKey))
+    data = DecryptData(socket.recv(PacketSize()), PrivateKey)
+    if not data == b"StringSendCompleteAcknowledged":
+        return False
+
+    return True
+
+
+def ArbitraryStringReceive(socket, ClientKey, PrivateKey):
+    """Receive arbitrary length string over TCP as fast as possible
+
+    Args:
+        socket (socket): socket to receive data from
+        ClientKey (public key): public key to encrypt data with
+        PrivateKey (private key): private key to decrypt data with
+
+    Returns:
+        str: received string, False if failed
+    """
+    data = DecryptData(socket.recv(PacketSize()), PrivateKey)
+    if not data == b"StringSendStart":
+        return ""
+
+    socket.sendall(EncryptData(b"StringSendAcknowledged", ClientKey))
+
+    chunks = []
+    while True:
+        RawData = socket.recv(PacketSize())
+        data = DecryptData(RawData, PrivateKey)
+
+        if data == b"StringSendComplete":
+            socket.sendall(EncryptData(b"StringSendCompleteAcknowledged", ClientKey))
+            break
+        elif data == b"CANCEL":
+            return False
+        else:
+            chunks.append(BytesToString(data))
+
+        if len(chunks) % MaxBufferLen() == 0 and len(chunks) != 0:
+            socket.sendall(EncryptData(b"BufferReceived", ClientKey))
+
     return "".join(chunks)

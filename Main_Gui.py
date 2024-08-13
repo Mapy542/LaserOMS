@@ -14,6 +14,7 @@ from tinydb.storages import JSONStorage
 import Auto_Update
 import Details
 import Finance_Window
+import Ingest_Amazon_Expense
 import Ingest_Etsy_Shipping_Labels
 import Ingest_USPS_Shipping_Labels
 import Inventory_Management_Window
@@ -193,18 +194,20 @@ def NewOrderWindow():  # open new order window
     UpdateScreen(database)  # reload listbox of tasks or orders
 
 
-def ExpenseSelect(typeselect, popup, database):
+def ExpenseSelect(typeSelect, popup, database):
     """Take selected expense type and open the appropriate expense form
 
     Args:
-        typeselect (Combo): The combo box containing the expense type selection
+        typeSelect (Combo): The combo box containing the expense type selection
         popup (Window): The popup window to be closed
         database (TinyDB Database): The Laser OMS database
     """
-    if typeselect.value == "Etsy":  # if etsy is selected
+    if typeSelect.value == "Etsy":  # if etsy is selected
         Ingest_Etsy_Shipping_Labels.ImportEtsyShippingExpense(app, database)  # import etsy expense
-    elif typeselect.value == "USPS":  # if usps is selected
+    elif typeSelect.value == "USPS":  # if usps is selected
         Ingest_USPS_Shipping_Labels.ImportUSPSShippingExpense(app, database)  # import usps expense
+    elif typeSelect.value == "Amazon Expense":  # if empty is selected
+        Ingest_Amazon_Expense.ImportAmazonExpense(app, database)  # import amazon expense
     else:
         NewExpense(app, database)
     popup.destroy()  # close window
@@ -213,9 +216,9 @@ def ExpenseSelect(typeselect, popup, database):
 def CreateExpense():
     """Select the type of expense to create and open the appropriate form to create it"""
     popupWindow = Window(app, title="New Expense", layout="grid", width=200, height=100)
-    typeselect = Combo(
+    typeSelect = Combo(
         popupWindow,
-        options=["Empty", "Etsy", "USPS"],
+        options=["Empty", "Etsy", "USPS", "Amazon Expense"],
         grid=[0, 0, 1, 1],
         selected="Empty",
     )
@@ -224,7 +227,7 @@ def CreateExpense():
         text="select",
         command=ExpenseSelect,
         grid=[0, 1, 1, 1],
-        args=[typeselect, popupWindow, database],
+        args=[typeSelect, popupWindow, database],
     )
 
 
@@ -364,7 +367,7 @@ def SyncOrders(app, database):  # sync orders from sheets
         success = FastAuthentication(app, database)
         print("Authentication Success: " + str(success))
         if not success:
-            app.error("Authentication Error", "Authentication Failed Ingest Aborted")
+            app.error("Authentication Error", "Etsy Request Authentication Failed Ingest Aborted")
             return
 
     # run asynchronous ingest of orders
@@ -411,9 +414,102 @@ def SettingsWindow():  # display settings window
 # signal termination handling
 def signal_handler(sig, frame):
     global database
+    unlockDatabase(database)
     database.close()
     print("database closed on termination")
     exit(0)
+
+
+# database locking
+def lockDatabase(database):
+    """Lock the database to prevent multiple instances from accessing it at the same time
+
+    Args:
+        database (TinyDB Database): The Laser OMS database
+    """
+    transients = database.table("Transients")
+    transients.upsert(
+        {
+            "transient_name": "Database_Lock",
+            "lock_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "lock_pid": os.getpid(),
+        },
+        tinydb.Query().transient_name == "Database_Lock",
+    )
+
+
+def queryDatabaseLock(database):
+    """Query the database to see if it is locked
+
+    Args:
+        database (TinyDB Database): The Laser OMS database
+
+    Returns:
+        bool: True if the database is locked, False otherwise
+    """
+    transients = database.table("Transients")
+    lock = transients.get(tinydb.Query().transient_name == "Database_Lock")
+    if lock is None or len(lock) == 0:
+        return False
+
+    if lock["lock_pid"] == os.getpid():
+        return False
+
+    return True
+
+
+def unlockDatabase(database):
+    """Unlock the database
+
+    Args:
+        database (TinyDB Database): The Laser OMS database
+    """
+    transients = database.table("Transients")
+    transients.remove(
+        (tinydb.Query().transient_name == "Database_Lock")
+        & (tinydb.Query().lock_pid == os.getpid())
+    )
+
+
+def forceUnlockDatabase(database, app):
+    """Force unlock the database, with user confirmation
+
+    Args:
+        database (TinyDB Database): The Laser OMS database
+        app (App): The main application window
+    """
+    transients = database.table("Transients")
+    lock = transients.search(tinydb.Query().transient_name == "Database_Lock")[0]
+
+    app.warn(
+        "Force Unlock Database",
+        "Are you sure there are no other instances of Laser OMS running? Lock Timestamp: "
+        + lock["lock_time"],
+    )
+    confirmation = app.yesno(
+        "Force Unlock Database",
+        "Are you sure you want to force unlock the database? It may cause data corruption.",
+    )
+
+    if not confirmation:
+        exit(0)  # exit if user does not confirm
+
+    settings = database.table("Settings")
+
+    password = app.question("Settings Password", "Enter Password to Force Unlock Database")
+
+    if (
+        not PasswordHash(password)
+        == settings.get(tinydb.Query().setting_name == "Settings_Password")["setting_value"]
+    ):
+        app.error("Incorrect Password", "Incorrect Password, database not unlocked")
+        exit(0)
+
+    transients.remove(tinydb.Query().transient_name == "Database_Lock")  # remove lock
+
+    app.info("Database Unlocked", "Database has been unlocked")
+
+    return True
 
 
 signal.signal(signal.SIGTERM, signal_handler)
@@ -433,6 +529,15 @@ try:
             file=os.path.join(os.path.realpath(os.path.dirname(__file__)), "Icon.png")
         ),
     )  # set icon
+
+    if queryDatabaseLock(database):  # if database is locked
+        if not forceUnlockDatabase(database, app):  # if user does not confirm force unlock
+            exit(0)
+
+    # lock database
+    lockDatabase(database)  # lock database
+
+    database._storage.flush()  # flush database memory cache
 
     WelcomeMessage = Text(
         app,
@@ -593,7 +698,9 @@ except Exception as err:  # catch all errors
     # display error
     app.warn("Critical Error", f"Unexpected {err=}, {type(err)=}")
     print(traceback.format_exc())
+    unlockDatabase(database)
     database.close()  # close database
 finally:
+    unlockDatabase(database)
     database.close()  # close database
     # NOT CLOSED PROPERLY RESULTS IN LOSS OF CACHED CHANGES

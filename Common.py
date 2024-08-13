@@ -492,6 +492,9 @@ def ColumnAlignment(Rows=[[], []]):
     Returns:
         list: Aligned rows as strings including whitespace
     """
+    if Rows == [] or Rows == [[]] or Rows == [[], []]:  # If there are no rows, return an empty list
+        return []
+
     maxLengths = []
 
     for i in range(len(Rows[0])):  # create a length for each column

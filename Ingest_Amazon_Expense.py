@@ -83,12 +83,7 @@ def export(database):
 
 def close():
     global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, Window2
-    if (
-        ExpenseName.value == ""
-        and ItemQuantity.value == ""
-        and ItemPrice.value == ""
-        and Description.value == ""
-    ):
+    if ExpenseName.value == "" and Description.value == "":
         # If all fields are empty, close window
         Window2.destroy()
     else:
@@ -116,7 +111,7 @@ def RemoveImage():  # remove image and clear the button
     ImageButton.text = ""
 
 
-def ImportUSPSShippingExpense(main_window, database):
+def ImportAmazonExpense(main_window, database):
     global ExpenseName, ItemQuantity, ItemPrice, TotalText, Description, DateField, ImageButton, deleteImg
     global Window2
 
@@ -126,7 +121,7 @@ def ImportUSPSShippingExpense(main_window, database):
 
     # get the path of the pdf file from the user
     PDFPath = Window2.select_file(
-        title="Select Email PDF",
+        title="Select Invoice PDF",
         folder=".",
         filetypes=[["PDF files", "*.pdf"]],
         save=False,
@@ -143,13 +138,13 @@ def ImportUSPSShippingExpense(main_window, database):
         for page in range(len(PDFReader.pages)):
             PDFText += PDFReader.pages[page].extract_text()
 
-        Cost = PDFText.split("Total:")[1].strip().split("\n")[0].replace("$", "")  # get the cost
-        ShippingNumber = (
-            PDFText.split("Order #: ")[1].strip().split("\n")[0]
-        )  # get the order number
+        Cost = PDFText.split("Order Total: $")[1].split("\n")[0]
+        AmazonOrderNumber = PDFText.split("Amazon.com order number:  ")[1].split("\n")[0]
 
-    except:
+    except Exception as e:
+        print("Exception: ", e)
         Window2.warn("Error", "Error reading PDF file. Please try again.")
+        Window2.destroy()
         return
 
     welcome_message = Text(
@@ -160,7 +155,7 @@ def ImportUSPSShippingExpense(main_window, database):
         Window2, text="Item Name", size=15, font="Times New Roman", grid=[0, 1]
     )  # Create text
     ExpenseName = TextBox(
-        Window2, width=30, grid=[1, 1], text="Shipping Label: " + ShippingNumber
+        Window2, width=30, grid=[1, 1], text="Amazon Order: " + AmazonOrderNumber
     )  # Create textbox
     QuantityText = Text(
         Window2, text="Quantity", size=15, font="Times New Roman", grid=[0, 2]

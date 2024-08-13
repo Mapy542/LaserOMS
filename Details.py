@@ -26,7 +26,9 @@ def SnapshotFailoverSearch(itemName, products):
             if snapshot["product_name"] == itemName:
                 return [snapshot]
         return products.search(
-            (tinydb.Query().product_name == item1.value)
+            (
+                tinydb.Query().product_name == itemName
+            )  # this was the details page bug, was item1.value, never actually looked at the parameter
             & (tinydb.Query().process_status == "UTILIZE")
         )  # Get the data for the item
     except:  # If the snapshot search fails, search the database, if that fails, return an empty product with the name of the item and the price of "NA"
@@ -136,6 +138,7 @@ def OrderExport():
     global ItemQuantity1, ItemQuantity2, ItemQuantity3, ItemQuantity4, ItemQuantity5, ItemPrice1, ItemPrice2, ItemPrice3, ItemPrice4
     global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish, OriginalItemUIDs, OriginalOrderNumber
     global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
+    global orderNotes
 
     ItemCount = 0
     for item in [item1, item2, item3, item4, item5]:  # Count the number of items
@@ -163,13 +166,14 @@ def OrderExport():
             "order_items_UID": itemsUIDs,
             "order_date": DateField.value,
             "order_pricing_style": PricingOptionButton.value.replace(" ", "_"),
+            "order_notes": orderNotes.value,
             "order_status": "OPEN",
             "process_status": "UTILIZE",
         },
         tinydb.Query().order_number == str(OriginalOrderNumber),
     )
 
-    PriceUpdate()
+    PriceUpdate()  # Update the prices to ensure they are correct
     ItemQuantities = [
         ItemQuantity1.value,
         ItemQuantity2.value,
@@ -235,6 +239,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     global ItemPrice5, Total, ChooseExportCheckBox, ChooseShippingCheckBox, finish, OriginalOrderNumber, OriginalItemUIDs
     global window2, styles, product_names, products, orders, order_items, DateField, ForwardDataBase
     global ItemSnapShots
+    global orderNotes
 
     products = database.table("Products")  # Get the products table
     ForwardDataBase = database  # Set the forward database to the database
@@ -325,6 +330,11 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     DateText = Text(window2, text="Order Date: ", size=15, font="Times New Roman", grid=[0, 18])
     DateField = TextBox(window2, grid=[1, 18], width=15, text=datetime.today().strftime("%m-%d-%Y"))
 
+    orderNotesText = Text(
+        window2, text="Order Notes", size=15, font="Times New Roman", grid=[0, 20]
+    )
+    orderNotes = TextBox(window2, grid=[0, 21, 3, 2], width=60, multiline=True, height=10)
+
     PurchaseName.value = EditableOrder["order_name"]
     address.value = EditableOrder["order_address"]
     address2.value = EditableOrder["order_address2"]
@@ -342,6 +352,11 @@ def EditDefaultOrder(main_window, database, OrderNumber):
         PricingOptionButton.value = styles[
             0
         ]  # Set the pricing option to the first one if it is not set
+
+    try:  # Set the order notes if they exist (required as notes are a new feature)
+        orderNotes.value = EditableOrder["order_notes"]
+    except KeyError:
+        orderNotes.value = ""
 
     items = []
     for uid in UIDs:
@@ -367,6 +382,7 @@ def EditDefaultOrder(main_window, database, OrderNumber):
     if len(items) > 4:
         item5.value = items[4]["item_name"]
         ItemQuantity5.value = items[4]["item_quantity"]
+
     PriceUpdate()
 
     # Export Options

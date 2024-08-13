@@ -112,7 +112,7 @@ def ShowIndividualInventory(InfoBox, InventoryName, database):
     InfoBox.clear()
     InfoBox.append(
         str(inventory["inventory_name"])
-        + ",       Quantity: "
+        + "       QTY: "
         + str(quantity)
         + "   Value: "
         + str(value)
@@ -220,6 +220,26 @@ def DeleteInventory(window2, database):
 
 
 def ModifyInventory(window2, database, InfoBox):
+    def GetSelectedInventory(InfoBox, database):
+        """Gets the selected inventory group from the InfoBox listbox
+
+        Args:
+            InfoBox (ListBox): The listbox containing the selected inventory group
+            database (TinyDB): The Laser OMS database
+
+        Returns:
+            Dict: The selected inventory
+        """
+        if InfoBox.value == None or InfoBox.value == []:
+            return None
+        inventories = database.table("Inventories")
+        try:
+            return inventories.search(
+                tinydb.where("inventory_name") == InfoBox.value[0].split("QTY")[0].strip()
+            )[0]
+        except:
+            return None
+
     def GetProducts(database):
         products = database.table("Products")
         return products.search(tinydb.where("process_status") == "UTILIZE")
@@ -230,10 +250,7 @@ def ModifyInventory(window2, database, InfoBox):
             return
 
         inventories = database.table("Inventories")
-        inventory = inventories.search(
-            tinydb.where("inventory_name") == InfoBox.value[0].split(",")[0]
-        )[0]
-
+        inventory = GetSelectedInventory(InfoBox, database)
         if ProductsListbox.value in [item["product_name"] for item in inventory["inventory_items"]]:
             for i in range(len(inventory["inventory_items"])):
                 if inventory["inventory_items"][i]["product_name"] == ProductsListbox.value:
@@ -253,28 +270,44 @@ def ModifyInventory(window2, database, InfoBox):
         ReloadContents(Contents, database, InfoBox)
 
     def ReloadContents(Contents, database, InfoBox):
+        """Updates the Update Inventory listbox with the current inventory items from the selected inventory group
+
+        Args:
+            Contents (ListBox): The listbox to update with the inventory items
+            database (TinyDB): The Laser OMS database
+            InfoBox (ListBox): The listbox containing the selected inventory group
+        """
         Contents.clear()
-        inventories = database.table("Inventories")
-        inventory = inventories.search(
-            tinydb.where("inventory_name") == InfoBox.value[0].split(",")[0]
-        )[0]
+        inventory = GetSelectedInventory(InfoBox, database)
+
+        if inventory == None:
+            print("No Inventory Selected")
+            return
+
+        rows = []
         for item in inventory["inventory_items"]:
-            Contents.append(
-                str(item["product_name"]) + ",       Quantity: " + str(item["item_quantity"])
-            )
+            rows.append([str(item["product_name"]), " Quantity: " + str(item["item_quantity"])])
+
+        listboxText = Common.ColumnAlignment(rows)
+        for item in listboxText:
+            Contents.append(item)
 
     def QuantityUpdate(editWindow, database, Contents, QuantityDeltaValue):
         if Contents.value == None or Contents.value == []:
             editWindow.error("Error", "No Product Selected")
             return
 
-        inventories = database.table("Inventories")
-        inventory = inventories.search(
-            tinydb.where("inventory_name") == InfoBox.value[0].split(",")[0]
-        )[0]
+        inventory = GetSelectedInventory(InfoBox, database)
+
+        if inventory == None:
+            editWindow.error("Error", "No Inventory Selected")
+            return
 
         for i in range(len(inventory["inventory_items"])):
-            if inventory["inventory_items"][i]["product_name"] == Contents.value[0].split(",")[0]:
+            if (
+                inventory["inventory_items"][i]["product_name"]
+                == Contents.value[0].split("Quantity")[0].strip()
+            ):
                 if (
                     inventory["inventory_items"][i]["item_quantity"] + int(QuantityDeltaValue.value)
                     < 0
@@ -293,16 +326,22 @@ def ModifyInventory(window2, database, InfoBox):
 
         editWindow.yesno(
             "Remove Item",
-            "Are you sure you want to remove " + Contents.value[0].split(",")[0] + "?",
+            "Are you sure you want to remove "
+            + Contents.value[0].split("Quantity")[0].strip()
+            + "?",
         )
 
-        inventories = database.table("Inventories")
-        inventory = inventories.search(
-            tinydb.where("inventory_name") == InfoBox.value[0].split(",")[0]
-        )[0]
+        inventory = GetSelectedInventory(InfoBox, database)
+
+        if inventory == None:
+            editWindow.error("Error", "No Inventory Selected")
+            return
 
         for i in range(len(inventory["inventory_items"])):
-            if inventory["inventory_items"][i]["product_name"] == Contents.value[0].split(",")[0]:
+            if (
+                inventory["inventory_items"][i]["product_name"]
+                == Contents.value[0].split("Quantity")[0].strip()
+            ):
                 inventory["inventory_items"].pop(i)
                 break
 

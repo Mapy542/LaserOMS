@@ -12,12 +12,12 @@ import Common
 from Easy_Cart_Ingest import ImportEasyCartOrders
 from Etsy_Request_Server import Asymmetric_Encryption
 
-
+"""#deprecated to arbitrary string receive
 def ProgressChopReceiveCheck(socket, ClientKey, PrivateKey):
     global ProgressList
     # receive chop send check start
     data = Asymmetric_Encryption.DecryptData(
-        socket.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+        socket.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
     )
     if not data == b"ChopSendCheckStart":  # check if chop send check start was received correctly
         return False
@@ -28,7 +28,7 @@ def ProgressChopReceiveCheck(socket, ClientKey, PrivateKey):
     )
     chunks = []
     while True:  # receive chunks
-        RawData = socket.recv(Asymmetric_Encryption.BufferSize())
+        RawData = socket.recv(Asymmetric_Encryption.PacketSize())
         data = Asymmetric_Encryption.DecryptData(RawData, PrivateKey)
 
         # progressmarker
@@ -64,6 +64,69 @@ def ProgressChopReceiveCheck(socket, ClientKey, PrivateKey):
 
     chunks.remove(chunks[0])  # remove first chunk from list
     ProgressList[0] = ProgressList[1]  # set progress to 100% to ensure the progress bar exits
+    return "".join(chunks)"""
+
+
+def ProgressArbitraryStringReceive(socket, ClientKey, PrivateKey):
+    """Receive arbitrary length string from server, with progress bar.
+
+    Args:
+        socket (socket): The socket connection to the server.
+        ClientKey (bytes): The client's public key.
+        PrivateKey (bytes): The client's private key.
+
+        Global ProgressList:
+         [0]: int: The number of packets received.
+         [1]: int: The total number of packets to be received.
+
+    Returns:
+        str: The received string, or None if the receive failed.
+    """
+
+    global ProgressList
+
+    data = Asymmetric_Encryption.DecryptData(
+        socket.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
+    )
+    if not data == b"ProgressStringSendStart":  # check if string send start was received correctly
+        return None
+
+    socket.sendall(
+        Asymmetric_Encryption.EncryptData(  # send string send acknowledged
+            b"ProgressStringSendAcknowledged", ClientKey
+        )
+    )
+
+    data = Asymmetric_Encryption.DecryptData(
+        socket.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
+    )
+    ProgressList[1] = int(data)  # set total number of packets to be received
+
+    socket.sendall(Asymmetric_Encryption.EncryptData(b"AcknowledgeTotal", ClientKey))
+
+    chunks = []
+    while True:
+        RawData = socket.recv(Asymmetric_Encryption.PacketSize())
+
+        sawd = len(RawData)
+
+        data = Asymmetric_Encryption.DecryptData(RawData, PrivateKey)
+
+        if data == b"StringSendComplete":
+            socket.sendall(
+                Asymmetric_Encryption.EncryptData(b"StringSendCompleteAcknowledged", ClientKey)
+            )
+            break
+        elif data == b"CANCEL":
+            return None
+        else:
+            chunks.append(Asymmetric_Encryption.BytesToString(data))
+
+            ProgressList[0] = len(chunks)  # set number of packets received
+
+        if len(chunks) % Asymmetric_Encryption.MaxBufferLen() == 0 and len(chunks) != 0:
+            socket.sendall(Asymmetric_Encryption.EncryptData(b"BufferReceived", ClientKey))
+
     return "".join(chunks)
 
 
@@ -115,7 +178,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
             )  # send request to server to create token
 
             data = Asymmetric_Encryption.DecryptData(
-                s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+                s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
             )  # receive response from server
 
             if data == b"PrepareOauth":  # if server is ready to receive shop id
@@ -128,7 +191,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 return False
 
             data = Asymmetric_Encryption.DecryptData(
-                s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+                s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
             )  # receive response from server
             if data == b"SendShopID":  # if server is ready to receive shop id
                 s.sendall(
@@ -143,7 +206,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 )
                 return False
 
-            UserURL = Asymmetric_Encryption.ChopReceiveCheck(
+            UserURL = Asymmetric_Encryption.ArbitraryStringReceive(
                 s, ServerKey, PrivateKey
             )  # receive URL from server
             if UserURL == False:  # if URL not received
@@ -164,7 +227,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 app.warn("Request Server Connection Failed", "User did not enter URL.")
                 return False
 
-            Success = Asymmetric_Encryption.ChopSendCheck(
+            Success = Asymmetric_Encryption.ArbitraryStringSend(
                 UserURI, s, ServerKey, PrivateKey
             )  # send URL to server
             if not Success:
@@ -175,7 +238,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 return False
 
             data = Asymmetric_Encryption.DecryptData(
-                s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+                s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
             )  # receive response from server
             if data == b"AuthenticationSuccess":  # if server had a successful authentication
                 s.sendall(
@@ -191,7 +254,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 )
                 return False
 
-            Token = Asymmetric_Encryption.ChopReceiveCheck(
+            Token = Asymmetric_Encryption.ArbitraryStringReceive(
                 s, ServerKey, PrivateKey
             )  # receive token from server
             if Token == False:  # if token not received
@@ -214,7 +277,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
             )  # send request to server to authenticate
 
             data = Asymmetric_Encryption.DecryptData(
-                s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+                s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
             )  # receive response from server
             if not data == b"SendShopID":
                 app.warn(
@@ -229,7 +292,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 )
             )  # send shop id to server
             data = Asymmetric_Encryption.DecryptData(  # receive response from server
-                s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+                s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
             )
 
             if not data == b"ShopIDReceived":
@@ -239,7 +302,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 )
                 return False
 
-            Success = Asymmetric_Encryption.ChopSendCheck(
+            Success = Asymmetric_Encryption.ArbitraryStringSend(
                 Token, s, ServerKey, PrivateKey
             )  # send token to server
             if not Success:  # if token not sent
@@ -250,7 +313,7 @@ def AuthenticationLoop(s, ServerKey, PrivateKey, app, settings, ShopID, Token):
                 return False
 
             data = Asymmetric_Encryption.DecryptData(
-                s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+                s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
             )  # receive response from server
             if (
                 not data == b"AuthenticationSuccess"
@@ -268,7 +331,7 @@ def QueryTransactionCount(s, ServerKey, PrivateKey, app):
     # query test
     s.sendall(Asymmetric_Encryption.EncryptData(b"QueryShop", ServerKey))
 
-    data = Asymmetric_Encryption.DecryptData(s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey)
+    data = Asymmetric_Encryption.DecryptData(s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey)
 
     if not data == b"PrepareQueryShop":
         app.warn(
@@ -283,7 +346,7 @@ def QueryTransactionCount(s, ServerKey, PrivateKey, app):
         )
     )
 
-    data = Asymmetric_Encryption.DecryptData(s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey)
+    data = Asymmetric_Encryption.DecryptData(s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey)
     if not data == b"QueryShopSuccess":
         app.warn(
             "Request Server Connection Failed",
@@ -291,7 +354,7 @@ def QueryTransactionCount(s, ServerKey, PrivateKey, app):
         )
         return None
 
-    ShopString = Asymmetric_Encryption.ChopReceiveCheck(s, ServerKey, PrivateKey)
+    ShopString = Asymmetric_Encryption.ArbitraryStringReceive(s, ServerKey, PrivateKey)
     if ShopString == False:
         app.warn(
             "Request Server Connection Failed",
@@ -489,7 +552,7 @@ def RefreshEtsyOrders(app, database):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))  # connect to server
 
-        data = s.recv(Asymmetric_Encryption.BufferSize())  # receive handshake request
+        data = s.recv(Asymmetric_Encryption.PacketSize())  # receive handshake request
         if data == b"ConnectionDenied":  # if handshake request is not received
             app.warn(
                 "Request Server Connection Failed",
@@ -547,7 +610,7 @@ def RefreshEtsyOrders(app, database):
         s.sendall(Asymmetric_Encryption.EncryptData(b"QueryReceipts", ServerKey))
 
         data = Asymmetric_Encryption.DecryptData(
-            s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+            s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
         )
 
         if not data == b"EndID":
@@ -566,7 +629,8 @@ def RefreshEtsyOrders(app, database):
         )
 
         # get receipts
-        Receipts = ProgressChopReceiveCheck(s, ServerKey, PrivateKey)
+        # Receipts = ProgressChopReceiveCheck(s, ServerKey, PrivateKey) deprecated to arbitrary string receive
+        Receipts = ProgressArbitraryStringReceive(s, ServerKey, PrivateKey)  # receive receipts
         if not Receipts:
             app.warn(
                 "Request Server Connection Failed",
@@ -661,7 +725,7 @@ def ImportAllEtsyOrders(app, database):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))  # connect to server
 
-        data = s.recv(Asymmetric_Encryption.BufferSize())  # receive handshake request
+        data = s.recv(Asymmetric_Encryption.PacketSize())  # receive handshake request
         if data == b"ConnectionDenied":  # if handshake request is not received
             app.warn(
                 "Request Server Connection Failed",
@@ -693,7 +757,7 @@ def ImportAllEtsyOrders(app, database):
         s.sendall(Asymmetric_Encryption.EncryptData(b"QueryAllReceipts", ServerKey))
 
         data = Asymmetric_Encryption.DecryptData(
-            s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+            s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
         )
 
         if not data == b"QueryFloor":
@@ -709,7 +773,8 @@ def ImportAllEtsyOrders(app, database):
         )
 
         # get receipts
-        Receipts = ProgressChopReceiveCheck(s, ServerKey, PrivateKey)
+        # Receipts = ProgressChopReceiveCheck(s, ServerKey, PrivateKey) deprecated to arbitrary string receive
+        Receipts = ProgressArbitraryStringReceive(s, ServerKey, PrivateKey)  # receive receipts
         if not Receipts:
             app.warn(
                 "Request Server Connection Failed",
@@ -774,7 +839,7 @@ def FastAuthentication(app, database):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))  # connect to server
 
-        data = s.recv(Asymmetric_Encryption.BufferSize())  # receive handshake request
+        data = s.recv(Asymmetric_Encryption.PacketSize())  # receive handshake request
         if data == b"ConnectionDenied":  # if handshake request is not received
             app.warn(
                 "Request Server Connection Failed",
@@ -866,7 +931,7 @@ def DeleteEtsyToken(app, database):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))  # connect to server
 
-        data = s.recv(Asymmetric_Encryption.BufferSize())  # receive handshake request
+        data = s.recv(Asymmetric_Encryption.PacketSize())  # receive handshake request
         if data == b"ConnectionDenied":  # if handshake request is not received
             app.warn(
                 "Request Server Connection Failed",
@@ -902,7 +967,7 @@ def DeleteEtsyToken(app, database):
         s.sendall(Asymmetric_Encryption.EncryptData(b"RemoveToken", ServerKey))
 
         data = Asymmetric_Encryption.DecryptData(
-            s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+            s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
         )
 
         if not data == b"ConfirmRemoveToken":
@@ -915,7 +980,7 @@ def DeleteEtsyToken(app, database):
         s.sendall(Asymmetric_Encryption.EncryptData(b"ConfirmRemoveTokenAcknowledged", ServerKey))
 
         data = Asymmetric_Encryption.DecryptData(
-            s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+            s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
         )
 
         if not data == b"ResendToken":
@@ -924,7 +989,7 @@ def DeleteEtsyToken(app, database):
                 "Request Server failed to prepare for token delete.",
             )
 
-        success = Asymmetric_Encryption.ChopSendCheck(Token, s, ServerKey, PrivateKey)
+        success = Asymmetric_Encryption.ArbitraryStringSend(Token, s, ServerKey, PrivateKey)
 
         if not success:
             app.warn(
@@ -933,7 +998,7 @@ def DeleteEtsyToken(app, database):
             )
 
         data = Asymmetric_Encryption.DecryptData(
-            s.recv(Asymmetric_Encryption.BufferSize()), PrivateKey
+            s.recv(Asymmetric_Encryption.PacketSize()), PrivateKey
         )
 
         if not data == b"RemoveTokenSuccess":

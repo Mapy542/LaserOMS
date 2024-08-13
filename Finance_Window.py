@@ -5,6 +5,7 @@ import Common
 import Expense_Details_Window
 import Export_Expenses
 import Google_Sheets_Sync
+import Ingest_Amazon_Expense
 import Ingest_Etsy_Shipping_Labels
 import Ingest_USPS_Shipping_Labels
 import New_Expense_Window
@@ -408,6 +409,13 @@ def FinancesDisplay(main_window, database):
         command=ImportUSPSShippingExpenses,
         grid=[2, 0, 2, 1],
         args=[database, window2],
+    )
+    ImportAmazonExpensesButton = PushButton(
+        ImportDiv,
+        text="Import Amazon Expense Receipt",
+        command=Ingest_Amazon_Expense.ImportAmazonExpense,
+        grid=[0, 1, 2, 1],
+        args=[window2, database],
     )
 
     UpdateListbox(database, ShowCombo, ExpenseSortDiv, DeleteButton)

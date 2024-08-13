@@ -99,16 +99,27 @@ def VerifySettings(database):
 
 
 def TrimDatabase(app, database):  # remove excess lines from the database
+    """Get rid of all excess entries in the database. Cleanup unused entries. This does not remove any data, only redundant rows.
+
+    Args:
+        app (GuiZero Window): The main window of the program.
+        database (TinyDb): The database to clean.
+    """
+
+    app.warn(
+        "Database Trim",
+        "This will cleanup the database by removing all excess entries. This will not remove any data. It may take a while to complete.",
+    )
     CleaningTotal = 0
 
     transients = database.table("Transients")  # clean transients table
-    CleaningTotal = len(
+    CleaningTotal += len(
         transients.remove(~(tinydb.Query().transient_name.one_of(["Empty"])))
     )  # remove all transients except for the empty one
 
     # clean orders table
     orders = database.table("Orders")
-    CleaningTotal = len(
+    CleaningTotal += len(
         orders.remove(~(tinydb.Query().process_status == "UTILIZE"))
     )  # remove all orders except for ones that are to be utilized
 
@@ -118,11 +129,11 @@ def TrimDatabase(app, database):  # remove excess lines from the database
         AllUtilizedItemUIDs += order["order_items_UID"]
 
     items = database.table("Order_Items")
-    CleaningTotal = len(
+    CleaningTotal += len(
         items.remove(~(tinydb.Query().item_UID.one_of(AllUtilizedItemUIDs)))
     )  # remove all items except for ones that are utilized
 
-    app.info("Database Trim", "Removed " + str(CleaningTotal) + " entries from database")
+    app.info("Database Trim", "Removed " + str(CleaningTotal) + " excess entries from database")
 
 
 def reset(window, database):  # Resets settings to default values

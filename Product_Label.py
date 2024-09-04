@@ -126,6 +126,9 @@ def PrintProductLabel(app, database, ProductName, PricingStyle):
             return
 
         # Fonts
+        SmallFont = ImageFont.truetype(
+            os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 25
+        )
         MediumFont = ImageFont.truetype(
             os.path.join(os.path.realpath(os.path.dirname(__file__)), "Bright.TTF"), 50
         )
@@ -145,8 +148,12 @@ def PrintProductLabel(app, database, ProductName, PricingStyle):
             Canvas.text((20, 220), wrappedText, font=NormalFont, fill=(TextColor))
 
         # Product Name
-        wrappedText = TextWrap(product["product_name"], 15)
-        Canvas.text((250, 30), wrappedText, font=NormalFont, fill=(TextColor))
+        if len(product["product_name"]) > 15:
+            wrappedText = TextWrap(product["product_name"], 25)
+            Canvas.text((250, 30), wrappedText, font=(SmallFont), fill=(TextColor))
+        else:
+            wrappedText = TextWrap(product["product_name"], 15)
+            Canvas.text((250, 30), wrappedText, font=(NormalFont), fill=(TextColor))
 
         # Product Price
         try:

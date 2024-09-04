@@ -100,6 +100,11 @@ The product view page can be accessed by selecting the see all products button i
 
 ## Changes:
 
+Version 1.3.5
+
+- Fixed Product Label Text sizing and location.
+- Added default product label image.
+
 Version 1.3.4
 
 - Fixed Inventory Management Selection Bug

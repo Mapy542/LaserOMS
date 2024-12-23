@@ -248,24 +248,34 @@ def PrintPackingSlip(app, database, OrderNumber):
                     Canvas.text((20, 770), State + " " + Zip, font=NormalFont, fill=(TextColor))
 
         # From (100 between)
-        Canvas.text((20, 870), "Ship From:", font=NormalFont, fill=(TextColor))
-        Canvas.text((20, 920), CompanyName, font=NormalFont, fill=(TextColor))
-        Canvas.text((20, 960), CompanyAddress1, font=NormalFont, fill=(TextColor))
-        if CompanyAddress2 != "":  # if address2 available
-            Canvas.text((20, 1000), CompanyAddress2, font=NormalFont, fill=(TextColor))
-            Canvas.text(
-                (20, 1040),
-                CompanyCity + ", " + CompanyState + " " + CompanyZip,
-                font=NormalFont,
-                fill=(TextColor),
-            )
-        else:
-            Canvas.text(
-                (20, 1000),
-                CompanyCity + ", " + CompanyState + " " + CompanyZip,
-                font=NormalFont,
-                fill=(TextColor),
-            )
+        if CompanyName != "":
+            Canvas.text((20, 870), "Ship From:", font=NormalFont, fill=(TextColor))
+            Canvas.text((20, 920), CompanyName, font=NormalFont, fill=(TextColor))
+            if CompanyAddress1 != "":  # if address available
+                Canvas.text((20, 960), CompanyAddress1, font=NormalFont, fill=(TextColor))
+                if CompanyAddress2 != "":  # if address2 available
+                    Canvas.text((20, 1000), CompanyAddress2, font=NormalFont, fill=(TextColor))
+                    Canvas.text(
+                        (20, 1040),
+                        CompanyCity
+                        + (", " if CompanyState != "" or CompanyZip != "" else "")
+                        + CompanyState
+                        + " "
+                        + CompanyZip,
+                        font=NormalFont,
+                        fill=(TextColor),
+                    )
+                else:
+                    Canvas.text(
+                        (20, 1000),
+                        CompanyCity
+                        + (", " if CompanyState != "" or CompanyZip != "" else "")
+                        + CompanyState
+                        + " "
+                        + CompanyZip,
+                        font=NormalFont,
+                        fill=(TextColor),
+                    )
 
         # Order Number (100 between)
         OrderNumber = order["order_number"]

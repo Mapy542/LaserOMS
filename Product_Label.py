@@ -18,7 +18,7 @@ def PrintProductLabel(app, database, ProductName, PricingStyle):
 
     Args:
         app (GuiZero Window): The main window of the program.
-        database (TindyDb): The database to use.
+        database (TinyDb): The database to use.
         ProductName (Str): The name of the product to print a label for.
         PricingStyle (Str): The pricing style to use.
     """
@@ -157,7 +157,7 @@ def PrintProductLabel(app, database, ProductName, PricingStyle):
 
         # Product Price
         try:
-            Price = Common.Decimal(product[pricingStyle["style_name"].replace(" ", "_")])
+            Price = product[pricingStyle["style_name"].replace(" ", "_")]
         except KeyError:
             app.warn(
                 "Query Error",

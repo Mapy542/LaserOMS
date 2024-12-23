@@ -3,6 +3,10 @@ from guizero import Combo, ListBox, PushButton, Text, TextBox, TitleBox, Window
 
 import Common
 
+from decimal import *
+
+getcontext().prec = 2  # Set decimal precision to 2
+
 
 def UpdateListbox(InfoBox, database):
     """Updates the listbox with the current inventory groups
@@ -50,14 +54,12 @@ def ShowGroupOverview(InfoBox, database):
                 "style_name"
             ]
         quantity = sum([item["item_quantity"] for item in inventory["inventory_items"]])
-        value = Common.MonetarySummation(
-            [
-                Common.MonetaryMultiply(
-                    item["item_quantity"], item["product_snapshot"][pricingOption]
-                )
-                for item in inventory["inventory_items"]
-            ]
-        )
+        value = Decimal(0)
+        for item in inventory["inventory_items"]:
+            value += Decimal(item["item_quantity"]) * Decimal(
+                item["product_snapshot"][pricingOption]
+            )
+
         sortedInventories.append(
             [inventory["inventory_name"], "QTY: " + str(quantity), "$" + str(value)]
         )
@@ -86,12 +88,9 @@ def ShowIndividualInventory(InfoBox, InventoryName, database):
             "style_name"
         ]
     quantity = sum([item["item_quantity"] for item in inventory["inventory_items"]])
-    value = Common.MonetarySummation(
-        [
-            Common.MonetaryMultiply(item["item_quantity"], item["product_snapshot"][pricingOption])
-            for item in inventory["inventory_items"]
-        ]
-    )
+    value = Decimal(0)
+    for item in inventory["inventory_items"]:
+        value += Decimal(item["item_quantity"]) * Decimal(item["product_snapshot"][pricingOption])
 
     sortedItems = [
         [
@@ -99,9 +98,7 @@ def ShowIndividualInventory(InfoBox, InventoryName, database):
             "Quantity: " + str(item["item_quantity"]),
             "Value: "
             + str(
-                Common.MonetaryMultiply(
-                    item["item_quantity"], item["product_snapshot"][pricingOption]
-                )
+                Decimal(item["item_quantity"]) * Decimal(item["product_snapshot"][pricingOption])
             ),
         ]
         for item in inventory["inventory_items"]

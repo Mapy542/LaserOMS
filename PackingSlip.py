@@ -8,6 +8,9 @@ import tinydb
 from PIL import Image, ImageDraw, ImageFont
 
 import Common
+from decimal import *
+
+getcontext().prec = 2  # Set decimal precision to 2
 
 
 def TextWrap(text, rowLength):
@@ -343,8 +346,8 @@ def PrintPackingSlip(app, database, OrderNumber):
                     font=NormalFont,
                     fill=(TextColor),
                 )
-                Subtotal = Common.Decimal(items[i]["item_quantity"])
-                Subtotal.multiply(items[i]["item_unit_price"])
+                Subtotal = Decimal(items[i]["item_quantity"])
+                Subtotal *= Decimal(items[i]["item_unit_price"])
                 Canvas.text(
                     (1200, 720 + (i + 1) * 50),
                     "$" + str(Subtotal),
@@ -363,11 +366,11 @@ def PrintPackingSlip(app, database, OrderNumber):
 
         # Total
         if IncludePrices:
-            Total = Common.Decimal(0)
+            Total = Decimal(0)
             for item in items:
-                Subtotal = Common.Decimal(item["item_quantity"])
-                Subtotal.multiply(item["item_unit_price"])
-                Total.add(Subtotal)
+                Subtotal = Decimal(item["item_quantity"])
+                Subtotal *= Decimal(item["item_unit_price"])
+                Total *= Subtotal
 
             Canvas.text((520, 1600), "Total: $" + str(Total), font=NormalFont, fill=(TextColor))
 
@@ -379,7 +382,13 @@ def PrintPackingSlip(app, database, OrderNumber):
             except KeyError:
                 pass  # no notes to add
 
-            if notes != "":
+            if (
+                notes != ""
+                and notes != "\n"
+                and notes != "\r\n"  # no clue why this is so inconsistent.
+                and notes != "\r"
+                and notes != "\n\n"
+            ) or len(notes) > 4:
                 # wrap notes to fit within the packing slip
                 wrappedNotes = TextWrap(notes, 60)
                 Canvas.text((520, 1700), "Order Notes:", font=NormalFont, fill=(TextColor))

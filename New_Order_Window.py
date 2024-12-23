@@ -8,6 +8,9 @@ from guizero import CheckBox, Combo, ListBox, PushButton, Text, TextBox, Window
 import Common
 import Inventory_Management_Window
 import PackingSlip
+from decimal import *
+
+getcontext().prec = 2  # Set decimal precision to 2
 
 
 def PriceUpdate():
@@ -28,10 +31,8 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice1.value = "$" + str(
-            Common.MonetaryMultiply(
-                item1_data[0][PricingOptionButton.value.replace(" ", "_")],
-                ItemQuantity1.value,
-            )
+            Decimal(item1_data[0][PricingOptionButton.value.replace(" ", "_")])
+            * Decimal(ItemQuantity1.value)
         )
     except:
         ItemPrice1.value = "NA"
@@ -46,10 +47,8 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice2.value = "$" + str(
-            Common.MonetaryMultiply(
-                item2_data[0][PricingOptionButton.value.replace(" ", "_")],
-                ItemQuantity2.value,
-            )
+            Decimal(item2_data[0][PricingOptionButton.value.replace(" ", "_")])
+            * Decimal(ItemQuantity2.value)
         )
     except:
         ItemPrice2.value = "NA"
@@ -64,10 +63,8 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice3.value = "$" + str(
-            Common.MonetaryMultiply(
-                item3_data[0][PricingOptionButton.value.replace(" ", "_")],
-                ItemQuantity3.value,
-            )
+            Decimal(item3_data[0][PricingOptionButton.value.replace(" ", "_")])
+            * Decimal(ItemQuantity3.value)
         )
     except:
         ItemPrice3.value = "NA"
@@ -82,10 +79,8 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice4.value = "$" + str(
-            Common.MonetaryMultiply(
-                item4_data[0][PricingOptionButton.value.replace(" ", "_")],
-                ItemQuantity4.value,
-            )
+            Decimal(item4_data[0][PricingOptionButton.value.replace(" ", "_")])
+            * Decimal(ItemQuantity4.value)
         )
     except:
         ItemPrice4.value = "NA"
@@ -100,25 +95,19 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice5.value = "$" + str(
-            Common.MonetaryMultiply(
-                item5_data[0][PricingOptionButton.value.replace(" ", "_")],
-                ItemQuantity5.value,
-            )
+            Decimal(item5_data[0][PricingOptionButton.value.replace(" ", "_")])
+            * Decimal(ItemQuantity5.value)
         )
     except:
         ItemPrice5.value = "NA"
 
     # Calculate the total
     Total.value = "Total: $" + str(
-        Common.MonetarySummation(
-            [
-                ItemPrice1.value,
-                ItemPrice2.value,
-                ItemPrice3.value,
-                ItemPrice4.value,
-                ItemPrice5.value,
-            ]
-        )
+        Decimal(ItemPrice1.value.replace("$", ""))
+        + Decimal(ItemPrice2.value.replace("$", ""))
+        + Decimal(ItemPrice3.value.replace("$", ""))
+        + Decimal(ItemPrice4.value.replace("$", ""))
+        + Decimal(ItemPrice5.value.replace("$", ""))
     )
 
 

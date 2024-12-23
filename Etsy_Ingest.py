@@ -5,6 +5,10 @@ import threading
 import time
 import webbrowser
 
+from decimal import *
+
+getcontext().prec = 2
+
 import tinydb
 from guizero import Text, Window
 
@@ -107,8 +111,6 @@ def ProgressArbitraryStringReceive(socket, ClientKey, PrivateKey):
     chunks = []
     while True:
         RawData = socket.recv(Asymmetric_Encryption.PacketSize())
-
-        sawd = len(RawData)
 
         data = Asymmetric_Encryption.DecryptData(RawData, PrivateKey)
 
@@ -469,13 +471,13 @@ def SaveOrdersNoOverwrite(Receipts, database):  # save orders to database
         for action in Receipt["transactions"]:
             ItemName = action["title"]
             Quantity = action["quantity"]
-            UnitPrice = Common.MonetaryDivide(action["price"]["amount"], action["price"]["divisor"])
+            UnitPrice = Decimal(action["price"]["amount"]) / Decimal(action["price"]["divisor"])
             order_items.insert(
                 {
                     "item_UID": ItemUIDs[count],
                     "item_name": ItemName,
                     "item_quantity": Quantity,
-                    "item_unit_price": UnitPrice,
+                    "item_unit_price": str(UnitPrice),
                     "process_status": "UTILIZE",
                     "etsy_item": "TRUE",
                     "product_snapshot": action,

@@ -5,7 +5,9 @@ import subprocess
 
 import tinydb
 
-import Common
+from decimal import *
+
+getcontext().prec = 2  # Set decimal precision to 2
 
 
 def HeaderHTML():
@@ -67,15 +69,13 @@ def BodyFootHTML():
 def ExpenseToHTML(expenses):
     code = ""
 
-    total = Common.Decimal(0)
+    total = Decimal(0)
     for expense in expenses:
         code += "<h2>" + expense["expense_name"] + "</h2> \n"
         code += "<p>Expense Date: " + expense["expense_date"] + "</p> <br>\n"
         code += (
             "<p>Expense Total: $"
-            + str(
-                Common.MonetaryMultiply(expense["expense_quantity"], expense["expense_unit_price"])
-            )
+            + str(Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"]))
             + "</p> <br> \n"
         )
         code += (
@@ -109,9 +109,7 @@ def ExpenseToHTML(expenses):
                     + """">Expense Image File</a></p> <br> \n"""
                 )
         code += "<hr> \n"
-        total.add(
-            Common.MonetaryMultiply(expense["expense_quantity"], expense["expense_unit_price"])
-        )
+        total += Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"])
 
     code += "<h2>Total Expenses: $" + str(total) + "</h2> \n"
     return code

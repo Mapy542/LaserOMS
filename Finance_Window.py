@@ -11,6 +11,10 @@ import Ingest_USPS_Shipping_Labels
 import New_Expense_Window
 import Settings_Window
 
+from decimal import *
+
+getcontext().prec = 2  # Set decimal precision to 2
+
 
 def GetRevenueStats(database):
     orders = database.table("Orders")  # load all orders and order items
@@ -86,16 +90,15 @@ def GetExpenseStats(database):
         month = int(expense["expense_date"].split("-")[0])  # get month
 
         if year not in YearlyExpenses:  # add year if not in years
-            YearlyExpenses[year] = Common.Decimal("0")
+            YearlyExpenses[year] = Decimal("0")
             MonthlyExpenses[year] = {}
         # add month to months if not in months
         if month not in MonthlyExpenses[year]:
-            MonthlyExpenses[year][month] = Common.Decimal("0")
+            MonthlyExpenses[year][month] = Decimal("0")
 
-        total = Common.Decimal(expense["expense_quantity"])
-        total.multiply(expense["expense_unit_price"])  # calculate total
-        YearlyExpenses[year].add(total)  # add total to applicable
-        MonthlyExpenses[year][month].add(total)
+        total = Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"])
+        YearlyExpenses[year] += total  # add total to year
+        MonthlyExpenses[year][month] += total  # add total to month
 
     return YearlyExpenses, MonthlyExpenses
 
@@ -132,8 +135,7 @@ def ShowFinancialStats(database):
             # add expenses to listbox
             listbox.append("  Expenses: " + str(YearlyExpenses[year]))
             listbox.append(
-                "  Profit: "
-                + str(Common.MonetarySubtract(YearlyRevenue[year], YearlyExpenses[year]))
+                "  Profit: " + str(Decimal(YearlyRevenue[year]) - Decimal(YearlyExpenses[year]))
             )  # calculate and display difference in revenue and expenses
         else:  # if there are no expenses
             listbox.append("  Expenses: 0")  # display no expenses
@@ -151,9 +153,7 @@ def ShowFinancialStats(database):
                 listbox.append(
                     "      Profit: "
                     + str(
-                        Common.MonetarySubtract(
-                            MonthlyRevenue[year][month], MonthlyExpenses[year][month]
-                        )
+                        Decimal(MonthlyRevenue[year][month]) - Decimal(MonthlyExpenses[year][month])
                     )
                 )
             else:
@@ -219,11 +219,7 @@ def ShowExpenses(database):
                 + ": "
                 + expense["expense_date"]
                 + ", $"
-                + str(
-                    Common.MonetaryMultiply(
-                        expense["expense_quantity"], expense["expense_unit_price"]
-                    )
-                )
+                + str(Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"]))
                 + VerifiedExpenseText
             )  # add expense to listbox
         elif ToShowExpenseSort == str(Year):  # if expenses from year
@@ -233,11 +229,7 @@ def ShowExpenses(database):
                 + ": "
                 + expense["expense_date"]
                 + ", $"
-                + str(
-                    Common.MonetaryMultiply(
-                        expense["expense_quantity"], expense["expense_unit_price"]
-                    )
-                )
+                + str(Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"]))
                 + VerifiedExpenseText
             )  # add expense to listbox
 

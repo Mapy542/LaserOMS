@@ -2,6 +2,10 @@ import datetime
 import os
 import shutil
 
+from decimal import *
+
+getcontext().prec = 2  # Set decimal precision to 2
+
 import tinydb
 from guizero import PushButton, Text, TextBox, Window
 
@@ -11,7 +15,7 @@ import Common
 def price_update():
     global Item1, ItemQuantity, ItemPrice, TotalText
     TotalText.value = "Total: $" + str(
-        Common.MonetaryMultiply(ItemQuantity.value, ItemPrice.value)
+        Decimal(ItemQuantity.value) * Decimal(ItemPrice.value)
     )  # Update total
 
 

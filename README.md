@@ -4,17 +4,17 @@ Lightweight python based local order/business management system with Etsy integr
 
 ## Features:
 
-- Order tracking and management
-- Task management
-- Expense tracking
-- Wordpress plugin Easy Cart integration
-- Etsy integration (Via Remote Server)
-- Inventory management
-- Product spreadsheet connection
-- Packing slip generation
-- Product label generation
-- Customization and flexibility
-- Windows and Linux support
+-   Order tracking and management
+-   Task management
+-   Expense tracking
+-   Wordpress plugin Easy Cart integration
+-   Etsy integration (Via Remote Server)
+-   Inventory management
+-   Product spreadsheet connection
+-   Packing slip generation
+-   Product label generation
+-   Customization and flexibility
+-   Windows and Linux support
 
 ## Installation:
 
@@ -90,147 +90,151 @@ The product view page can be accessed by selecting the see all products button i
 
 ## Projects:
 
-- Amazon integration
-- Shipping integration (USPS API or ShipStation API)
-- Customizable product data synchronization
-- Make each window look more modern
-- Add more inventory management features
-- Add inventory statistics and reports
-- Add inventory stock alerts to tasks.
+-   Amazon integration
+-   Shipping integration (USPS API or ShipStation API)
+-   Customizable product data synchronization
+-   Make each window look more modern
+-   Add more inventory management features
+-   Add inventory statistics and reports
+-   Add inventory stock alerts to tasks.
 
 ## Changes:
 
+Version 1.3.6
+
+-   Migrated to Python Decimal module for monetary calculations.
+
 Version 1.3.5
 
-- Fixed Product Label Text sizing and location.
-- Added default product label image.
+-   Fixed Product Label Text sizing and location.
+-   Added default product label image.
 
 Version 1.3.4
 
-- Fixed Inventory Management Selection Bug
-- Fixed Order Details Window Bug, Incorrectly Saving Modified Orders
-- Speed up Etsy Request Server Data Transfer
-- Added Delete Image on save for Expenses
-- Added Notes to Orders
-- Added Notes to Packing Slips
-- Added Customizable Packing Slip Company Information
-- Added Product Label Generator
-- Added Amazon Expense Ingest for Order invoices.
-- Added database lock to prevent multiple instances of the software from concurrently mutating data.
+-   Fixed Inventory Management Selection Bug
+-   Fixed Order Details Window Bug, Incorrectly Saving Modified Orders
+-   Speed up Etsy Request Server Data Transfer
+-   Added Delete Image on save for Expenses
+-   Added Notes to Orders
+-   Added Notes to Packing Slips
+-   Added Customizable Packing Slip Company Information
+-   Added Product Label Generator
+-   Added Amazon Expense Ingest for Order invoices.
+-   Added database lock to prevent multiple instances of the software from concurrently mutating data.
 
 Version 1.3.3
 
-- Fixed USPS Shipping Label Expense Import Bug
-- Added Expense type selection from main window
-- Added Update Check Frequency to settings. Github API rate limits are 60 requests per hour.
-- Fixed bug with inventory management page item selection.
-- Fixed bug with details window incorrectly saving modified orders.
+-   Fixed USPS Shipping Label Expense Import Bug
+-   Added Expense type selection from main window
+-   Added Update Check Frequency to settings. Github API rate limits are 60 requests per hour.
+-   Fixed bug with inventory management page item selection.
+-   Fixed bug with details window incorrectly saving modified orders.
 
 Version 1.3.2
 
-- Added inventory window item sorting and column alignment.
+-   Added inventory window item sorting and column alignment.
 
 Version 1.3.1
 
-- Order Details Window utilizes item product snapshots.
-- Added Inventory Management for Consignment Stores tracking.
-- Added ability for new orders to affect inventory.
-- Fixed bug within new/edit order: packing slip generation not working on export.
+-   Order Details Window utilizes item product snapshots.
+-   Added Inventory Management for Consignment Stores tracking.
+-   Added ability for new orders to affect inventory.
+-   Fixed bug within new/edit order: packing slip generation not working on export.
 
 Version 1.2.9
 
-- Fixed Etsy Request Server Memory Cache Loss Bug
-- Fixed Etsy Request Fast Auth Bug
-- Added Local Etsy Token Deletion Option
+-   Fixed Etsy Request Server Memory Cache Loss Bug
+-   Fixed Etsy Request Fast Auth Bug
+-   Added Local Etsy Token Deletion Option
 
 Version 1.2.8
 
-- Fixed Etsy Oauth Token Creation Bug
-- Fixed Etsy Ingest Bug
-- Added ability to delete Etsy token
+-   Fixed Etsy Oauth Token Creation Bug
+-   Fixed Etsy Ingest Bug
+-   Added ability to delete Etsy token
 
-- Etsy Request Server now weekly refreshes tokens to prevent token expiration
+-   Etsy Request Server now weekly refreshes tokens to prevent token expiration
 
 Version 1.2.7
 
-- Added USPS Shipping Label Expense Import
-- Fixed Details Window Changing Pricing Option Bug
-- Reformatted with 110 character line limit
+-   Added USPS Shipping Label Expense Import
+-   Fixed Details Window Changing Pricing Option Bug
+-   Reformatted with 110 character line limit
 
 Version 1.2.6
 
-- Fixed Decimal To String Bug
-- Fixed Decimal Implementation Bug
+-   Fixed Decimal To String Bug
+-   Fixed Decimal Implementation Bug
 
 Version 1.2.5
 
-- Fixed Addition Arithmetic Bug
-- Added Full Negative Decimal Support
-- Added Delete Expense Button
-- Other Bug Fixes
+-   Fixed Addition Arithmetic Bug
+-   Added Full Negative Decimal Support
+-   Added Delete Expense Button
+-   Other Bug Fixes
 
 Version 1.2.4
 
-- Fixed Etsy Ingest
-- Fixed Etsy Shipping Expense Import bug
-- Handle New Order Autofill Exceptions
-- Added float-less arithmetic for monetary calculations
-- Other small bug fixes
+-   Fixed Etsy Ingest
+-   Fixed Etsy Shipping Expense Import bug
+-   Handle New Order Autofill Exceptions
+-   Added float-less arithmetic for monetary calculations
+-   Other small bug fixes
 
 Version 1.2.3
 
-- Added Etsy Shipping Label Expense Import
+-   Added Etsy Shipping Label Expense Import
 
 Version 1.2.2
 
-- Optimized Etsy request. (Force update all in settings.)
-- Added double click to view orders
-- Upgraded settings management
-- Changed welcome messages
-- Improved EasyCart and Etsy View Order Window
-- Added Database Trim tool.
-- Other small bug fixes
+-   Optimized Etsy request. (Force update all in settings.)
+-   Added double click to view orders
+-   Upgraded settings management
+-   Changed welcome messages
+-   Improved EasyCart and Etsy View Order Window
+-   Added Database Trim tool.
+-   Other small bug fixes
 
 Version 1.2.1
 
-- Fixed Export Expense to handle multiple image file types
-- Fixed other small bugs
+-   Fixed Export Expense to handle multiple image file types
+-   Fixed other small bugs
 
 Version 1.2.0
 
-- Added Etsy integration
-- Added ability to view orders from Etsy in the details page
+-   Added Etsy integration
+-   Added ability to view orders from Etsy in the details page
 
 Version 1.1.3
 
-- Expense statistics upgrades
-- - Added ability to view expense details and attach expense images
-- Added expense report generation
-- Finance statistics upgrades
-- Installer bug fixes
-- Fixed Packing slip generation printing method
+-   Expense statistics upgrades
+-   -   Added ability to view expense details and attach expense images
+-   Added expense report generation
+-   Finance statistics upgrades
+-   Installer bug fixes
+-   Fixed Packing slip generation printing method
 
 Version 1.1.2
 
-- Finance statistics and packing slip generation bug fixes
+-   Finance statistics and packing slip generation bug fixes
 
 Version 1.1.1
 
-- Quality of life features
-- - Settings stay in consistent order
-- - Automatic updates of software
-- - View all details of tasks and orders
-- Bug fixes
-- - Fixed major bug with default path selection in windows
+-   Quality of life features
+-   -   Settings stay in consistent order
+-   -   Automatic updates of software
+-   -   View all details of tasks and orders
+-   Bug fixes
+-   -   Fixed major bug with default path selection in windows
 
 Version 1.1.0
 
-- TinyDB based data management
-- Added the Easy Cart Wordpress plugin integration
-- Added settings page and password protection
-- Added additional information in task and expense pages
-- Added customizable order, task, and expense dates
+-   TinyDB based data management
+-   Added the Easy Cart Wordpress plugin integration
+-   Added settings page and password protection
+-   Added additional information in task and expense pages
+-   Added customizable order, task, and expense dates
 
 Version 1.0.0
 
-- Original release with object oriented code.
+-   Original release with object oriented code.

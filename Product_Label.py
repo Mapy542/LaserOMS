@@ -9,7 +9,6 @@ import tinydb
 from guizero import Combo, ListBox, PushButton, Text, Window
 from PIL import Image, ImageDraw, ImageFont
 
-import Common
 from PackingSlip import TextWrap
 
 

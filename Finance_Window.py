@@ -13,8 +13,6 @@ import Settings_Window
 
 from decimal import *
 
-getcontext().prec = 2  # Set decimal precision to 2
-
 
 def GetRevenueStats(database):
     orders = database.table("Orders")  # load all orders and order items
@@ -35,18 +33,19 @@ def GetRevenueStats(database):
         month = int(order["order_date"].split("-")[0])
 
         if year not in YearlyRevenue:  # add year to year dictionary if not in it
-            YearlyRevenue[year] = Common.Decimal("0")
+            YearlyRevenue[year] = Decimal("0")
             MonthlyRevenue[year] = {}
         # add month to year in monthly revenue if not in it.
         if month not in MonthlyRevenue[year]:
-            MonthlyRevenue[year][month] = Common.Decimal("0")
+            MonthlyRevenue[year][month] = Decimal("0")
 
         ItemUIDs = order["order_items_UID"]  # find order items
 
         for uid in ItemUIDs:  # for each order item
             Item = order_items.search(tinydb.where("item_UID") == uid)[0]  # lookup item
-            total = Common.Decimal(Item["item_quantity"])
-            total.multiply(Item["item_unit_price"])  # calculate total
+            total = Decimal(Item["item_quantity"])
+            total *= Decimal(Item["item_unit_price"])  # calculate total
+            total = total.quantize(Decimal("0.01"), ROUND_HALF_EVEN)  # round total
             YearlyRevenue[year].add(total)  # apply total where applicable.
             MonthlyRevenue[year][month].add(total)
 
@@ -97,6 +96,7 @@ def GetExpenseStats(database):
             MonthlyExpenses[year][month] = Decimal("0")
 
         total = Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"])
+        total = total.quantize(Decimal("0.01"), ROUND_HALF_EVEN)  # round total
         YearlyExpenses[year] += total  # add total to year
         MonthlyExpenses[year][month] += total  # add total to month
 
@@ -135,7 +135,12 @@ def ShowFinancialStats(database):
             # add expenses to listbox
             listbox.append("  Expenses: " + str(YearlyExpenses[year]))
             listbox.append(
-                "  Profit: " + str(Decimal(YearlyRevenue[year]) - Decimal(YearlyExpenses[year]))
+                "  Profit: "
+                + str(
+                    (Decimal(YearlyRevenue[year]) - Decimal(YearlyExpenses[year])).quantize(
+                        Decimal("0.01"), ROUND_HALF_EVEN
+                    )
+                )
             )  # calculate and display difference in revenue and expenses
         else:  # if there are no expenses
             listbox.append("  Expenses: 0")  # display no expenses
@@ -153,7 +158,10 @@ def ShowFinancialStats(database):
                 listbox.append(
                     "      Profit: "
                     + str(
-                        Decimal(MonthlyRevenue[year][month]) - Decimal(MonthlyExpenses[year][month])
+                        (
+                            Decimal(MonthlyRevenue[year][month])
+                            - Decimal(MonthlyExpenses[year][month])
+                        ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
                     )
                 )
             else:
@@ -219,7 +227,12 @@ def ShowExpenses(database):
                 + ": "
                 + expense["expense_date"]
                 + ", $"
-                + str(Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"]))
+                + str(
+                    (
+                        Decimal(expense["expense_quantity"])
+                        * Decimal(expense["expense_unit_price"])
+                    ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
+                )
                 + VerifiedExpenseText
             )  # add expense to listbox
         elif ToShowExpenseSort == str(Year):  # if expenses from year
@@ -229,7 +242,12 @@ def ShowExpenses(database):
                 + ": "
                 + expense["expense_date"]
                 + ", $"
-                + str(Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"]))
+                + str(
+                    (
+                        Decimal(expense["expense_quantity"])
+                        * Decimal(expense["expense_unit_price"])
+                    ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
+                )
                 + VerifiedExpenseText
             )  # add expense to listbox
 

@@ -8,12 +8,14 @@ from guizero import PushButton, Text, TextBox, Window
 import Common
 from decimal import *
 
-getcontext().prec = 2  # Set decimal precision to 2
-
 
 def price_update():
     global ExpenseName, ItemQuantity, ItemPrice, TotalText
-    TotalText.value = "Total: $" + str(Decimal(ItemQuantity.value) * Decimal(ItemPrice.value))
+    TotalText.value = "Total: $" + str(
+        (Decimal(ItemQuantity.value) * Decimal(ItemPrice.value)).quantize(
+            Decimal("0.01"), ROUND_HALF_EVEN
+        )
+    )
 
 
 def export(database):

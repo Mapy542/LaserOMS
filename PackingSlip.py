@@ -7,10 +7,7 @@ import traceback
 import tinydb
 from PIL import Image, ImageDraw, ImageFont
 
-import Common
 from decimal import *
-
-getcontext().prec = 2  # Set decimal precision to 2
 
 
 def TextWrap(text, rowLength):
@@ -348,6 +345,7 @@ def PrintPackingSlip(app, database, OrderNumber):
                 )
                 Subtotal = Decimal(items[i]["item_quantity"])
                 Subtotal *= Decimal(items[i]["item_unit_price"])
+                Subtotal = Subtotal.quantize(Decimal("0.01"), ROUND_HALF_EVEN)
                 Canvas.text(
                     (1200, 720 + (i + 1) * 50),
                     "$" + str(Subtotal),
@@ -370,7 +368,9 @@ def PrintPackingSlip(app, database, OrderNumber):
             for item in items:
                 Subtotal = Decimal(item["item_quantity"])
                 Subtotal *= Decimal(item["item_unit_price"])
-                Total *= Subtotal
+                Subtotal = Subtotal.quantize(Decimal("0.01"), ROUND_HALF_EVEN)
+                Total += Subtotal
+                Total = Total.quantize(Decimal("0.01"), ROUND_HALF_EVEN)
 
             Canvas.text((520, 1600), "Total: $" + str(Total), font=NormalFont, fill=(TextColor))
 

@@ -10,8 +10,6 @@ import Inventory_Management_Window
 import PackingSlip
 from decimal import *
 
-getcontext().prec = 2  # Set decimal precision to 2
-
 
 def PriceUpdate():
     global PurchaseName, address, address2, city, state, ZipCode, PricingOptionButton, item1, item2, item3, item4, item5
@@ -31,8 +29,10 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice1.value = "$" + str(
-            Decimal(item1_data[0][PricingOptionButton.value.replace(" ", "_")])
-            * Decimal(ItemQuantity1.value)
+            (
+                Decimal(item1_data[0][PricingOptionButton.value.replace(" ", "_")])
+                * Decimal(ItemQuantity1.value)
+            ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
         )
     except:
         ItemPrice1.value = "NA"
@@ -47,8 +47,10 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice2.value = "$" + str(
-            Decimal(item2_data[0][PricingOptionButton.value.replace(" ", "_")])
-            * Decimal(ItemQuantity2.value)
+            (
+                Decimal(item2_data[0][PricingOptionButton.value.replace(" ", "_")])
+                * Decimal(ItemQuantity2.value)
+            ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
         )
     except:
         ItemPrice2.value = "NA"
@@ -63,8 +65,10 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice3.value = "$" + str(
-            Decimal(item3_data[0][PricingOptionButton.value.replace(" ", "_")])
-            * Decimal(ItemQuantity3.value)
+            (
+                Decimal(item3_data[0][PricingOptionButton.value.replace(" ", "_")])
+                * Decimal(ItemQuantity3.value)
+            ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
         )
     except:
         ItemPrice3.value = "NA"
@@ -79,8 +83,10 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice4.value = "$" + str(
-            Decimal(item4_data[0][PricingOptionButton.value.replace(" ", "_")])
-            * Decimal(ItemQuantity4.value)
+            (
+                Decimal(item4_data[0][PricingOptionButton.value.replace(" ", "_")])
+                * Decimal(ItemQuantity4.value)
+            ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
         )
     except:
         ItemPrice4.value = "NA"
@@ -95,19 +101,23 @@ def PriceUpdate():
         )  # Get the data for the item
         # Set the price to the price of the item times the quantity
         ItemPrice5.value = "$" + str(
-            Decimal(item5_data[0][PricingOptionButton.value.replace(" ", "_")])
-            * Decimal(ItemQuantity5.value)
+            (
+                Decimal(item5_data[0][PricingOptionButton.value.replace(" ", "_")])
+                * Decimal(ItemQuantity5.value)
+            ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
         )
     except:
         ItemPrice5.value = "NA"
 
     # Calculate the total
     Total.value = "Total: $" + str(
-        Decimal(ItemPrice1.value.replace("$", ""))
-        + Decimal(ItemPrice2.value.replace("$", ""))
-        + Decimal(ItemPrice3.value.replace("$", ""))
-        + Decimal(ItemPrice4.value.replace("$", ""))
-        + Decimal(ItemPrice5.value.replace("$", ""))
+        (
+            Decimal(ItemPrice1.value.replace("$", ""))
+            + Decimal(ItemPrice2.value.replace("$", ""))
+            + Decimal(ItemPrice3.value.replace("$", ""))
+            + Decimal(ItemPrice4.value.replace("$", ""))
+            + Decimal(ItemPrice5.value.replace("$", ""))
+        ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
     )
 
 

@@ -7,8 +7,6 @@ import tinydb
 
 from decimal import *
 
-getcontext().prec = 2  # Set decimal precision to 2
-
 
 def HeaderHTML():
     return (
@@ -75,7 +73,11 @@ def ExpenseToHTML(expenses):
         code += "<p>Expense Date: " + expense["expense_date"] + "</p> <br>\n"
         code += (
             "<p>Expense Total: $"
-            + str(Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"]))
+            + str(
+                (
+                    Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"])
+                ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
+            )
             + "</p> <br> \n"
         )
         code += (
@@ -109,9 +111,13 @@ def ExpenseToHTML(expenses):
                     + """">Expense Image File</a></p> <br> \n"""
                 )
         code += "<hr> \n"
-        total += Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"])
+        total += (
+            Decimal(expense["expense_quantity"]) * Decimal(expense["expense_unit_price"])
+        ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
 
-    code += "<h2>Total Expenses: $" + str(total) + "</h2> \n"
+    code += (
+        "<h2>Total Expenses: $" + str(total.quantize(Decimal("0.01"), ROUND_HALF_EVEN)) + "</h2> \n"
+    )
     return code
 
 

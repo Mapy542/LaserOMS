@@ -7,7 +7,6 @@ import webbrowser
 
 from decimal import *
 
-getcontext().prec = 2
 
 import tinydb
 from guizero import Text, Window
@@ -471,7 +470,9 @@ def SaveOrdersNoOverwrite(Receipts, database):  # save orders to database
         for action in Receipt["transactions"]:
             ItemName = action["title"]
             Quantity = action["quantity"]
-            UnitPrice = Decimal(action["price"]["amount"]) / Decimal(action["price"]["divisor"])
+            UnitPrice = (
+                Decimal(action["price"]["amount"]) / Decimal(action["price"]["divisor"])
+            ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
             order_items.insert(
                 {
                     "item_UID": ItemUIDs[count],

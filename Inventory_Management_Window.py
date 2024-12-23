@@ -5,8 +5,6 @@ import Common
 
 from decimal import *
 
-getcontext().prec = 2  # Set decimal precision to 2
-
 
 def UpdateListbox(InfoBox, database):
     """Updates the listbox with the current inventory groups
@@ -56,12 +54,16 @@ def ShowGroupOverview(InfoBox, database):
         quantity = sum([item["item_quantity"] for item in inventory["inventory_items"]])
         value = Decimal(0)
         for item in inventory["inventory_items"]:
-            value += Decimal(item["item_quantity"]) * Decimal(
-                item["product_snapshot"][pricingOption]
-            )
+            value += (
+                Decimal(item["item_quantity"]) * Decimal(item["product_snapshot"][pricingOption])
+            ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
 
         sortedInventories.append(
-            [inventory["inventory_name"], "QTY: " + str(quantity), "$" + str(value)]
+            [
+                inventory["inventory_name"],
+                "QTY: " + str(quantity),
+                "$" + str(value.quantize(Decimal("0.01"), ROUND_HALF_EVEN)),
+            ]
         )
 
     # sort by inventory name
@@ -90,7 +92,9 @@ def ShowIndividualInventory(InfoBox, InventoryName, database):
     quantity = sum([item["item_quantity"] for item in inventory["inventory_items"]])
     value = Decimal(0)
     for item in inventory["inventory_items"]:
-        value += Decimal(item["item_quantity"]) * Decimal(item["product_snapshot"][pricingOption])
+        value += (
+            Decimal(item["item_quantity"]) * Decimal(item["product_snapshot"][pricingOption])
+        ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
 
     sortedItems = [
         [
@@ -98,7 +102,10 @@ def ShowIndividualInventory(InfoBox, InventoryName, database):
             "Quantity: " + str(item["item_quantity"]),
             "Value: "
             + str(
-                Decimal(item["item_quantity"]) * Decimal(item["product_snapshot"][pricingOption])
+                (
+                    Decimal(item["item_quantity"])
+                    * Decimal(item["product_snapshot"][pricingOption])
+                ).quantize(Decimal("0.01"), ROUND_HALF_EVEN)
             ),
         ]
         for item in inventory["inventory_items"]

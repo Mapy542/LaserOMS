@@ -45,3 +45,6 @@ Label_Background_Path,!RelativePath:ProductLabel.png,PATH,UTILIZE
 Label_Include_Website,True,BOOLEAN,UTILIZE
 ~ Expense View Settings
 Show_Expenses_Without_Image_Verification,True,BOOLEAN,UTILIZE
+~ Parallel Processing
+Max_Parallel_Processes,2,TEXT,UTILIZE
+Reprocess_Frequency_Days,2,TEXT,UTILIZE

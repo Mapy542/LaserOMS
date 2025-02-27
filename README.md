@@ -102,7 +102,7 @@ The product view page can be accessed by selecting the see all products button i
 
 Version 1.3.6
 
--   Migrated to Python Decimal module for monetary calculations.
+-   Migrated to Python Decimal module for monetary calculations. (Fixed rounding errors)
 
 Version 1.3.5
 

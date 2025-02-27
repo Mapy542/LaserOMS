@@ -1,5 +1,6 @@
 import random
 
+import guizero
 import tinydb
 
 # Common functions to be used throughout the project
@@ -115,3 +116,22 @@ def ColumnAlignment(Rows=[[], []]):
 
     print(returnRows)
     return returnRows
+
+
+def makeWindowFullscreen(window: guizero.Window):
+    """Makes a guizero window fullscreen (No title bar/controls)
+
+    Args:
+        window (guizero.Window): Window to make fullscreen
+    """
+    window.tk.attributes("-fullscreen", True)
+    window.tk.attributes("-topmost", True)
+
+
+def maximizeWindow(window: guizero.Window):
+    """Maximizes a guizero window
+
+    Args:
+        window (guizero.Window): Window to maximize
+    """
+    window.tk.attributes("-zoomed", True)

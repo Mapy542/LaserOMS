@@ -1,12 +1,12 @@
 import datetime
 import os
 import shutil
+from decimal import *
 
 import tinydb
 from guizero import PushButton, Text, TextBox, Window
 
 import Common
-from decimal import *
 
 
 def price_update():
@@ -168,3 +168,5 @@ def NewExpense(main_window, database):
         Window2, command=export, text="Save", grid=[0, 19], args=[database]
     )  # Create button
     CancelButton = PushButton(Window2, command=close, text="Cancel", grid=[1, 19])  # Create button
+
+    return Window2

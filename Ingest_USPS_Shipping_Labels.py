@@ -1,13 +1,13 @@
 import datetime
 import os
 import shutil
+from decimal import *
 
 import PyPDF2
 import tinydb
 from guizero import CheckBox, PushButton, Text, TextBox, Window
 
 import Common
-from decimal import *
 
 
 def price_update():
@@ -215,3 +215,5 @@ def ImportUSPSShippingExpense(main_window, database):
     CancelButton = PushButton(Window2, command=close, text="Cancel", grid=[1, 19])  # Create button
 
     deleteImg = CheckBox(Window2, text="Delete Img after Save", grid=[0, 20])
+
+    return Window2

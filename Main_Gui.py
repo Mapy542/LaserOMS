@@ -12,6 +12,7 @@ from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 
 import Auto_Update
+import Common
 import Details
 import Finance_Window
 import Ingest_Amazon_Expense
@@ -202,15 +203,25 @@ def ExpenseSelect(typeSelect, popup, database):
         popup (Window): The popup window to be closed
         database (TinyDB Database): The Laser OMS database
     """
+    expenseWindow = None
     if typeSelect.value == "Etsy":  # if etsy is selected
-        Ingest_Etsy_Shipping_Labels.ImportEtsyShippingExpense(app, database)  # import etsy expense
+        expenseWindow = Ingest_Etsy_Shipping_Labels.ImportEtsyShippingExpense(
+            app, database
+        )  # import etsy expense
     elif typeSelect.value == "USPS":  # if usps is selected
-        Ingest_USPS_Shipping_Labels.ImportUSPSShippingExpense(app, database)  # import usps expense
+        expenseWindow = Ingest_USPS_Shipping_Labels.ImportUSPSShippingExpense(
+            app, database
+        )  # import usps expense
     elif typeSelect.value == "Amazon Expense":  # if empty is selected
-        Ingest_Amazon_Expense.ImportAmazonExpense(app, database)  # import amazon expense
+        expenseWindow = Ingest_Amazon_Expense.ImportAmazonExpense(
+            app, database
+        )  # import amazon expense
     else:
-        NewExpense(app, database)
+        expenseWindow = NewExpense(app, database)
     popup.destroy()  # close window
+
+    expenseWindow.tk.attributes("-topmost", True)
+    expenseWindow.focus()
 
 
 def CreateExpense():

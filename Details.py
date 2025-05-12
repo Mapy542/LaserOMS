@@ -366,6 +366,9 @@ def EditDefaultOrder(main_window, database, OrderNumber):
         items.append(item)
 
     ItemSnapShots = [item["product_snapshot"] for item in items]  # Get the snapshots for the items
+    product_names.extend(
+        [item["product_snapshot"]["product_name"] for item in items]
+    )  # Add the product names to the list so no longer existing products can be selected as they are historically in the order
 
     if len(items) > 0:
         item1.value = items[0]["item_name"]

@@ -1,9 +1,7 @@
 import datetime
 import os
 import shutil
-
 from decimal import *
-
 
 import tinydb
 from guizero import PushButton, Text, TextBox, Window
@@ -128,7 +126,7 @@ def ExpenseEdit(main_window, database, ExpenseName):
     global Window2
 
     Window2 = Window(
-        main_window, title="New Expense", layout="grid", width=600, height=600
+        main_window, title="New Expense", layout="grid", width=800, height=600
     )  # Create window
     welcome_message = Text(
         Window2, text="Add Expense", size=18, font="Times New Roman", grid=[0, 0]

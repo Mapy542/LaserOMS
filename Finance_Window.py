@@ -1,3 +1,5 @@
+from decimal import *
+
 import tinydb
 from guizero import Combo, ListBox, PushButton, Text, TitleBox, Window
 
@@ -10,8 +12,6 @@ import Ingest_Etsy_Shipping_Labels
 import Ingest_USPS_Shipping_Labels
 import New_Expense_Window
 import Settings_Window
-
-from decimal import *
 
 
 def GetRevenueStats(database):
@@ -46,8 +46,8 @@ def GetRevenueStats(database):
             total = Decimal(Item["item_quantity"])
             total *= Decimal(Item["item_unit_price"])  # calculate total
             total = total.quantize(Decimal("0.01"), ROUND_HALF_EVEN)  # round total
-            YearlyRevenue[year].add(total)  # apply total where applicable.
-            MonthlyRevenue[year][month].add(total)
+            YearlyRevenue[year] += total  # apply total where applicable.
+            MonthlyRevenue[year][month] += total
 
     return YearlyRevenue, MonthlyRevenue
 

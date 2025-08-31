@@ -1,6 +1,16 @@
-import tinydb, json
+import datetime
+import json
+import multiprocessing
+import threading
 
-import multiprocessing, datetime, threading
+import tinydb
+
+import Parallel_Jobs
+
+BACKGROUND_COMMON_JOBS = [
+    Parallel_Jobs.RevenueCalculations,
+    Parallel_Jobs.ExpenseCalculations,
+]
 
 
 def checkForReprocess(database):
@@ -25,13 +35,16 @@ def checkForReprocess(database):
     if len(lastProcessTimeSearch) == 0:
         return True
 
-    lastProcessTime = lastProcessTimeSearch[0]["processing_timestamp"]
+    try:
+        lastProcessTime = lastProcessTimeSearch[0]["processing_timestamp"]
 
-    checkTime = (
-        lastProcessTime + reprocessTime * 24 * 60 * 60
-    )  # takes the last processing time and adds the reprocess frequency in seconds
+        checkTime = (
+            lastProcessTime + reprocessTime * 24 * 60 * 60
+        )  # takes the last processing time and adds the reprocess frequency in seconds
 
-    return checkTime < datetime.datetime.now().timestamp()
+        return checkTime < datetime.datetime.now().timestamp()
+    except ValueError:
+        return True
 
 
 def serializeDB(database):
@@ -73,11 +86,15 @@ def pollForParallelProcessing(database, app):
         None
     """
 
+    processingResults = ["Processing Started", True]
     if checkForReprocess(database):
         parallelProcessInterface = threading.Thread(
-            target=parallelProcessThread, args=(database, app), daemon=True
+            target=parallelProcessThread, args=(database, app, None, processingResults), daemon=True
         )
         parallelProcessInterface.start()
+        return processingResults
+    processingResults = ["No Processing Needed", False]
+    return processingResults
 
 
 def forceParallelProcessing(database, app):
@@ -94,7 +111,7 @@ def forceParallelProcessing(database, app):
     parallelProcessInterface.start()
 
 
-def parallelProcessThread(database, app):
+def parallelProcessThread(database, app, additionalJobs=None, processingResults=None):
     """This function starts and interfaces the parallel processing. Should be run as a thread.
     We need direct access to the database and app, but it may take a long time to serialize the db and return job values.
 
@@ -122,24 +139,44 @@ def parallelProcessThread(database, app):
     results = multiprocessing.Queue()
 
     dbCopy = serializeDB(database)
+
+    jobsCount = len(BACKGROUND_COMMON_JOBS)
+
     [
-        jobs.put(job) for job in jobClasses
+        jobs.put(job) for job in BACKGROUND_COMMON_JOBS
     ]  # issues all jobs to the queue. This must be done before the processes are started. They exit if the queue is empty.
 
+    if additionalJobs is not None:
+        [jobs.put(job) for job in additionalJobs]
+
+        jobsCount += len(additionalJobs)
+
     parallelProcessors = [
-        multiprocessing.Process(target=processJobsThread, args=(dbCopy, results, jobs), daemon=True)
+        multiprocessing.Process(target=processJobsThread, args=(dbCopy, jobs, results), daemon=True)
         for _ in range(maxProcesses)
     ]
 
     [p.start() for p in parallelProcessors]
 
-    applyResults(database, results, jobs)
+    if processingResults is not None:
+        processingResults[0] = "Processing..."
+        processingResults[1] = True
+
+    jobs.join()  # wait for all jobs to finish
+
+    [jobs.put(None) for _ in range(maxProcesses)]  # tell all processes to exit
+
+    applyResults(database, results, jobsCount)
+
+    if processingResults is not None:
+        processingResults[0] = "Processing Complete"
+        processingResults[1] = False
 
 
 def applyResults(
     database: tinydb.TinyDB,
     resultsQueue: multiprocessing.Queue,
-    jobsQueue: multiprocessing.JoinableQueue,
+    length=None,
 ):
     """Applies the results of the parallel processing to the database.
 
@@ -151,7 +188,10 @@ def applyResults(
 
     transients = database.table("Transients")
 
-    while not jobsQueue.empty() and not resultsQueue.empty():
+    if length is None:
+        length = resultsQueue.qsize()
+
+    for _ in range(length):
         result = resultsQueue.get()
 
         transients.upsert(result, tinydb.Query().transient_name == result["transient_name"])
@@ -166,13 +206,22 @@ def processJobsThread(databaseCopy, jobsQueue, resultsQueue):
         resultsQueue (multiprocessing.Queue): The queue to put the results in.
     """
 
-    pass
+    db = deserializeDB(databaseCopy)
 
+    while True:
+        job = jobsQueue.get()
+        if job is None:
+            break
 
-class Job:
-    def __init__(self, name, jobJson):
-        self.name = name
-        self.jobJson = jobJson
-
-    def functionalize(self):
-        """Converts the job into a function that can be run in parallel."""
+        try:
+            result = job(db)
+            result["ERROR"] = False
+        except Exception as e:
+            result = {
+                "transient_name": "Error_" + job.__name__,
+                "error": str(e),
+                "ERROR": True,
+            }
+        result["processing_timestamp"] = datetime.datetime.now().timestamp()
+        resultsQueue.put(result)
+        jobsQueue.task_done()

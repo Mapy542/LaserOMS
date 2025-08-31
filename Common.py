@@ -114,7 +114,6 @@ def ColumnAlignment(Rows=[[], []]):
             returnRow.append(str(row[i]) + " " * (maxLengths[i] - len(str(row[i]))))
         returnRows.append(" ".join(returnRow))
 
-    print(returnRows)
     return returnRows
 
 

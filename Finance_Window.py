@@ -117,8 +117,37 @@ def UpdateListbox(database, ShowCombo, ExpenseSortDiv, DeleteButton):
 
 
 def ShowFinancialStats(database):
-    YearlyRevenue, MonthlyRevenue = GetRevenueStats(database)  # returns 2 lists of dictionaries
-    YearlyExpenses, MonthlyExpenses = GetExpenseStats(database)
+    transients = database.table("Transients")
+    expenses = transients.search(tinydb.Query().transient_name == "Expense_Calculations")
+    revenues = transients.search(tinydb.Query().transient_name == "Revenue_Calculations")
+    if len(expenses) == 0 or len(revenues) == 0:
+        YearlyRevenue, MonthlyRevenue = GetRevenueStats(database)  # returns 2 lists of dictionaries
+        YearlyExpenses, MonthlyExpenses = GetExpenseStats(database)
+        # save to transients
+        transients.upsert(
+            {
+                "transient_name": "Expense_Calculations",
+                "yearly_expenses": YearlyExpenses,
+                "monthly_expenses": MonthlyExpenses,
+                "process_status": "UTILIZE",
+            },
+            tinydb.Query().transient_name == "Expense_Calculations",
+        )
+        transients.upsert(
+            {
+                "transient_name": "Revenue_Calculations",
+                "yearly_revenue": YearlyRevenue,
+                "monthly_revenue": MonthlyRevenue,
+                "process_status": "UTILIZE",
+            },
+            tinydb.Query().transient_name == "Revenue_Calculations",
+        )
+    else:
+        # load from transients if they exist
+        YearlyRevenue = revenues[0]["yearly_revenue"]
+        MonthlyRevenue = revenues[0]["monthly_revenue"]
+        YearlyExpenses = expenses[0]["yearly_expenses"]
+        MonthlyExpenses = expenses[0]["monthly_expenses"]
 
     # sort yearly revenue by year descending. Most recent on top
     YearlyRevenue = dict(sorted(YearlyRevenue.items(), reverse=True))

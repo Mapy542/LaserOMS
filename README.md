@@ -104,6 +104,8 @@ Version 1.3.6
 
 -   Migrated to Python Decimal module for monetary calculations. (Fixed rounding errors)
 -   Fixed bug with details window product auto-fill.
+-   Added background preprocessing for financial statistics to speed up loading times.
+-   Added background jobs for products and order synchronization.
 
 Version 1.3.5
 
